@@ -1,0 +1,1704 @@
+/* Experiencia de mesa: página del cliente (QR), plano 3D del salón y hoja de códigos QR. */
+.dining-client,
+.dining-floor-module {
+    --dn-brand: #004797;
+    --dn-brand-deep: #002b5e;
+    --dn-brand-mid: #1264be;
+    --dn-brand-soft: rgba(0, 71, 151, 0.1);
+    --dn-text: #0f172a;
+    --dn-muted: #52637a;
+    --dn-hairline: rgba(0, 71, 151, 0.14);
+    --dn-glass: linear-gradient(145deg, rgba(255, 255, 255, 0.86), rgba(240, 247, 255, 0.62));
+    --dn-shadow: 0 18px 44px -22px rgba(0, 43, 94, 0.38), 0 2px 6px rgba(0, 43, 94, 0.06);
+    --dn-ease: 180ms cubic-bezier(0.4, 0, 0.2, 1);
+    --dn-available: #2f9e75;
+    --dn-open: #004797;
+    --dn-checkout: #d98a00;
+    --dn-paid: #0a8f6a;
+    --dn-cleaning: #7a8aa3;
+    --dn-maintenance: #94a3b8;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    color: var(--dn-text);
+}
+
+.dining-client *,
+.dining-floor-module * {
+    box-sizing: border-box;
+}
+
+.dining-eyebrow {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--dn-brand);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+/* Botones y campos compartidos */
+.dining-client button,
+.dining-floor-module button,
+.dining-primary-link {
+    min-height: 44px;
+    border: 1px solid var(--dn-hairline);
+    border-radius: 14px;
+    padding: 10px 18px;
+    background: rgba(255, 255, 255, 0.78);
+    color: var(--dn-brand);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform var(--dn-ease), box-shadow var(--dn-ease), background var(--dn-ease);
+}
+
+.dining-client button:hover:not(:disabled),
+.dining-floor-module button:hover:not(:disabled),
+.dining-primary-link:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 22px -14px rgba(0, 71, 151, 0.55);
+}
+
+.dining-client button:focus-visible,
+.dining-floor-module button:focus-visible,
+.dining-primary-link:focus-visible,
+.dining-client input:focus-visible,
+.dining-client select:focus-visible,
+.dining-floor-module select:focus-visible {
+    outline: 3px solid rgba(0, 71, 151, 0.35);
+    outline-offset: 2px;
+}
+
+.dining-client button:disabled,
+.dining-floor-module button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.dining-welcome form > button,
+.dining-order-dock > button,
+.dining-primary-link,
+.dining-qr-print-action button,
+.dining-actions button:last-child,
+.dining-payment-actions button,
+.dining-confirm button:first-of-type,
+.dining-service-request button {
+    border-color: transparent;
+    background: linear-gradient(135deg, var(--dn-brand-mid), var(--dn-brand));
+    color: #fff;
+}
+
+.dining-client input,
+.dining-client select,
+.dining-floor-module select {
+    width: 100%;
+    min-height: 46px;
+    margin-top: 6px;
+    border: 1px solid var(--dn-hairline);
+    border-radius: 12px;
+    padding: 10px 14px;
+    background: rgba(255, 255, 255, 0.92);
+    color: var(--dn-text);
+    font: inherit;
+}
+
+/* Página del cliente */
+.dining-client {
+    min-height: 100vh;
+    padding: 16px 16px 140px;
+    background:
+        radial-gradient(120% 80% at 10% -10%, rgba(0, 71, 151, 0.16), transparent 55%),
+        radial-gradient(90% 60% at 100% 0%, rgba(43, 125, 224, 0.14), transparent 50%),
+        linear-gradient(180deg, #f4f9ff, #e9f2fc);
+}
+
+.dining-client > * {
+    max-width: 980px;
+    margin-inline: auto;
+}
+
+.dining-client-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 18px;
+    padding: 12px 18px;
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    border-radius: 18px;
+    background: var(--dn-glass);
+    box-shadow: var(--dn-shadow);
+    backdrop-filter: blur(18px) saturate(1.4);
+}
+
+.dining-client-header a {
+    color: var(--dn-brand);
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-decoration: none;
+}
+
+.dining-client-header a span {
+    display: block;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    color: var(--dn-muted);
+}
+
+.dining-welcome,
+.dining-visit-heading,
+.dining-client-catalog,
+.dining-bill,
+.dining-quick-actions button {
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    background: var(--dn-glass);
+    box-shadow: var(--dn-shadow);
+    backdrop-filter: blur(18px) saturate(1.4);
+}
+
+.dining-welcome {
+    padding: 28px 22px;
+    border-radius: 26px;
+}
+
+.dining-welcome h1,
+.dining-visit-heading h1 {
+    margin: 0 0 12px;
+    color: var(--dn-brand-deep);
+    font-size: clamp(30px, 8vw, 48px);
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+}
+
+.dining-welcome p {
+    color: var(--dn-muted);
+}
+
+.dining-welcome form {
+    display: grid;
+    gap: 14px;
+    margin-top: 18px;
+}
+
+.dining-welcome label {
+    color: var(--dn-muted);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.dining-checkbox {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.dining-checkbox input {
+    width: 20px;
+    min-height: 20px;
+    margin-top: 2px;
+    accent-color: var(--dn-brand);
+}
+
+.dining-native-link {
+    display: inline-block;
+    margin-top: 16px;
+    color: var(--dn-brand);
+    font-weight: 600;
+}
+
+.dining-error,
+.dining-notice {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    padding: 12px 16px;
+    border-radius: 14px;
+    font-size: 14px;
+}
+
+.dining-error {
+    border: 1px solid rgba(190, 18, 60, 0.25);
+    background: rgba(255, 241, 244, 0.9);
+    color: #9f1239;
+}
+
+.dining-notice {
+    border: 1px solid rgba(10, 143, 106, 0.25);
+    background: rgba(236, 253, 245, 0.92);
+    color: #065f46;
+}
+
+.dining-notice button {
+    min-height: 32px;
+    margin-left: auto;
+    padding: 4px 12px;
+}
+
+.dining-visit-heading {
+    display: grid;
+    gap: 18px;
+    margin-bottom: 18px;
+    padding: 24px 22px;
+    border-radius: 26px;
+}
+
+.dining-visit-code {
+    padding: 16px 18px;
+    border-radius: 18px;
+    background: var(--dn-brand-soft);
+}
+
+.dining-visit-code span,
+.dining-visit-code small {
+    display: block;
+    color: var(--dn-muted);
+    font-size: 12px;
+}
+
+.dining-visit-code strong {
+    display: block;
+    color: var(--dn-brand);
+    font-size: 34px;
+    letter-spacing: 0.18em;
+}
+
+.dining-quick-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.dining-quick-actions button {
+    display: grid;
+    gap: 4px;
+    padding: 16px;
+    border-radius: 18px;
+    text-align: left;
+}
+
+.dining-quick-actions small {
+    color: var(--dn-muted);
+    font-weight: 500;
+}
+
+.dining-client-catalog,
+.dining-bill {
+    margin-bottom: 18px;
+    padding: 22px 18px;
+    border-radius: 26px;
+}
+
+.dining-section-title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.dining-section-title h2,
+.dining-bill h2 {
+    margin: 0;
+    color: var(--dn-brand-deep);
+    font-size: clamp(22px, 5vw, 30px);
+    letter-spacing: -0.02em;
+}
+
+.dining-section-title span {
+    color: var(--dn-muted);
+    font-size: 13px;
+}
+
+.dining-client-products {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+}
+
+.dining-client-products article {
+    overflow: hidden;
+    border: 1px solid var(--dn-hairline);
+    border-radius: 22px;
+    background: rgba(255, 255, 255, 0.82);
+    transition: transform var(--dn-ease), box-shadow var(--dn-ease);
+}
+
+.dining-client-products article:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--dn-shadow);
+}
+
+.dining-dish-photo {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 190px;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    overflow: hidden;
+}
+
+.dining-dish-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 400ms ease;
+}
+
+.dining-dish-photo:hover img {
+    transform: scale(1.06);
+}
+
+.dining-dish-photo span {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.9);
+    color: var(--dn-brand);
+    font-size: 12px;
+    font-weight: 700;
+    backdrop-filter: blur(8px);
+}
+
+.dining-client-products article > div {
+    padding: 16px;
+}
+
+.dining-client-products h3 {
+    margin: 0 0 6px;
+    font-size: 18px;
+}
+
+.dining-client-products p {
+    min-height: 44px;
+    margin: 0 0 12px;
+    color: var(--dn-muted);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.dining-client-products footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.dining-client-products footer strong {
+    color: var(--dn-brand);
+    font-size: 18px;
+}
+
+.dining-quantity {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.dining-quantity button {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    min-height: 40px;
+    padding: 0;
+    border-radius: 12px;
+}
+
+.dining-quantity span {
+    min-width: 20px;
+    text-align: center;
+    font-weight: 700;
+}
+
+.dining-bill article {
+    display: grid;
+    gap: 4px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--dn-hairline);
+}
+
+.dining-bill article > div {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 6px;
+}
+
+.dining-bill article span,
+.dining-bill article p {
+    margin: 0;
+    color: var(--dn-muted);
+    font-size: 14px;
+}
+
+.dining-account-totals {
+    display: grid;
+    gap: 6px;
+    margin: 16px 0;
+}
+
+.dining-account-totals p {
+    display: flex;
+    justify-content: space-between;
+    margin: 0;
+    color: var(--dn-muted);
+}
+
+.dining-account-totals strong {
+    color: var(--dn-brand-deep);
+    font-size: 18px;
+}
+
+.dining-primary-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-decoration: none;
+}
+
+.dining-bill small {
+    display: block;
+    margin-top: 10px;
+    color: var(--dn-muted);
+}
+
+.dining-order-dock {
+    position: fixed;
+    right: 12px;
+    bottom: 12px;
+    left: 12px;
+    z-index: 30;
+    display: grid;
+    gap: 10px;
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    border-radius: 22px;
+    background: var(--dn-glass);
+    box-shadow: 0 -10px 40px -16px rgba(0, 43, 94, 0.45);
+    backdrop-filter: blur(22px) saturate(1.5);
+}
+
+.dining-order-dock label {
+    color: var(--dn-muted);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.dining-order-dock > button {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+/* Detalle del plato: modelo 3D si existe, foto interactiva si no */
+.dining-detail-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    display: grid;
+    place-items: center;
+    padding: 16px;
+    background: rgba(0, 28, 64, 0.5);
+    backdrop-filter: blur(8px);
+}
+
+.dining-dish-dialog {
+    position: relative;
+    width: min(520px, 100%);
+    max-height: 92vh;
+    overflow: auto;
+    padding: 22px;
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    border-radius: 28px;
+    background: linear-gradient(160deg, #fff, #eef5ff);
+    box-shadow: 0 30px 80px -24px rgba(0, 28, 64, 0.6);
+}
+
+.dining-dish-dialog h2 {
+    margin: 4px 0 8px;
+    color: var(--dn-brand-deep);
+}
+
+.dining-dish-dialog p {
+    color: var(--dn-muted);
+}
+
+.dining-dish-dialog > strong {
+    color: var(--dn-brand);
+    font-size: 22px;
+}
+
+.dining-detail-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    z-index: 2;
+    min-height: 36px !important;
+    padding: 6px 14px !important;
+}
+
+.dining-dish-perspective {
+    display: grid;
+    place-items: center;
+    margin-bottom: 14px;
+    perspective: 900px;
+    border-radius: 22px;
+    background: radial-gradient(circle at 50% 45%, rgba(0, 71, 151, 0.12), transparent 70%);
+}
+
+.dining-dish-perspective img {
+    width: 100%;
+    max-height: 300px;
+    border-radius: 20px;
+    object-fit: cover;
+    transition: transform 120ms ease-out;
+    box-shadow: 0 24px 40px -20px rgba(0, 43, 94, 0.5);
+}
+
+.dining-dish-perspective model-viewer {
+    width: 100%;
+    height: 320px;
+    --poster-color: transparent;
+    background: transparent;
+}
+
+/* Plano del salón (panel) */
+.dining-floor-module {
+    display: grid;
+    gap: 18px;
+}
+
+.dining-floor-heading {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 14px;
+}
+
+.dining-floor-heading h2 {
+    margin: 0;
+    color: var(--dn-brand-deep);
+    font-size: clamp(24px, 4vw, 34px);
+    letter-spacing: -0.02em;
+}
+
+.dining-floor-heading p {
+    margin: 4px 0 0;
+    color: var(--dn-muted);
+    font-size: 13px;
+}
+
+.dining-floor-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+.dining-camera-pills {
+    display: inline-flex;
+    padding: 4px;
+    border: 1px solid var(--dn-hairline);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(12px);
+}
+
+.dining-camera-pills button {
+    min-height: 36px;
+    padding: 6px 14px;
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+    color: var(--dn-muted);
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.dining-camera-pills button.is-active {
+    background: linear-gradient(135deg, var(--dn-brand-mid), var(--dn-brand));
+    color: #fff;
+    box-shadow: 0 8px 18px -8px rgba(0, 71, 151, 0.65);
+}
+
+.dining-floor-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+}
+
+@media (min-width: 1100px) {
+    .dining-floor-layout {
+        grid-template-columns: minmax(0, 1fr) 370px;
+        align-items: start;
+    }
+}
+
+.dining-legend-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.dining-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    color: var(--dn-muted);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.dining-legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.dining-legend i {
+    width: 12px;
+    height: 12px;
+    border-radius: 4px;
+    background: var(--dn-available);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9), 0 2px 5px rgba(0, 28, 64, 0.2);
+}
+
+.dining-camera-hint {
+    padding: 4px 10px;
+    border: 1px solid var(--dn-hairline);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.72);
+    color: var(--dn-brand);
+    font-size: 11px;
+    font-weight: 700;
+}
+
+/* Escenario 3D arquitectónico */
+.dining-room {
+    position: relative;
+    overflow: hidden;
+    padding: 78px 34px 92px;
+    border: 1px solid rgba(255, 255, 255, 0.92);
+    border-radius: 30px;
+    background:
+        radial-gradient(85% 65% at 50% 25%, rgba(255, 255, 255, 0.95), rgba(224, 237, 252, 0.78) 65%, rgba(196, 217, 242, 0.72) 100%);
+    box-shadow:
+        0 28px 65px -28px rgba(0, 35, 82, 0.45),
+        inset 0 1px 0 rgba(255, 255, 255, 0.95);
+    perspective: 1450px;
+    cursor: grab;
+    user-select: none;
+}
+
+.dining-room:active {
+    cursor: grabbing;
+}
+
+.dining-room-scene {
+    position: relative;
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 58px 38px 46px;
+    border-radius: 22px;
+    /* Piso realista estilo terrazo / porcelanato arquitectónico con juntas e iluminación cenital */
+    background:
+        radial-gradient(circle at 50% 42%, rgba(255, 255, 255, 0.7), rgba(215, 228, 242, 0.35) 68%, rgba(173, 196, 224, 0.45) 100%),
+        repeating-linear-gradient(0deg, rgba(0, 56, 120, 0.065) 0 1px, transparent 1px 56px),
+        repeating-linear-gradient(90deg, rgba(0, 56, 120, 0.065) 0 1px, transparent 1px 56px),
+        linear-gradient(145deg, #f7faff 0%, #e7eff9 52%, #dce7f5 100%);
+    box-shadow:
+        0 50px 80px -20px rgba(0, 25, 58, 0.52),
+        0 18px 32px -10px rgba(0, 35, 80, 0.32),
+        inset 0 0 0 2px rgba(255, 255, 255, 0.9),
+        inset 0 0 42px rgba(0, 56, 120, 0.08);
+    transform-origin: 50% 48%;
+    transform-style: preserve-3d;
+    transition: transform 240ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Losa / grosor volumétrico del piso */
+.dining-floor-slab {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    transform-style: preserve-3d;
+}
+
+.slab-edge {
+    position: absolute;
+    display: block;
+}
+
+.slab-front {
+    right: 4px;
+    bottom: -18px;
+    left: 4px;
+    height: 18px;
+    border-radius: 0 0 10px 10px;
+    background: linear-gradient(180deg, #9fb4cc 0%, #6d86a6 100%);
+    transform-origin: top;
+    transform: rotateX(-90deg);
+    box-shadow: 0 14px 28px rgba(0, 24, 56, 0.45);
+}
+
+.slab-left {
+    top: 4px;
+    bottom: 4px;
+    left: -18px;
+    width: 18px;
+    background: linear-gradient(90deg, #7c95b4 0%, #aebfd4 100%);
+    transform-origin: right;
+    transform: rotateY(-90deg);
+}
+
+.slab-right {
+    top: 4px;
+    right: -18px;
+    bottom: 4px;
+    width: 18px;
+    background: linear-gradient(90deg, #b5c5d8 0%, #839bb8 100%);
+    transform-origin: left;
+    transform: rotateY(90deg);
+}
+
+/* Pared trasera levantada en 3D con barra marina */
+.dining-wall-back {
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    height: 76px;
+    padding: 10px 22px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    border-radius: 14px 14px 0 0;
+    background:
+        repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.05) 0 10px, rgba(0, 0, 0, 0.08) 10px 14px),
+        linear-gradient(180deg, #003370 0%, #004797 58%, #002757 100%);
+    border-top: 3px solid #6ba8f0;
+    box-shadow:
+        0 14px 28px rgba(0, 22, 52, 0.45),
+        inset 0 -8px 18px rgba(0, 0, 0, 0.35);
+    transform-origin: top center;
+    transform: rotateX(-86deg) translateY(-76px);
+    transform-style: preserve-3d;
+    pointer-events: none;
+}
+
+.dining-wall-brand {
+    display: grid;
+    gap: 2px;
+    padding: 6px 14px;
+    border-radius: 10px;
+    background: rgba(0, 20, 48, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.24);
+    color: #fff;
+}
+
+.dining-wall-brand span {
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 0.24em;
+    color: #93c5fd;
+}
+
+.dining-wall-brand strong {
+    font-size: 13px;
+    letter-spacing: 0.14em;
+    text-shadow: 0 0 12px rgba(147, 197, 253, 0.65);
+}
+
+.dining-kitchen-bar {
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: 8px 18px;
+    border-radius: 10px;
+    background: linear-gradient(180deg, #d99b52 0%, #9b6024 100%);
+    border: 1px solid rgba(255, 232, 198, 0.6);
+    box-shadow: 0 8px 18px rgba(0, 15, 38, 0.5);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+}
+
+/* Pared lateral izquierda con ventanales iluminados */
+.dining-wall-left {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 68px;
+    padding: 28px 10px;
+    display: grid;
+    gap: 20px;
+    background: linear-gradient(90deg, #002b5e 0%, #0d4f9c 100%);
+    border-left: 3px solid #7ab3f5;
+    transform-origin: left center;
+    transform: rotateY(86deg) translateX(-68px);
+    pointer-events: none;
+}
+
+.wall-window {
+    display: block;
+    border-radius: 8px;
+    background: linear-gradient(135deg, rgba(224, 242, 254, 0.9), rgba(125, 211, 252, 0.38));
+    border: 1px solid rgba(255, 255, 255, 0.75);
+    box-shadow: 0 0 18px rgba(125, 211, 252, 0.55);
+}
+
+.dining-room.is-flat .dining-wall-back,
+.dining-room.is-flat .dining-wall-left,
+.dining-room.is-flat .dining-floor-slab {
+    opacity: 0;
+}
+
+/* Pasillo central y alfombra de ingreso */
+.dining-aisle-runner {
+    position: absolute;
+    top: 32px;
+    bottom: 32px;
+    left: 50%;
+    width: 44px;
+    transform: translateX(-50%) translateZ(1px);
+    border-radius: 999px;
+    background: linear-gradient(180deg, rgba(0, 71, 151, 0.08), rgba(0, 71, 151, 0.15), rgba(0, 71, 151, 0.08));
+    border: 1px dashed rgba(0, 71, 151, 0.18);
+    pointer-events: none;
+}
+
+.dining-entrance-mat {
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%) translateZ(2px);
+    padding: 4px 18px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #003878, #004797);
+    border: 1px solid rgba(255, 255, 255, 0.75);
+    box-shadow: 0 6px 14px rgba(0, 35, 80, 0.3);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.2em;
+    pointer-events: none;
+}
+
+/* Jardineras en las 4 esquinas */
+.dining-planter {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background:
+        radial-gradient(circle at 35% 35%, #34d399 0%, #059669 58%, #065f46 100%);
+    border: 3px solid #d99b52;
+    box-shadow:
+        0 8px 14px rgba(0, 28, 64, 0.35),
+        inset 0 2px 4px rgba(255, 255, 255, 0.5);
+    transform: translateZ(14px);
+    pointer-events: none;
+}
+
+.dining-planter.p-top-left { top: 14px; left: 14px; }
+.dining-planter.p-top-right { top: 14px; right: 14px; }
+.dining-planter.p-bottom-left { bottom: 14px; left: 14px; }
+.dining-planter.p-bottom-right { bottom: 14px; right: 14px; }
+
+.dining-room-grid {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 38px 28px;
+    padding: 12px 6px;
+    transform-style: preserve-3d;
+}
+
+@media (min-width: 640px) {
+    .dining-room-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+/* Cada mesa con mobiliario realista en capas Z */
+.dining-table {
+    position: relative;
+    aspect-ratio: 1;
+    min-height: 118px;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    transform-style: preserve-3d;
+    transition: transform 240ms cubic-bezier(0.22, 1, 0.36, 1);
+    --dn-table: var(--dn-available);
+}
+
+.dining-table[data-status='open'] { --dn-table: var(--dn-open); }
+.dining-table[data-status='checkout'] { --dn-table: var(--dn-checkout); }
+.dining-table[data-status='paid'] { --dn-table: var(--dn-paid); }
+.dining-table[data-status='cleaning'] { --dn-table: var(--dn-cleaning); }
+.dining-table[data-status='maintenance'] { --dn-table: var(--dn-maintenance); }
+.dining-legend i[data-status='open'] { background: var(--dn-open); }
+.dining-legend i[data-status='checkout'] { background: var(--dn-checkout); }
+.dining-legend i[data-status='paid'] { background: var(--dn-paid); }
+.dining-legend i[data-status='cleaning'] { background: var(--dn-cleaning); }
+
+/* Sombra ambiental proyectada en el piso */
+.dining-table-shadow {
+    position: absolute;
+    inset: 14%;
+    border-radius: 26px;
+    background: radial-gradient(circle, rgba(6, 28, 61, 0.42) 0%, rgba(6, 28, 61, 0.16) 58%, transparent 78%);
+    transform: translateZ(1px) translateY(8px) scale(1.08);
+    filter: blur(4px);
+    transition: transform var(--dn-ease), opacity var(--dn-ease);
+}
+
+/* Alfombra circular decorativa bajo cada juego de mesa */
+.dining-table-rug {
+    position: absolute;
+    inset: 4%;
+    border-radius: 28px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.65) 0%, rgba(214, 228, 245, 0.48) 100%);
+    border: 1px solid rgba(0, 71, 151, 0.12);
+    transform: translateZ(2px);
+}
+
+/* Base metálica en el suelo y columna central */
+.dining-table-base {
+    position: absolute;
+    inset: 35%;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #64748b, #1e293b 78%);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.45);
+    transform: translateZ(4px);
+}
+
+.dining-table-pedestal {
+    position: absolute;
+    inset: 42%;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #475569, #0f172a);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+    transform: translateZ(14px);
+}
+
+/* Canto / grosor 3D de madera bajo el tablero */
+.dining-table-rim {
+    position: absolute;
+    inset: 15%;
+    border-radius: 22px;
+    background: linear-gradient(180deg, #8c5828 0%, #5c3412 100%);
+    box-shadow:
+        0 14px 22px -6px rgba(8, 25, 52, 0.58),
+        0 4px 0 #4a280d;
+    transform: translateZ(22px) translateY(3px);
+    transition: transform var(--dn-ease), box-shadow var(--dn-ease);
+}
+
+/* Tablero principal: madera cálida con veta sutil y centro de estado */
+.dining-table-top {
+    position: absolute;
+    inset: 15%;
+    z-index: 3;
+    display: grid;
+    place-items: center;
+    padding: 6px;
+    border-radius: 22px;
+    background:
+        radial-gradient(circle at 30% 22%, rgba(255, 255, 255, 0.32), transparent 55%),
+        repeating-linear-gradient(
+            18deg,
+            rgba(120, 68, 25, 0.08) 0 4px,
+            rgba(255, 236, 209, 0.08) 4px 9px
+        ),
+        linear-gradient(145deg, #f3d5b0 0%, #dfb07a 48%, #c58d52 100%);
+    border: 2px solid rgba(255, 245, 230, 0.85);
+    box-shadow:
+        inset 0 2px 4px rgba(255, 255, 255, 0.75),
+        inset 0 -3px 6px rgba(92, 52, 18, 0.35),
+        0 6px 14px rgba(15, 23, 42, 0.3);
+    color: var(--dn-text);
+    text-align: center;
+    transform: translateZ(27px);
+    transform-style: preserve-3d;
+    transition: transform var(--dn-ease), box-shadow var(--dn-ease);
+}
+
+/* Estado ocupado/activo tiñe suavemente el mantel central */
+.dining-table[data-status='open'] .dining-table-top {
+    background:
+        radial-gradient(circle at 30% 22%, rgba(255, 255, 255, 0.28), transparent 60%),
+        linear-gradient(145deg, #e6f0ff 0%, #c7dfff 45%, #9ec5ff 100%);
+    border-color: #ffffff;
+}
+
+.dining-table[data-status='checkout'] .dining-table-top {
+    background:
+        radial-gradient(circle at 30% 22%, rgba(255, 255, 255, 0.35), transparent 60%),
+        linear-gradient(145deg, #fff5db 0%, #fde09b 50%, #f7c55f 100%);
+}
+
+.dining-table[data-status='cleaning'] .dining-table-top {
+    background: linear-gradient(145deg, #f1f5f9 0%, #cbd5e1 100%);
+}
+
+.dining-table:hover .dining-table-rim,
+.dining-table.is-selected .dining-table-rim {
+    transform: translateZ(31px) translateY(3px);
+}
+
+.dining-table:hover .dining-table-top,
+.dining-table.is-selected .dining-table-top {
+    transform: translateZ(36px);
+}
+
+.dining-table:hover .dining-table-shadow,
+.dining-table.is-selected .dining-table-shadow {
+    transform: translateZ(1px) translateY(14px) scale(1.14);
+}
+
+.dining-table.is-selected .dining-table-top {
+    outline: 3px solid var(--dn-brand);
+    box-shadow:
+        0 0 0 6px rgba(0, 71, 151, 0.28),
+        0 18px 28px -8px rgba(0, 35, 82, 0.55);
+}
+
+/* Individuales / platos en cada puesto cuando la mesa está ocupada */
+.table-place-setting {
+    position: absolute;
+    width: 15%;
+    height: 15%;
+    border-radius: 50%;
+    background: radial-gradient(circle, #ffffff 45%, #dbeafe 72%, #93c5fd 100%);
+    border: 1px solid rgba(0, 71, 151, 0.22);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.18);
+    transform: translateZ(2px);
+    opacity: 0.35;
+}
+
+.dining-table[data-status='open'] .table-place-setting,
+.dining-table[data-status='checkout'] .table-place-setting,
+.dining-table[data-status='paid'] .table-place-setting {
+    opacity: 1;
+}
+
+.table-place-setting.s1 { top: 6%; left: 42.5%; }
+.table-place-setting.s2 { top: 42.5%; right: 6%; }
+.table-place-setting.s3 { bottom: 6%; left: 42.5%; }
+.table-place-setting.s4 { top: 42.5%; left: 6%; }
+
+/* Pequeño soporte QR acrílico sobre la esquina de cada mesa */
+.table-qr-stand {
+    position: absolute;
+    top: 10%;
+    right: 10%;
+    width: 11%;
+    height: 11%;
+    border-radius: 3px;
+    background: linear-gradient(135deg, #ffffff 0%, #e2e8f0 100%);
+    border: 1.5px solid var(--dn-brand);
+    box-shadow: 0 3px 5px rgba(0, 28, 64, 0.32);
+    transform: translateZ(5px);
+}
+
+/* Baliza luminosa con el color del estado */
+.table-status-beacon {
+    position: absolute;
+    top: 10%;
+    left: 10%;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--dn-table);
+    border: 2px solid #ffffff;
+    box-shadow: 0 0 10px var(--dn-table);
+    transform: translateZ(6px);
+}
+
+/* Contenido central elevado sobre el tablero */
+.table-top-content {
+    display: grid;
+    justify-items: center;
+    gap: 2px;
+    transform: translateZ(6px);
+}
+
+.table-top-content strong {
+    color: #0f172a;
+    font-size: clamp(16px, 2.3vw, 22px);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.03em;
+}
+
+.table-status-pill {
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: var(--dn-table);
+    color: #ffffff;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.table-consumption-tag {
+    padding: 1px 6px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.92);
+    color: var(--dn-brand-deep);
+    font-size: 9px;
+    font-weight: 800;
+}
+
+.table-alert-badge {
+    margin-top: 1px;
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: #dc2626;
+    color: #fff;
+    font-size: 9px;
+    font-weight: 800;
+    box-shadow: 0 4px 10px rgba(220, 38, 38, 0.55);
+    animation: diningPulse 1.4s ease-in-out infinite;
+}
+
+@keyframes diningPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+}
+
+/* Sillas 3D con cojín tapizado y respaldo curvo */
+.dining-chair {
+    position: absolute;
+    width: 24%;
+    height: 24%;
+    transform: translateZ(12px);
+    transform-style: preserve-3d;
+    transition: transform var(--dn-ease);
+}
+
+.chair-seat {
+    position: absolute;
+    inset: 12%;
+    display: block;
+    border-radius: 9px;
+    background: linear-gradient(145deg, #334155 0%, #1e293b 100%);
+    border: 1.5px solid rgba(255, 255, 255, 0.45);
+    box-shadow:
+        0 6px 10px rgba(0, 18, 42, 0.42),
+        inset 0 1px 2px rgba(255, 255, 255, 0.35);
+}
+
+.dining-table[data-status='open'] .chair-seat,
+.dining-table[data-status='checkout'] .chair-seat {
+    background: linear-gradient(145deg, var(--dn-brand-mid), var(--dn-brand-deep));
+}
+
+.chair-back {
+    position: absolute;
+    display: block;
+    border-radius: 999px;
+    background: linear-gradient(180deg, #b87b3e 0%, #7c4a19 100%);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4);
+    transform: translateZ(7px);
+}
+
+.dining-chair.c1 { top: -1%; left: 38%; }
+.dining-chair.c1 .chair-back { top: 0; right: 8%; left: 8%; height: 28%; }
+
+.dining-chair.c2 { top: 38%; right: -1%; }
+.dining-chair.c2 .chair-back { top: 8%; right: 0; bottom: 8%; width: 28%; }
+
+.dining-chair.c3 { bottom: -1%; left: 38%; }
+.dining-chair.c3 .chair-back { right: 8%; bottom: 0; left: 8%; height: 28%; }
+
+.dining-chair.c4 { top: 38%; left: -1%; }
+.dining-chair.c4 .chair-back { top: 8%; bottom: 8%; left: 0; width: 28%; }
+
+.dining-table:hover .dining-chair.c1 { transform: translateZ(15px) translateY(-2px); }
+.dining-table:hover .dining-chair.c2 { transform: translateZ(15px) translateX(2px); }
+.dining-table:hover .dining-chair.c3 { transform: translateZ(15px) translateY(2px); }
+.dining-table:hover .dining-chair.c4 { transform: translateZ(15px) translateX(-2px); }
+
+.dining-table-detail {
+    padding: 22px 20px;
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    border-radius: 26px;
+    background: var(--dn-glass);
+    box-shadow: var(--dn-shadow);
+    backdrop-filter: blur(18px) saturate(1.4);
+}
+
+@media (min-width: 1024px) {
+    .dining-table-detail {
+        position: sticky;
+        top: 16px;
+        max-height: calc(100vh - 32px);
+        overflow: auto;
+    }
+}
+
+.dining-table-detail h3 {
+    margin: 0;
+    color: var(--dn-brand-deep);
+    font-size: 26px;
+}
+
+.dining-balance {
+    display: grid;
+    margin: 14px 0;
+    padding: 14px 16px;
+    border-radius: 16px;
+    background: var(--dn-brand-soft);
+}
+
+.dining-balance span,
+.dining-join-code {
+    color: var(--dn-muted);
+    font-size: 13px;
+}
+
+.dining-balance strong {
+    color: var(--dn-brand);
+    font-size: 28px;
+}
+
+.dining-service-request,
+.dining-order {
+    display: grid;
+    gap: 6px;
+    margin-top: 12px;
+    padding: 14px;
+    border: 1px solid var(--dn-hairline);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.78);
+}
+
+.dining-service-request {
+    border-color: rgba(217, 138, 0, 0.4);
+    background: rgba(255, 248, 232, 0.9);
+}
+
+.dining-service-request p,
+.dining-order p {
+    margin: 0;
+    color: var(--dn-muted);
+    font-size: 14px;
+}
+
+.dining-order small {
+    color: var(--dn-muted);
+}
+
+.dining-payment-actions,
+.dining-actions,
+.dining-confirm {
+    display: grid;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.dining-confirm {
+    padding: 14px;
+    border: 1px solid rgba(217, 138, 0, 0.45);
+    border-radius: 16px;
+    background: rgba(255, 248, 232, 0.95);
+}
+
+.dining-detail-empty {
+    padding: 28px 8px;
+    text-align: center;
+    color: var(--dn-muted);
+}
+
+/* Hoja de códigos QR */
+.dining-qr-sheet {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+}
+
+.dining-qr-print-action {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    grid-column: 1 / -1;
+    padding: 16px 18px;
+    border-radius: 18px;
+    background: var(--dn-brand-soft);
+}
+
+.dining-qr-print-action p {
+    margin: 0;
+    max-width: 640px;
+    color: var(--dn-muted);
+    font-size: 14px;
+}
+
+.dining-qr-card {
+    display: grid;
+    justify-items: center;
+    gap: 6px;
+    padding: 20px;
+    border: 1px solid var(--dn-hairline);
+    border-radius: 22px;
+    background: #fff;
+    text-align: center;
+}
+
+.dining-qr-card h3 {
+    margin: 0;
+    color: var(--dn-brand);
+    letter-spacing: 0.2em;
+}
+
+.dining-qr-card strong {
+    font-size: 22px;
+}
+
+.dining-qr-card p {
+    margin: 0;
+    color: var(--dn-muted);
+    font-size: 13px;
+}
+
+.dining-qr-card a {
+    color: var(--dn-brand);
+    font-size: 12px;
+}
+
+.dining-qr {
+    width: 100%;
+    max-width: 190px;
+    height: auto;
+}
+
+/* Pago de la mesa y hub sin comisión */
+.dining-payment-start .dining-welcome {
+    max-width: 560px;
+}
+
+.dining-payment-hub {
+    display: grid;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.dining-direct-pay-box {
+    display: grid;
+    gap: 10px;
+    padding: 16px;
+    border-radius: 18px;
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.94), rgba(226, 239, 255, 0.85));
+    border: 1px solid rgba(0, 71, 151, 0.2);
+    box-shadow: 0 10px 24px -14px rgba(0, 44, 102, 0.25);
+}
+
+.dining-direct-pay-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.dining-direct-pay-badge {
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: rgba(15, 138, 95, 0.14);
+    color: var(--dn-available);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+}
+
+.dining-direct-pay-numbers {
+    margin: 0;
+    padding: 8px 12px;
+    border-radius: 12px;
+    background: rgba(0, 71, 151, 0.08);
+    color: var(--dn-text);
+    font-size: 13px;
+}
+
+.dining-direct-pay-buttons {
+    display: grid;
+    gap: 8px;
+}
+
+.dining-direct-pay-buttons button {
+    min-height: 44px;
+    padding: 10px 14px;
+    border-radius: 14px;
+    border: 1px solid rgba(0, 71, 151, 0.22);
+    background: #ffffff;
+    color: var(--dn-brand-deep);
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform var(--dn-ease), background var(--dn-ease);
+}
+
+.dining-direct-pay-buttons button:first-child {
+    background: linear-gradient(135deg, #742384 0%, #00b4d8 100%);
+    border-color: transparent;
+    color: #ffffff;
+}
+
+/* Alertas sonoras y notas de solicitud en Salón 3D */
+.dining-sound-toggle.is-active {
+    background: rgba(15, 138, 95, 0.12) !important;
+    border-color: rgba(15, 138, 95, 0.38) !important;
+    color: var(--dn-available) !important;
+}
+
+.dining-live-alert-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+    padding: 12px 16px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #003878, #004797);
+    color: #ffffff;
+    font-weight: 700;
+    box-shadow: 0 12px 24px -10px rgba(0, 56, 120, 0.45);
+}
+
+.dining-live-alert-banner button {
+    min-height: 34px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.45);
+    background: rgba(255, 255, 255, 0.16);
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.dining-request-note {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 10px;
+    background: rgba(0, 71, 151, 0.1);
+    color: var(--dn-brand-deep);
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.dining-method-chips {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+}
+
+.dining-method-chips button {
+    min-height: 36px !important;
+    padding: 6px 10px !important;
+    border-radius: 10px !important;
+    border: 1px solid var(--dn-hairline) !important;
+    background: #ffffff !important;
+    color: var(--dn-text) !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+}
+
+.dining-method-chips button.is-active {
+    background: var(--dn-brand) !important;
+    border-color: var(--dn-brand) !important;
+    color: #ffffff !important;
+}
+
+.dining-ticket-action {
+    margin-top: 10px;
+}
+
+.dining-ticket-action button {
+    width: 100%;
+    min-height: 40px;
+    padding: 8px 12px;
+    border-radius: 12px;
+    border: 1px dashed rgba(0, 71, 151, 0.35);
+    background: rgba(0, 71, 151, 0.06);
+    color: var(--dn-brand-deep);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.dining-thermal-ticket {
+    display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .dining-client *,
+    .dining-floor-module * {
+        transition: none !important;
+        animation: none !important;
+    }
+}
+
+@media print {
+    @page {
+        size: A4 portrait;
+        margin: 10mm;
+    }
+
+    html,
+    body,
+    #app,
+    .dg-glass-admin,
+    #dashboardScreen,
+    .dashboard-screen,
+    .enterprise-workspace,
+    .enterprise-content,
+    .dining-floor-module {
+        position: static !important;
+        display: block !important;
+        width: 100% !important;
+        max-width: none !important;
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: 0 !important;
+        overflow: visible !important;
+        background: #ffffff !important;
+        box-shadow: none !important;
+        transform: none !important;
+        backdrop-filter: none !important;
+    }
+
+    .glass-ambient-canvas,
+    .sidebar-mobile-backdrop,
+    .enterprise-sidebar,
+    #admin-navigation,
+    .smart-topbar,
+    .dining-floor-heading,
+    .dining-live-alert-banner,
+    .dining-qr-print-action,
+    .dining-qr-card a {
+        display: none !important;
+    }
+
+    /* Impresión de ticket térmico 80mm */
+    .dining-floor-module[data-print-mode='ticket'] .dining-legend-bar,
+    .dining-floor-module[data-print-mode='ticket'] .dining-room,
+    .dining-floor-module[data-print-mode='ticket'] .dining-table-detail > :not(.dining-thermal-ticket) {
+        display: none !important;
+    }
+
+    .dining-floor-module[data-print-mode='ticket'] .dining-floor-layout,
+    .dining-floor-module[data-print-mode='ticket'] .dining-table-detail {
+        display: block !important;
+        padding: 0 !important;
+        border: 0 !important;
+        background: #ffffff !important;
+        box-shadow: none !important;
+    }
+
+    .dining-floor-module[data-print-mode='ticket'] .dining-thermal-ticket {
+        display: block !important;
+        width: 76mm !important;
+        margin: 0 auto !important;
+        padding: 4mm 2mm !important;
+        font-family: 'Courier New', Courier, monospace !important;
+        color: #000000 !important;
+        font-size: 12px !important;
+    }
+
+    .dining-thermal-ticket h4 {
+        margin: 0 0 4px;
+        text-align: center;
+        font-size: 15px;
+    }
+
+    .dining-thermal-ticket .ticket-subtitle,
+    .dining-thermal-ticket .ticket-meta,
+    .dining-thermal-ticket .ticket-footer {
+        margin: 2px 0;
+        text-align: center;
+        font-size: 11px;
+    }
+
+    .dining-thermal-ticket hr {
+        border: 0;
+        border-top: 1px dashed #000;
+        margin: 6px 0;
+    }
+
+    .dining-thermal-ticket .ticket-order-block {
+        margin-bottom: 6px;
+    }
+
+    .dining-thermal-ticket .ticket-line,
+    .dining-thermal-ticket .ticket-totals > div {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        margin: 2px 0;
+    }
+
+    .dining-thermal-ticket .ticket-grand {
+        font-size: 14px;
+        margin-top: 4px !important;
+    }
+
+    .dining-qr-sheet {
+        display: grid !important;
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 8mm !important;
+        width: 100% !important;
+    }
+
+    .dining-qr-card {
+        padding: 12px 10px !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 14px !important;
+        background: #ffffff !important;
+        box-shadow: none !important;
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+    }
+
+    .dining-qr-card h3 {
+        font-size: 11px !important;
+    }
+
+    .dining-qr-card strong {
+        font-size: 16px !important;
+    }
+
+    .dining-qr-card p {
+        font-size: 10px !important;
+    }
+
+    .dining-qr {
+        max-width: 135px !important;
+    }
+}
+

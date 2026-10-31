@@ -1,0 +1,68 @@
+﻿Numero,Hoja Excel,Modulo,Categoria,Estado de auditoria
+1,RF_001,1. Gestión de Clientes (WEB),USUARIOS Y PERFILES,10 requisitos; pendiente validación funcional
+2,RF_002,2. Perfil de Usuario (APP - mismo que WEB),USUARIOS Y PERFILES,7 requisitos; pendiente validación funcional
+3,RF_003,3. Gestión de Personal (WEB),USUARIOS Y PERFILES,8 requisitos; pendiente validación funcional
+4,RF_004,4. Roles y Permisos (WEB),USUARIOS Y PERFILES,8 requisitos; pendiente validación funcional
+5,RF_005,5. Menú y Productos (WEB),CATÁLOGO,11 requisitos; pendiente validación funcional
+6,RF_006,6. Menú y Productos (APP - mismo que WEB),CATÁLOGO,6 requisitos; pendiente validación funcional
+7,RF_007,7. Categorías (WEB),CATÁLOGO,7 requisitos; pendiente validación funcional
+8,RF_008,8. Categorías (APP - mismo que WEB),CATÁLOGO,4 requisitos; pendiente validación funcional
+9,RF_009,9. Ingredientes y Alérgenos (WEB),CATÁLOGO,6 requisitos; pendiente validación funcional
+10,RF_010,10. Carrito (WEB),PEDIDOS,9 requisitos; pendiente validación funcional
+11,RF_011,11. Carrito (APP - mismo que WEB),PEDIDOS,4 requisitos; pendiente validación funcional
+12,RF_012,12. Pedidos (WEB),PEDIDOS,11 requisitos; pendiente validación funcional
+13,RF_013,13. Pedidos (APP - mismo que WEB),PEDIDOS,6 requisitos; pendiente validación funcional
+14,RF_014,14. Reordenar (APP),PEDIDOS,4 requisitos; pendiente validación funcional
+15,RF_015,15. Delivery (WEB),ENTREGAS,9 requisitos; pendiente validación funcional
+16,RF_016,16. Delivery (APP - mismo que WEB),ENTREGAS,4 requisitos; pendiente validación funcional
+17,RF_017,17. Direcciones y Zonas (WEB),ENTREGAS,6 requisitos; pendiente validación funcional
+18,RF_018,18. Direcciones (APP - mismo que WEB),ENTREGAS,5 requisitos; pendiente validación funcional
+19,RF_019,19. Geolocalización y Mapas (APP),ENTREGAS,5 requisitos; pendiente validación funcional
+20,RF_020,20. Repartidores (WEB),ENTREGAS,8 requisitos; pendiente validación funcional
+21,RF_021,21. Reservas (WEB),RESERVAS,10 requisitos; pendiente validación funcional
+22,RF_022,22. Reservas (APP - mismo que WEB),RESERVAS,4 requisitos; pendiente validación funcional
+23,RF_023,23. Mesas (WEB),RESERVAS,7 requisitos; pendiente validación funcional
+24,RF_024,24. Mesas (APP - mismo que WEB),RESERVAS,4 requisitos; pendiente validación funcional
+25,RF_025,25. QR (APP),RESERVAS,5 requisitos; pendiente validación funcional
+26,RF_026,26. Pagos (WEB),PAGOS,10 requisitos; pendiente validación funcional
+27,RF_027,27. Pagos (APP - mismo que WEB),PAGOS,4 requisitos; pendiente validación funcional
+28,RF_028,28. Facturación (WEB),PAGOS,9 requisitos; pendiente validación funcional
+29,RF_029,29. Comprobantes (APP),PAGOS,4 requisitos; pendiente validación funcional
+30,RF_030,30. Caja (WEB),PUNTO DE VENTA,8 requisitos; pendiente validación funcional
+31,RF_031,31. Caja (APP - mismo que WEB),PUNTO DE VENTA,4 requisitos; pendiente validación funcional
+32,RF_032,32. Toma de Pedidos (APP),PUNTO DE VENTA,8 requisitos; pendiente validación funcional
+33,RF_033,33. Cocina/KDS (WEB),COCINA,9 requisitos; pendiente validación funcional
+34,RF_034,34. Cocina/KDS (APP - mismo que WEB),COCINA,4 requisitos; pendiente validación funcional
+35,RF_035,35. Inventario (WEB),INVENTARIO,10 requisitos; pendiente validación funcional
+36,RF_036,36. Compras a Proveedores (WEB),COMPRAS,10 requisitos; pendiente validación funcional
+37,RF_037,37. Proveedores (WEB),COMPRAS,7 requisitos; pendiente validación funcional
+38,RF_038,38. Promociones y Cupones (WEB),MARKETING,10 requisitos; pendiente validación funcional
+39,RF_039,39. Promociones y Cupones (APP - mismo que WEB),MARKETING,4 requisitos; pendiente validación funcional
+40,RF_040,40. Fidelización y Puntos (WEB),MARKETING,9 requisitos; pendiente validación funcional
+41,RF_041,41. Fidelización y Puntos (APP - mismo que WEB),MARKETING,5 requisitos; pendiente validación funcional
+42,RF_042,42. Reseñas y Calificaciones (WEB),SOCIAL,9 requisitos; pendiente validación funcional
+43,RF_043,43. Reseñas y Calificaciones (APP - mismo que WEB),SOCIAL,5 requisitos; pendiente validación funcional
+44,RF_044,44. Favoritos (WEB),SOCIAL,4 requisitos; pendiente validación funcional
+45,RF_045,45. Favoritos (APP - mismo que WEB),SOCIAL,4 requisitos; pendiente validación funcional
+46,RF_046,46. Notificaciones (WEB),NOTIFICACIONES,7 requisitos; pendiente validación funcional
+47,RF_047,47. Notificaciones (APP - mismo que WEB),NOTIFICACIONES,6 requisitos; pendiente validación funcional
+48,RF_048,48. Soporte y Chat (WEB),NOTIFICACIONES,6 requisitos; pendiente validación funcional
+49,RF_049,49. Soporte y Chat (APP - mismo que WEB),NOTIFICACIONES,4 requisitos; pendiente validación funcional
+50,RF_050,50. Búsqueda y Filtros (WEB),BÚSQUEDA,9 requisitos; pendiente validación funcional
+51,RF_051,51. Búsqueda y Filtros (APP - mismo que WEB),BÚSQUEDA,4 requisitos; pendiente validación funcional
+52,RF_052,52. Autenticación (WEB),AUTENTICACIÓN,9 requisitos; pendiente validación funcional
+53,RF_053,53. Autenticación (APP - mismo que WEB),AUTENTICACIÓN,5 requisitos; pendiente validación funcional
+54,RF_054,54. Onboarding (APP),AUTENTICACIÓN,5 requisitos; pendiente validación funcional
+55,RF_055,55. Configuración (WEB),CONFIGURACIÓN,10 requisitos; pendiente validación funcional
+56,RF_056,56. Configuración (APP - mismo que WEB),CONFIGURACIÓN,5 requisitos; pendiente validación funcional
+57,RF_057,57. Modo Offline (APP),CONFIGURACIÓN,6 requisitos; pendiente validación funcional
+58,RF_058,58. Reportes y Estadísticas (WEB),REPORTES,10 requisitos; pendiente validación funcional
+59,RF_059,59. Analítica (WEB),REPORTES,9 requisitos; pendiente validación funcional
+60,RF_060,60. API (WEB),INTEGRACIONES,9 requisitos; pendiente validación funcional
+61,RF_061,61. Integraciones (WEB),INTEGRACIONES,9 requisitos; pendiente validación funcional
+62,RF_062,62. SEO (WEB),INTEGRACIONES,8 requisitos; pendiente validación funcional
+63,RF_063,63. Auditoría (WEB),ADMINISTRACIÓN,7 requisitos; pendiente validación funcional
+64,RF_064,64. Backup y Recuperación (WEB),ADMINISTRACIÓN,8 requisitos; pendiente validación funcional
+65,RF_065,65. Horarios y Turnos (WEB),ADMINISTRACIÓN,7 requisitos; pendiente validación funcional
+66,RF_066,66. Sucursales (WEB),ADMINISTRACIÓN,7 requisitos; pendiente validación funcional
+67,RF_067,67. Usuarios y Permisos (APP),ADMINISTRACIÓN,5 requisitos; pendiente validación funcional

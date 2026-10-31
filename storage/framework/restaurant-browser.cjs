@@ -1,0 +1,21 @@
+﻿const fs=require('node:fs');
+(async()=>{
+ const tabs=await(await fetch('http://localhost:9223/json/list')).json();
+ const tab=tabs.find(t=>t.type==='page'&&t.url.includes(':8000'));
+ const ws=new WebSocket(tab.webSocketDebuggerUrl);await new Promise(r=>ws.onopen=r);
+ let seq=0;const pending=new Map(),errors=[];
+ ws.onmessage=e=>{const m=JSON.parse(e.data);if(m.id){const p=pending.get(m.id);pending.delete(m.id);m.error?p.reject(m.error):p.resolve(m.result)}else if(m.method==='Runtime.exceptionThrown')errors.push(m.params.exceptionDetails.text+':'+m.params.exceptionDetails.exception?.description)};
+ const call=(method,params={})=>new Promise((resolve,reject)=>{const id=++seq;pending.set(id,{resolve,reject});ws.send(JSON.stringify({id,method,params}))});
+ const evaluate=async expression=>(await call('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true})).result.value;
+ await call('Runtime.enable');await call('Page.enable');
+ await call('Emulation.setDeviceMetricsOverride',{width:1440,height:1100,deviceScaleFactor:1,mobile:false});
+ await evaluate('document.fonts.ready');
+ console.log('desktop',await evaluate('JSON.stringify({title:document.title,width:innerWidth,scroll:document.documentElement.scrollWidth,products:document.querySelectorAll(".dg-product-card").length,images:[...document.images].filter(x=>!x.complete||x.naturalWidth===0).map(x=>x.src),text:document.body.innerText.slice(0,650)})'));
+ let shot=await call('Page.captureScreenshot',{format:'png'});fs.writeFileSync('storage/app/private/desego/ui-review/desktop.png',Buffer.from(shot.data,'base64'));
+ await call('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
+ await evaluate('new Promise(r=>setTimeout(r,300))');
+ console.log('mobile',await evaluate('JSON.stringify({width:innerWidth,scroll:document.documentElement.scrollWidth,overflow:[...document.querySelectorAll("body *")].filter(e=>e.getBoundingClientRect().right>innerWidth+2&&getComputedStyle(e).position!=="fixed").slice(0,8).map(e=>e.className)})'));
+ shot=await call('Page.captureScreenshot',{format:'png'});fs.writeFileSync('storage/app/private/desego/ui-review/mobile.png',Buffer.from(shot.data,'base64'));
+ await evaluate('document.querySelector(".dg-bag").click()');await evaluate('new Promise(r=>setTimeout(r,300))');console.log('cart',await evaluate('JSON.stringify({dialogs:[...document.querySelectorAll("dialog")].map(d=>({open:d.open,text:d.innerText.slice(0,150)}))})'));
+ console.log('errors',errors);ws.close();
+})().catch(e=>{console.error(e);process.exit(1)});

@@ -1,0 +1,69 @@
+@import 'tailwindcss' source(none);
+
+@source '../views/**/*.blade.php';
+@source '../js/**/*.jsx';
+
+@theme {
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-display: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+    --color-brand-950: #001f45;
+    --color-brand-900: #002e63;
+    --color-brand-800: #003878;
+    --color-brand-700: #004797;
+    --color-brand-600: #0b5cb8;
+    --color-brand-500: #1d72d2;
+    --color-brand-100: #d9e8fa;
+    --color-brand-50: #ebf2fa;
+
+    --color-ink: #1e293b;
+    --color-slate-body: #475569;
+    --color-slate-muted: #64748b;
+    --color-surface-canvas: #f8fafc;
+    --color-surface-card: #ffffff;
+    --color-border-subtle: #e2e8f0;
+    --color-border-strong: #cbd5e1;
+}
+
+:root {
+    --brand-primary: #004797;
+    --brand-primary-hover: #003878;
+    --brand-primary-soft: #ebf2fa;
+    --text-primary: #1e293b;
+    --text-secondary: #475569;
+    --text-muted: #64748b;
+    --bg-canvas: #f8fafc;
+    --bg-surface: #ffffff;
+    --bg-subtle: #f1f5f9;
+    --border-subtle: #e2e8f0;
+    --border-strong: #cbd5e1;
+}
+
+html {
+    scroll-behavior: smooth;
+    font-family: var(--font-sans);
+    color: #1e293b;
+    background-color: #f8fafc;
+}
+
+@layer base {
+    button {
+        cursor: pointer;
+    }
+
+    :focus-visible {
+        outline: 2px solid #004797;
+        outline-offset: 2px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}

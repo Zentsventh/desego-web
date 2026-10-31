@@ -1,0 +1,461 @@
+﻿RF,Modulo,Hoja Excel,Categoria,Requerimiento funcional,Estado de auditoria,Evidencia/observaciones
+RF001,1. Gestión de Clientes (WEB),RF_001,USUARIOS Y PERFILES,"Registrar nuevo cliente con email, contraseña y datos básicos",Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF002,1. Gestión de Clientes (WEB),RF_001,USUARIOS Y PERFILES,Visualizar y editar perfil de cliente,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF003,1. Gestión de Clientes (WEB),RF_001,USUARIOS Y PERFILES,Historial completo de pedidos del cliente,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF004,1. Gestión de Clientes (WEB),RF_001,USUARIOS Y PERFILES,Listar y gestionar direcciones guardadas,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF005,1. Gestión de Clientes (WEB),RF_001,USUARIOS Y PERFILES,Activar/desactivar cuenta de cliente,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF006,1. Gestión de Clientes (WEB),RF_001,USUARIOS Y PERFILES,"Ver estadísticas de compra (Total gastado, pedidos realizados)",Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF007,1. Gestión de Clientes (WEB),RF_001,USUARIOS Y PERFILES,Eliminar cuenta con confirmación,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF008,1. Gestión de Clientes (WEB),RF_001,USUARIOS Y PERFILES,"Búsqueda de clientes por email, teléfono, nombre",Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF009,1. Gestión de Clientes (WEB),RF_001,USUARIOS Y PERFILES,Exportar datos de clientes (CSV/Excel),Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF010,1. Gestión de Clientes (WEB),RF_001,USUARIOS Y PERFILES,Verificación de email y número de teléfono,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF011,2. Perfil de Usuario (APP - mismo que WEB),RF_002,USUARIOS Y PERFILES,Ver datos personales en app,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF012,2. Perfil de Usuario (APP - mismo que WEB),RF_002,USUARIOS Y PERFILES,Editar foto de perfil,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF013,2. Perfil de Usuario (APP - mismo que WEB),RF_002,USUARIOS Y PERFILES,Cambiar contraseña desde app,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF014,2. Perfil de Usuario (APP - mismo que WEB),RF_002,USUARIOS Y PERFILES,Sincronizar datos entre web y app,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF015,2. Perfil de Usuario (APP - mismo que WEB),RF_002,USUARIOS Y PERFILES,Mostrar nivel de fidelización en perfil,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF016,2. Perfil de Usuario (APP - mismo que WEB),RF_002,USUARIOS Y PERFILES,Ver métodos de pago guardados,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF017,2. Perfil de Usuario (APP - mismo que WEB),RF_002,USUARIOS Y PERFILES,Preferencias de notificaciones,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF018,3. Gestión de Personal (WEB),RF_003,USUARIOS Y PERFILES,Crear empleado con rol asignado,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF019,3. Gestión de Personal (WEB),RF_003,USUARIOS Y PERFILES,Asignar horarios y turnos,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF020,3. Gestión de Personal (WEB),RF_003,USUARIOS Y PERFILES,Ver historial de asistencia,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF021,3. Gestión de Personal (WEB),RF_003,USUARIOS Y PERFILES,Calificar desempeño de empleados,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF022,3. Gestión de Personal (WEB),RF_003,USUARIOS Y PERFILES,Generar nómina automática,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF023,3. Gestión de Personal (WEB),RF_003,USUARIOS Y PERFILES,Controlar permisos y ausencias,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF024,3. Gestión de Personal (WEB),RF_003,USUARIOS Y PERFILES,Cambiar estado: Activo/Inactivo,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF025,3. Gestión de Personal (WEB),RF_003,USUARIOS Y PERFILES,Ver historial de cambios en empleado,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF026,4. Roles y Permisos (WEB),RF_004,USUARIOS Y PERFILES,Crear roles personalizados,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF027,4. Roles y Permisos (WEB),RF_004,USUARIOS Y PERFILES,Asignar permisos específicos por rol,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF028,4. Roles y Permisos (WEB),RF_004,USUARIOS Y PERFILES,"Roles preestablecidos: Cliente, Mesero, Cocinero, Repartidor, Cajero, Admin, Dueño",Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF029,4. Roles y Permisos (WEB),RF_004,USUARIOS Y PERFILES,Visualizar matriz de permisos por rol,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF030,4. Roles y Permisos (WEB),RF_004,USUARIOS Y PERFILES,Editar permisos de roles existentes,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF031,4. Roles y Permisos (WEB),RF_004,USUARIOS Y PERFILES,Historial de cambios de permisos,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF032,4. Roles y Permisos (WEB),RF_004,USUARIOS Y PERFILES,Duplicar roles existentes,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF033,4. Roles y Permisos (WEB),RF_004,USUARIOS Y PERFILES,Validar permisos en tiempo real,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF034,5. Menú y Productos (WEB),RF_005,CATÁLOGO,"Crear producto con nombre, descripción, precio",Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF035,5. Menú y Productos (WEB),RF_005,CATÁLOGO,Cargar imagen del producto,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF036,5. Menú y Productos (WEB),RF_005,CATÁLOGO,Asignar categoría y subcategoría,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF037,5. Menú y Productos (WEB),RF_005,CATÁLOGO,Definir ingredientes del producto,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF038,5. Menú y Productos (WEB),RF_005,CATÁLOGO,Marcar alérgenos presentes,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF039,5. Menú y Productos (WEB),RF_005,CATÁLOGO,Establecer precio base y variaciones,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF040,5. Menú y Productos (WEB),RF_005,CATÁLOGO,Stock por sucursal,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF041,5. Menú y Productos (WEB),RF_005,CATÁLOGO,Activar/desactivar producto,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF042,5. Menú y Productos (WEB),RF_005,CATÁLOGO,Ordenar productos por preferencia,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF043,5. Menú y Productos (WEB),RF_005,CATÁLOGO,Crear combinaciones/bundles,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF044,5. Menú y Productos (WEB),RF_005,CATÁLOGO,Historial de cambios de precio,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF045,6. Menú y Productos (APP - mismo que WEB),RF_006,CATÁLOGO,Visualizar productos con imágenes,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF046,6. Menú y Productos (APP - mismo que WEB),RF_006,CATÁLOGO,Ver detalles completos del producto,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF047,6. Menú y Productos (APP - mismo que WEB),RF_006,CATÁLOGO,Mostrar alérgenos destacados,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF048,6. Menú y Productos (APP - mismo que WEB),RF_006,CATÁLOGO,Rating y comentarios sobre producto,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF049,6. Menú y Productos (APP - mismo que WEB),RF_006,CATÁLOGO,Información nutricional (si aplica),Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF050,6. Menú y Productos (APP - mismo que WEB),RF_006,CATÁLOGO,Mostrarprecio y disponibilidad actual,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF051,7. Categorías (WEB),RF_007,CATÁLOGO,Crear categoría de productos,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF052,7. Categorías (WEB),RF_007,CATÁLOGO,Ordenar categorías por posición,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF053,7. Categorías (WEB),RF_007,CATÁLOGO,Asignar imagen a categoría,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF054,7. Categorías (WEB),RF_007,CATÁLOGO,Editar nombre y descripción,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF055,7. Categorías (WEB),RF_007,CATÁLOGO,Activar/desactivar categoría,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF056,7. Categorías (WEB),RF_007,CATÁLOGO,Asociar múltiples productos a categoría,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF057,7. Categorías (WEB),RF_007,CATÁLOGO,Listar productos por categoría,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF058,8. Categorías (APP - mismo que WEB),RF_008,CATÁLOGO,Mostrar categorías en orden definido,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF059,8. Categorías (APP - mismo que WEB),RF_008,CATÁLOGO,Filtrar por categoría,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF060,8. Categorías (APP - mismo que WEB),RF_008,CATÁLOGO,Búsqueda dentro de categoría,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF061,8. Categorías (APP - mismo que WEB),RF_008,CATÁLOGO,Ícono visual para categoría,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF062,9. Ingredientes y Alérgenos (WEB),RF_009,CATÁLOGO,Crear ingrediente con información,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF063,9. Ingredientes y Alérgenos (WEB),RF_009,CATÁLOGO,Marcar alérgenos críticos (TOP 14),Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF064,9. Ingredientes y Alérgenos (WEB),RF_009,CATÁLOGO,Asignar costo a ingrediente,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF065,9. Ingredientes y Alérgenos (WEB),RF_009,CATÁLOGO,Vincular a productos automáticamente,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF066,9. Ingredientes y Alérgenos (WEB),RF_009,CATÁLOGO,Historial de cambios de precio de ingrediente,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF067,9. Ingredientes y Alérgenos (WEB),RF_009,CATÁLOGO,Alertas para alérgenos en productos,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF068,10. Carrito (WEB),RF_010,PEDIDOS,Agregar/eliminar productos al carrito,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF069,10. Carrito (WEB),RF_010,PEDIDOS,Modificar cantidad de producto,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF070,10. Carrito (WEB),RF_010,PEDIDOS,Aplicar cupón/código promocional,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF071,10. Carrito (WEB),RF_010,PEDIDOS,"Calcular subtotal, impuestos, total",Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF072,10. Carrito (WEB),RF_010,PEDIDOS,Mostrar tiempo estimado de preparación,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF073,10. Carrito (WEB),RF_010,PEDIDOS,Guardar carrito como favorito,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF074,10. Carrito (WEB),RF_010,PEDIDOS,Reestablecer carrito desde pedido anterior,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF075,10. Carrito (WEB),RF_010,PEDIDOS,Sincronizar carrito entre dispositivos,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF076,10. Carrito (WEB),RF_010,PEDIDOS,Validar disponibilidad en tiempo real,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF077,11. Carrito (APP - mismo que WEB),RF_011,PEDIDOS,Interfaz táctil optimizada,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF078,11. Carrito (APP - mismo que WEB),RF_011,PEDIDOS,Atajos de cantidad (1-2-3...),Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF079,11. Carrito (APP - mismo que WEB),RF_011,PEDIDOS,Deslizar para eliminar producto,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF080,11. Carrito (APP - mismo que WEB),RF_011,PEDIDOS,Resumen flotante de carrito,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF081,12. Pedidos (WEB),RF_012,PEDIDOS,Crear pedido desde carrito,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF082,12. Pedidos (WEB),RF_012,PEDIDOS,"Seleccionar tipo de pedido: Online, Delivery, Reserva, Para llevar",Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF083,12. Pedidos (WEB),RF_012,PEDIDOS,Estados de pedido: Pendiente → Confirmado → Preparando → Listo → Entregado/Retirado,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF084,12. Pedidos (WEB),RF_012,PEDIDOS,Seguimiento en tiempo real,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF085,12. Pedidos (WEB),RF_012,PEDIDOS,Estimación de tiempo de entrega,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF086,12. Pedidos (WEB),RF_012,PEDIDOS,Notificación de cambios de estado,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF087,12. Pedidos (WEB),RF_012,PEDIDOS,Posibilidad de cancelar antes de confirmación,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF088,12. Pedidos (WEB),RF_012,PEDIDOS,Modificar pedido antes de prepararse,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF089,12. Pedidos (WEB),RF_012,PEDIDOS,Historial de pedidos con filtros,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF090,12. Pedidos (WEB),RF_012,PEDIDOS,Duplicar pedido anterior,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF091,12. Pedidos (WEB),RF_012,PEDIDOS,Imprimir o descargar comprobante,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF092,13. Pedidos (APP - mismo que WEB),RF_013,PEDIDOS,Crear pedido simplificado,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF093,13. Pedidos (APP - mismo que WEB),RF_013,PEDIDOS,Seguimiento con mapa en tiempo real,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF094,13. Pedidos (APP - mismo que WEB),RF_013,PEDIDOS,Notificaciones push de cambios,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF095,13. Pedidos (APP - mismo que WEB),RF_013,PEDIDOS,Compartir pedido con contactos,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF096,13. Pedidos (APP - mismo que WEB),RF_013,PEDIDOS,Contacto directo con repartidor,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF097,13. Pedidos (APP - mismo que WEB),RF_013,PEDIDOS,Rating del pedido post-entrega,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF098,14. Reordenar (APP),RF_014,PEDIDOS,Un clic para pedir nuevamente,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF099,14. Reordenar (APP),RF_014,PEDIDOS,Sugerir productos frecuentes,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF100,14. Reordenar (APP),RF_014,PEDIDOS,Opción de modificar antes de confirmar,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF101,14. Reordenar (APP),RF_014,PEDIDOS,Historial de reórdenes,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF102,15. Delivery (WEB),RF_015,ENTREGAS,Crear zona de reparto,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF103,15. Delivery (WEB),RF_015,ENTREGAS,Establecer costo de delivery por zona,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF104,15. Delivery (WEB),RF_015,ENTREGAS,Definir tiempo estimado de entrega,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF105,15. Delivery (WEB),RF_015,ENTREGAS,Asignar repartidores disponibles,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF106,15. Delivery (WEB),RF_015,ENTREGAS,Seguimiento GPS en tiempo real,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF107,15. Delivery (WEB),RF_015,ENTREGAS,Historial de entregas completadas,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF108,15. Delivery (WEB),RF_015,ENTREGAS,Calificar desempeño de repartidor,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF109,15. Delivery (WEB),RF_015,ENTREGAS,Reportar incidencias en entrega,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF110,15. Delivery (WEB),RF_015,ENTREGAS,Validar dirección antes de asignar,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF111,16. Delivery (APP - mismo que WEB),RF_016,ENTREGAS,Ver zona de cobertura en mapa,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF112,16. Delivery (APP - mismo que WEB),RF_016,ENTREGAS,Costo de delivery calculado automático,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF113,16. Delivery (APP - mismo que WEB),RF_016,ENTREGAS,Seguimiento live del repartidor,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF114,16. Delivery (APP - mismo que WEB),RF_016,ENTREGAS,Notificación cuando repartidor está cerca,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF115,17. Direcciones y Zonas (WEB),RF_017,ENTREGAS,Crear/editar zonas de reparto en mapa,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF116,17. Direcciones y Zonas (WEB),RF_017,ENTREGAS,Definir polígonos de cobertura,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF117,17. Direcciones y Zonas (WEB),RF_017,ENTREGAS,Asignar costo y tiempo por zona,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF118,17. Direcciones y Zonas (WEB),RF_017,ENTREGAS,Activar/desactivar zonas según horario,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF119,17. Direcciones y Zonas (WEB),RF_017,ENTREGAS,Importar direcciones desde CSV,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF120,17. Direcciones y Zonas (WEB),RF_017,ENTREGAS,Validación automática de dirección,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF121,18. Direcciones (APP - mismo que WEB),RF_018,ENTREGAS,Guardar dirección de entrega,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF122,18. Direcciones (APP - mismo que WEB),RF_018,ENTREGAS,Autocompletar dirección con Google Maps,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF123,18. Direcciones (APP - mismo que WEB),RF_018,ENTREGAS,Seleccionar de direcciones guardadas,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF124,18. Direcciones (APP - mismo que WEB),RF_018,ENTREGAS,Agregar referencia/indicaciones,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF125,18. Direcciones (APP - mismo que WEB),RF_018,ENTREGAS,Validar que dirección está en zona,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF126,19. Geolocalización y Mapas (APP),RF_019,ENTREGAS,Ubicación automática del usuario,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF127,19. Geolocalización y Mapas (APP),RF_019,ENTREGAS,Integración con Google Maps,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF128,19. Geolocalización y Mapas (APP),RF_019,ENTREGAS,Ver mapa de zonas de cobertura,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF129,19. Geolocalización y Mapas (APP),RF_019,ENTREGAS,Seguimiento GPS del repartidor,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF130,19. Geolocalización y Mapas (APP),RF_019,ENTREGAS,Opción de Waze/Google Maps para navegar,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF131,20. Repartidores (WEB),RF_020,ENTREGAS,Registrar repartidor con datos,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF132,20. Repartidores (WEB),RF_020,ENTREGAS,"Validar documentos: Cédula, Licencia",Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF133,20. Repartidores (WEB),RF_020,ENTREGAS,Ver disponibilidad en tiempo real,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF134,20. Repartidores (WEB),RF_020,ENTREGAS,Asignar entregas automáticas,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF135,20. Repartidores (WEB),RF_020,ENTREGAS,Historial de entregas y ganancias,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF136,20. Repartidores (WEB),RF_020,ENTREGAS,Rating y calificación de repartidor,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF137,20. Repartidores (WEB),RF_020,ENTREGAS,Cambiar estado: Disponible/No disponible,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF138,20. Repartidores (WEB),RF_020,ENTREGAS,Generar reporte de ganancias del repartidor,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF139,21. Reservas (WEB),RF_021,RESERVAS,"Crear reserva especificando fecha, hora, cantidad",Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF140,21. Reservas (WEB),RF_021,RESERVAS,Ver disponibilidad de mesas,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF141,21. Reservas (WEB),RF_021,RESERVAS,Seleccionar preferencia de ubicación,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF142,21. Reservas (WEB),RF_021,RESERVAS,"Agregar notas especiales (cumpleaños, etc)",Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF143,21. Reservas (WEB),RF_021,RESERVAS,Confirmación automática o manual,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF144,21. Reservas (WEB),RF_021,RESERVAS,Enviar recordatorio 24h antes,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF145,21. Reservas (WEB),RF_021,RESERVAS,Cancelar reserva,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF146,21. Reservas (WEB),RF_021,RESERVAS,Reprogramar reserva,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF147,21. Reservas (WEB),RF_021,RESERVAS,Historial de reservas,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF148,21. Reservas (WEB),RF_021,RESERVAS,No-show tracking,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF149,22. Reservas (APP - mismo que WEB),RF_022,RESERVAS,Reserva rápida desde app,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF150,22. Reservas (APP - mismo que WEB),RF_022,RESERVAS,Notificaciones de confirmación,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF151,22. Reservas (APP - mismo que WEB),RF_022,RESERVAS,Cancelar desde app,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF152,22. Reservas (APP - mismo que WEB),RF_022,RESERVAS,Mostrar estado actual de reserva,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF153,23. Mesas (WEB),RF_023,RESERVAS,Crear mesa con capacidad,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF154,23. Mesas (WEB),RF_023,RESERVAS,Asignar ubicación en plano,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF155,23. Mesas (WEB),RF_023,RESERVAS,"Estados de mesa: Disponible, Ocupada, Reservada, Mantenimiento",Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF156,23. Mesas (WEB),RF_023,RESERVAS,Duración estimada por reserva,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF157,23. Mesas (WEB),RF_023,RESERVAS,Merge de mesas (juntar dos mesas),Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF158,23. Mesas (WEB),RF_023,RESERVAS,Historial de uso de mesa,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF159,23. Mesas (WEB),RF_023,RESERVAS,Plano visual interactivo de restaurante,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF160,24. Mesas (APP - mismo que WEB),RF_024,RESERVAS,Ver disponibilidad en tiempo real,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF161,24. Mesas (APP - mismo que WEB),RF_024,RESERVAS,Visualizar plano del restaurante,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF162,24. Mesas (APP - mismo que WEB),RF_024,RESERVAS,Información de ubicación de mesa,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF163,24. Mesas (APP - mismo que WEB),RF_024,RESERVAS,Acceso QR para mesa,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF164,25. QR (APP),RF_025,RESERVAS,Generar QR por mesa,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF165,25. QR (APP),RF_025,RESERVAS,Acceder a menú escaneando QR,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF166,25. QR (APP),RF_025,RESERVAS,Hacer pedido desde QR,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF167,25. QR (APP),RF_025,RESERVAS,Pedir la cuenta desde QR,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF168,25. QR (APP),RF_025,RESERVAS,Historial de QR escaneados,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF169,26. Pagos (WEB),RF_026,PAGOS,"Múltiples métodos: Efectivo, Tarjeta, Billetera digital, QR, Transferencia",Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF170,26. Pagos (WEB),RF_026,PAGOS,"Integración Stripe, MercadoPago, PayPal",Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF171,26. Pagos (WEB),RF_026,PAGOS,Procesar pago automático,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF172,26. Pagos (WEB),RF_026,PAGOS,Validar tarjeta antes de pago,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF173,26. Pagos (WEB),RF_026,PAGOS,3D Secure si es necesario,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF174,26. Pagos (WEB),RF_026,PAGOS,Reembolsos automáticos,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF175,26. Pagos (WEB),RF_026,PAGOS,Historial de transacciones,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF176,26. Pagos (WEB),RF_026,PAGOS,Descuentos/promociones aplicados,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF177,26. Pagos (WEB),RF_026,PAGOS,Recibir comprobante de pago,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF178,26. Pagos (WEB),RF_026,PAGOS,Pagos parciales o a plazos,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF179,27. Pagos (APP - mismo que WEB),RF_027,PAGOS,Pagar con métodos guardados,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF180,27. Pagos (APP - mismo que WEB),RF_027,PAGOS,Apple Pay / Google Pay,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF181,27. Pagos (APP - mismo que WEB),RF_027,PAGOS,Billetera digital integrada,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF182,27. Pagos (APP - mismo que WEB),RF_027,PAGOS,Notificación de pago exitoso,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF183,28. Facturación (WEB),RF_028,PAGOS,Generar factura automática,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF184,28. Facturación (WEB),RF_028,PAGOS,Incluir RUC/NIT del cliente,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF185,28. Facturación (WEB),RF_028,PAGOS,Desglose de impuestos,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF186,28. Facturación (WEB),RF_028,PAGOS,Numeración secuencial de facturas,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF187,28. Facturación (WEB),RF_028,PAGOS,Firmar electrónicamente (si requiere),Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF188,28. Facturación (WEB),RF_028,PAGOS,Descargar factura en PDF,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF189,28. Facturación (WEB),RF_028,PAGOS,Enviar factura por email,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF190,28. Facturación (WEB),RF_028,PAGOS,Anular factura con justificación,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF191,28. Facturación (WEB),RF_028,PAGOS,Consulta de facturas por período,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF192,29. Comprobantes (APP),RF_029,PAGOS,Descargar comprobante,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF193,29. Comprobantes (APP),RF_029,PAGOS,Compartir comprobante,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF194,29. Comprobantes (APP),RF_029,PAGOS,Ver historial de comprobantes,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF195,29. Comprobantes (APP),RF_029,PAGOS,Solicitar factura formal,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF196,30. Caja (WEB),RF_030,PUNTO DE VENTA,Crear sesión de caja,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF197,30. Caja (WEB),RF_030,PUNTO DE VENTA,Registrar venta de mostrador,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF198,30. Caja (WEB),RF_030,PUNTO DE VENTA,Generar cambio automático,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF199,30. Caja (WEB),RF_030,PUNTO DE VENTA,Cerrar caja con resumen,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF200,30. Caja (WEB),RF_030,PUNTO DE VENTA,Verificar cuadre de caja,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF201,30. Caja (WEB),RF_030,PUNTO DE VENTA,Reportar diferencias de efectivo,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF202,30. Caja (WEB),RF_030,PUNTO DE VENTA,Historial de ventas por caja,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF203,30. Caja (WEB),RF_030,PUNTO DE VENTA,Operación por turno de cajero,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF204,31. Caja (APP - mismo que WEB),RF_031,PUNTO DE VENTA,Acceso rápido a caja desde tablet,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF205,31. Caja (APP - mismo que WEB),RF_031,PUNTO DE VENTA,Registro de venta táctil,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF206,31. Caja (APP - mismo que WEB),RF_031,PUNTO DE VENTA,Cierre de caja simplificado,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF207,31. Caja (APP - mismo que WEB),RF_031,PUNTO DE VENTA,Modo offline con sincronización,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF208,32. Toma de Pedidos (APP),RF_032,PUNTO DE VENTA,Mesero toma pedido desde tablet,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF209,32. Toma de Pedidos (APP),RF_032,PUNTO DE VENTA,Búsqueda rápida de producto,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF210,32. Toma de Pedidos (APP),RF_032,PUNTO DE VENTA,Enviar pedido a cocina,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF211,32. Toma de Pedidos (APP),RF_032,PUNTO DE VENTA,Ver estado de preparación,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF212,32. Toma de Pedidos (APP),RF_032,PUNTO DE VENTA,Modificar pedido en tiempo real,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF213,32. Toma de Pedidos (APP),RF_032,PUNTO DE VENTA,Gestión de mesa desde tablet,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF214,32. Toma de Pedidos (APP),RF_032,PUNTO DE VENTA,Cambio rápido entre mesas,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF215,32. Toma de Pedidos (APP),RF_032,PUNTO DE VENTA,Historial de modificaciones de pedido,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF216,33. Cocina/KDS (WEB),RF_033,COCINA,Visualizar cola de pedidos,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF217,33. Cocina/KDS (WEB),RF_033,COCINA,"Filtrar por tipo: Bebidas, Postres, Platos",Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF218,33. Cocina/KDS (WEB),RF_033,COCINA,Cronómetro por plato,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF219,33. Cocina/KDS (WEB),RF_033,COCINA,Cambiar estado: Pendiente → Preparando → Listo,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF220,33. Cocina/KDS (WEB),RF_033,COCINA,Alertas de alérgenos,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF221,33. Cocina/KDS (WEB),RF_033,COCINA,Priorizar pedidos,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF222,33. Cocina/KDS (WEB),RF_033,COCINA,Sonidos/vibraciones de notificación,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF223,33. Cocina/KDS (WEB),RF_033,COCINA,Ver detalles completos del plato,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF224,33. Cocina/KDS (WEB),RF_033,COCINA,Historial de pedidos completados,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF225,34. Cocina/KDS (APP - mismo que WEB),RF_034,COCINA,Interfaz optimizada para tablet,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF226,34. Cocina/KDS (APP - mismo que WEB),RF_034,COCINA,Pantalla grande de cocina,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF227,34. Cocina/KDS (APP - mismo que WEB),RF_034,COCINA,Modo fullscreen sin distracciones,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF228,34. Cocina/KDS (APP - mismo que WEB),RF_034,COCINA,Control mediante botones grandes,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF229,35. Inventario (WEB),RF_035,INVENTARIO,Listar todos los productos/ingredientes,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF230,35. Inventario (WEB),RF_035,INVENTARIO,Stock actual por sucursal,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF231,35. Inventario (WEB),RF_035,INVENTARIO,Registrar entrada de stock,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF232,35. Inventario (WEB),RF_035,INVENTARIO,Registrar salida/uso de stock,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF233,35. Inventario (WEB),RF_035,INVENTARIO,Ajuste de inventario,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF234,35. Inventario (WEB),RF_035,INVENTARIO,Alertas de stock bajo,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF235,35. Inventario (WEB),RF_035,INVENTARIO,Historial de movimientos de inventario,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF236,35. Inventario (WEB),RF_035,INVENTARIO,Costeo de inventario (FIFO/LIFO),Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF237,35. Inventario (WEB),RF_035,INVENTARIO,Valorización de existencias,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF238,35. Inventario (WEB),RF_035,INVENTARIO,Auditoría de inventario por fecha,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF239,36. Compras a Proveedores (WEB),RF_036,COMPRAS,Crear orden de compra,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF240,36. Compras a Proveedores (WEB),RF_036,COMPRAS,Listar proveedores registrados,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF241,36. Compras a Proveedores (WEB),RF_036,COMPRAS,Agregar productos a orden,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF242,36. Compras a Proveedores (WEB),RF_036,COMPRAS,Definir cantidad y precio,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF243,36. Compras a Proveedores (WEB),RF_036,COMPRAS,Fecha de entrega estimada,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF244,36. Compras a Proveedores (WEB),RF_036,COMPRAS,Enviar orden al proveedor,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF245,36. Compras a Proveedores (WEB),RF_036,COMPRAS,Registrar recepción de mercancía,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF246,36. Compras a Proveedores (WEB),RF_036,COMPRAS,Validar productos recibidos,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF247,36. Compras a Proveedores (WEB),RF_036,COMPRAS,Actualizar inventario automáticamente,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF248,36. Compras a Proveedores (WEB),RF_036,COMPRAS,Historial de compras por proveedor,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF249,37. Proveedores (WEB),RF_037,COMPRAS,Registrar proveedor,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF250,37. Proveedores (WEB),RF_037,COMPRAS,Contacto y teléfono de proveedor,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF251,37. Proveedores (WEB),RF_037,COMPRAS,Condiciones de pago,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF252,37. Proveedores (WEB),RF_037,COMPRAS,Productos que suministra,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF253,37. Proveedores (WEB),RF_037,COMPRAS,Historial de transacciones,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF254,37. Proveedores (WEB),RF_037,COMPRAS,Rating de proveedor,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF255,37. Proveedores (WEB),RF_037,COMPRAS,"Documentos: RUC, Certificados",Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF256,38. Promociones y Cupones (WEB),RF_038,MARKETING,Crear promoción con descuento %,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF257,38. Promociones y Cupones (WEB),RF_038,MARKETING,Descuento por monto mínimo,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF258,38. Promociones y Cupones (WEB),RF_038,MARKETING,Válida por período (Fecha inicio-fin),Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF259,38. Promociones y Cupones (WEB),RF_038,MARKETING,Válida por hora (Happy hour),Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF260,38. Promociones y Cupones (WEB),RF_038,MARKETING,Válida por sucursal,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF261,38. Promociones y Cupones (WEB),RF_038,MARKETING,Válida para producto específico,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF262,38. Promociones y Cupones (WEB),RF_038,MARKETING,Cantidad de usos limitado,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF263,38. Promociones y Cupones (WEB),RF_038,MARKETING,Usar código o sin código,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF264,38. Promociones y Cupones (WEB),RF_038,MARKETING,Aplicar automáticamente,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF265,38. Promociones y Cupones (WEB),RF_038,MARKETING,Historial de usos de cupón,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF266,39. Promociones y Cupones (APP - mismo que WEB),RF_039,MARKETING,Ver promociones disponibles,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF267,39. Promociones y Cupones (APP - mismo que WEB),RF_039,MARKETING,Aplicar cupón en carrito,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF268,39. Promociones y Cupones (APP - mismo que WEB),RF_039,MARKETING,Ver cupones guardados,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF269,39. Promociones y Cupones (APP - mismo que WEB),RF_039,MARKETING,Notificación de nuevas promociones,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF270,40. Fidelización y Puntos (WEB),RF_040,MARKETING,Sistema de puntos por compra,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF271,40. Fidelización y Puntos (WEB),RF_040,MARKETING,Asignar puntos por pedido (% del total),Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF272,40. Fidelización y Puntos (WEB),RF_040,MARKETING,Redimir puntos por descuento,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF273,40. Fidelización y Puntos (WEB),RF_040,MARKETING,"Niveles de cliente: Bronce, Plata, Oro",Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF274,40. Fidelización y Puntos (WEB),RF_040,MARKETING,Beneficios por nivel,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF275,40. Fidelización y Puntos (WEB),RF_040,MARKETING,Historial de puntos,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF276,40. Fidelización y Puntos (WEB),RF_040,MARKETING,Expiración de puntos configurable,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF277,40. Fidelización y Puntos (WEB),RF_040,MARKETING,Mostrar saldo de puntos,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF278,40. Fidelización y Puntos (WEB),RF_040,MARKETING,Ofertas exclusivas por nivel,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF279,41. Fidelización y Puntos (APP - mismo que WEB),RF_041,MARKETING,Ver saldo de puntos en perfil,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF280,41. Fidelización y Puntos (APP - mismo que WEB),RF_041,MARKETING,Mostrar nivel actual,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF281,41. Fidelización y Puntos (APP - mismo que WEB),RF_041,MARKETING,Redimir puntos desde app,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF282,41. Fidelización y Puntos (APP - mismo que WEB),RF_041,MARKETING,Historial de puntos,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF283,41. Fidelización y Puntos (APP - mismo que WEB),RF_041,MARKETING,Avisar cuando está cerca de nivel siguiente,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF284,42. Reseñas y Calificaciones (WEB),RF_042,SOCIAL,Permitir calificación de 1-5 estrellas,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF285,42. Reseñas y Calificaciones (WEB),RF_042,SOCIAL,Reseña de texto por cliente,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF286,42. Reseñas y Calificaciones (WEB),RF_042,SOCIAL,Fotos en reseña,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF287,42. Reseñas y Calificaciones (WEB),RF_042,SOCIAL,Responder a reseñas,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF288,42. Reseñas y Calificaciones (WEB),RF_042,SOCIAL,Moderar reseñas antes de publicar,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF289,42. Reseñas y Calificaciones (WEB),RF_042,SOCIAL,Mostrar reseñas más útiles,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF290,42. Reseñas y Calificaciones (WEB),RF_042,SOCIAL,Reseña por producto,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF291,42. Reseñas y Calificaciones (WEB),RF_042,SOCIAL,Historial de reseñas por cliente,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF292,42. Reseñas y Calificaciones (WEB),RF_042,SOCIAL,Promedio de calificación general,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF293,43. Reseñas y Calificaciones (APP - mismo que WEB),RF_043,SOCIAL,Calificar pedido después de entregar,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF294,43. Reseñas y Calificaciones (APP - mismo que WEB),RF_043,SOCIAL,Fotos de la comida,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF295,43. Reseñas y Calificaciones (APP - mismo que WEB),RF_043,SOCIAL,Escribir reseña,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF296,43. Reseñas y Calificaciones (APP - mismo que WEB),RF_043,SOCIAL,Ver reseñas de otros clientes,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF297,43. Reseñas y Calificaciones (APP - mismo que WEB),RF_043,SOCIAL,Enviar feedback anónimo,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF298,44. Favoritos (WEB),RF_044,SOCIAL,Guardar producto como favorito,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF299,44. Favoritos (WEB),RF_044,SOCIAL,Crear lista de favoritos,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF300,44. Favoritos (WEB),RF_044,SOCIAL,Acceso rápido desde perfil,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF301,44. Favoritos (WEB),RF_044,SOCIAL,Compartir favoritos con amigos,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF302,45. Favoritos (APP - mismo que WEB),RF_045,SOCIAL,Corazón para marcar favorito,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF303,45. Favoritos (APP - mismo que WEB),RF_045,SOCIAL,Acceso desde sección Favoritos,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF304,45. Favoritos (APP - mismo que WEB),RF_045,SOCIAL,Contador de favoritos,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF305,45. Favoritos (APP - mismo que WEB),RF_045,SOCIAL,Notificación cuando favorito tiene descuento,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF306,46. Notificaciones (WEB),RF_046,NOTIFICACIONES,Email para estado de pedido,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF307,46. Notificaciones (WEB),RF_046,NOTIFICACIONES,Email de confirmación de reserva,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF308,46. Notificaciones (WEB),RF_046,NOTIFICACIONES,SMS de estado de pedido,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF309,46. Notificaciones (WEB),RF_046,NOTIFICACIONES,Centro de notificaciones en panel,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF310,46. Notificaciones (WEB),RF_046,NOTIFICACIONES,Marcar notificación como leída,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF311,46. Notificaciones (WEB),RF_046,NOTIFICACIONES,Eliminar notificación,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF312,46. Notificaciones (WEB),RF_046,NOTIFICACIONES,Historial de notificaciones,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF313,47. Notificaciones (APP - mismo que WEB),RF_047,NOTIFICACIONES,Push notifications de estado,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF314,47. Notificaciones (APP - mismo que WEB),RF_047,NOTIFICACIONES,Push cuando repartidor está cerca,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF315,47. Notificaciones (APP - mismo que WEB),RF_047,NOTIFICACIONES,Push de promociones,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF316,47. Notificaciones (APP - mismo que WEB),RF_047,NOTIFICACIONES,Sonido y vibración,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF317,47. Notificaciones (APP - mismo que WEB),RF_047,NOTIFICACIONES,Configurar tipo de notificaciones,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF318,47. Notificaciones (APP - mismo que WEB),RF_047,NOTIFICACIONES,No molestar (horarios),Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF319,48. Soporte y Chat (WEB),RF_048,NOTIFICACIONES,Formulario de contacto,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF320,48. Soporte y Chat (WEB),RF_048,NOTIFICACIONES,Chat en vivo con soporte,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF321,48. Soporte y Chat (WEB),RF_048,NOTIFICACIONES,Historial de tickets de soporte,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF322,48. Soporte y Chat (WEB),RF_048,NOTIFICACIONES,FAQ automático,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF323,48. Soporte y Chat (WEB),RF_048,NOTIFICACIONES,"Envío de evidencia (fotos, documentos)",Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF324,48. Soporte y Chat (WEB),RF_048,NOTIFICACIONES,Tiempo de respuesta SLA,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF325,49. Soporte y Chat (APP - mismo que WEB),RF_049,NOTIFICACIONES,Chat desde app,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF326,49. Soporte y Chat (APP - mismo que WEB),RF_049,NOTIFICACIONES,Ver estado del ticket,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF327,49. Soporte y Chat (APP - mismo que WEB),RF_049,NOTIFICACIONES,Notificación de respuesta,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF328,49. Soporte y Chat (APP - mismo que WEB),RF_049,NOTIFICACIONES,Contacto de emergencia,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF329,50. Búsqueda y Filtros (WEB),RF_050,BÚSQUEDA,Buscar productos por nombre,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF330,50. Búsqueda y Filtros (WEB),RF_050,BÚSQUEDA,Filtrar por categoría,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF331,50. Búsqueda y Filtros (WEB),RF_050,BÚSQUEDA,Filtrar por precio (rango),Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF332,50. Búsqueda y Filtros (WEB),RF_050,BÚSQUEDA,Filtrar por alérgenos,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF333,50. Búsqueda y Filtros (WEB),RF_050,BÚSQUEDA,Filtrar por rating,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF334,50. Búsqueda y Filtros (WEB),RF_050,BÚSQUEDA,"Ordenar por: Relevancia, Precio, Rating",Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF335,50. Búsqueda y Filtros (WEB),RF_050,BÚSQUEDA,Guardar búsqueda frecuente,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF336,50. Búsqueda y Filtros (WEB),RF_050,BÚSQUEDA,Autocompletar búsqueda,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF337,50. Búsqueda y Filtros (WEB),RF_050,BÚSQUEDA,Búsqueda por ingredientes,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF338,51. Búsqueda y Filtros (APP - mismo que WEB),RF_051,BÚSQUEDA,Interfaz táctil de filtros,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF339,51. Búsqueda y Filtros (APP - mismo que WEB),RF_051,BÚSQUEDA,Búsqueda por voz (si aplica),Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF340,51. Búsqueda y Filtros (APP - mismo que WEB),RF_051,BÚSQUEDA,Búsqueda por imagen,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF341,51. Búsqueda y Filtros (APP - mismo que WEB),RF_051,BÚSQUEDA,Filtros rápidos en header,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF342,52. Autenticación (WEB),RF_052,AUTENTICACIÓN,Registro de usuario con email/teléfono,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF343,52. Autenticación (WEB),RF_052,AUTENTICACIÓN,Verificación de email,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF344,52. Autenticación (WEB),RF_052,AUTENTICACIÓN,Login con email/contraseña,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF345,52. Autenticación (WEB),RF_052,AUTENTICACIÓN,Recuperación de contraseña,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF346,52. Autenticación (WEB),RF_052,AUTENTICACIÓN,"Login social: Google, Facebook",Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF347,52. Autenticación (WEB),RF_052,AUTENTICACIÓN,2FA (Autenticación de dos factores),Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF348,52. Autenticación (WEB),RF_052,AUTENTICACIÓN,Mantener sesión activa,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF349,52. Autenticación (WEB),RF_052,AUTENTICACIÓN,Logout seguro,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF350,52. Autenticación (WEB),RF_052,AUTENTICACIÓN,Expiración de sesión,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF351,53. Autenticación (APP - mismo que WEB),RF_053,AUTENTICACIÓN,Registro desde app,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF352,53. Autenticación (APP - mismo que WEB),RF_053,AUTENTICACIÓN,"Biometría: Huella dactilar, Face ID",Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF353,53. Autenticación (APP - mismo que WEB),RF_053,AUTENTICACIÓN,Login biométrico,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF354,53. Autenticación (APP - mismo que WEB),RF_053,AUTENTICACIÓN,Recuperación de contraseña,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF355,53. Autenticación (APP - mismo que WEB),RF_053,AUTENTICACIÓN,Mantener sesión en app,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF356,54. Onboarding (APP),RF_054,AUTENTICACIÓN,Pantalla de bienvenida,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF357,54. Onboarding (APP),RF_054,AUTENTICACIÓN,Tutorial de funciones principales,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF358,54. Onboarding (APP),RF_054,AUTENTICACIÓN,Guía visual de navegación,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF359,54. Onboarding (APP),RF_054,AUTENTICACIÓN,Opción de saltar onboarding,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF360,54. Onboarding (APP),RF_054,AUTENTICACIÓN,Recordar preferencias seleccionadas,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF361,55. Configuración (WEB),RF_055,CONFIGURACIÓN,Horarios de atención por sucursal,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF362,55. Configuración (WEB),RF_055,CONFIGURACIÓN,"Habilitar/deshabilitar servicios (Delivery, Reserva)",Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF363,55. Configuración (WEB),RF_055,CONFIGURACIÓN,"Configurar impuestos (IVA, IEPS)",Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF364,55. Configuración (WEB),RF_055,CONFIGURACIÓN,Idioma de la plataforma,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF365,55. Configuración (WEB),RF_055,CONFIGURACIÓN,Moneda,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF366,55. Configuración (WEB),RF_055,CONFIGURACIÓN,Zona horaria,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF367,55. Configuración (WEB),RF_055,CONFIGURACIÓN,Logo y branding,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF368,55. Configuración (WEB),RF_055,CONFIGURACIÓN,Colores de tema,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF369,55. Configuración (WEB),RF_055,CONFIGURACIÓN,Configuración de email/SMS,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF370,55. Configuración (WEB),RF_055,CONFIGURACIÓN,Integraciones externas,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF371,56. Configuración (APP - mismo que WEB),RF_056,CONFIGURACIÓN,Idioma,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF372,56. Configuración (APP - mismo que WEB),RF_056,CONFIGURACIÓN,Notificaciones,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF373,56. Configuración (APP - mismo que WEB),RF_056,CONFIGURACIÓN,Privacidad y datos,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF374,56. Configuración (APP - mismo que WEB),RF_056,CONFIGURACIÓN,Cerrar sesión,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF375,56. Configuración (APP - mismo que WEB),RF_056,CONFIGURACIÓN,Versión de app,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF376,57. Modo Offline (APP),RF_057,CONFIGURACIÓN,Caché local de productos,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF377,57. Modo Offline (APP),RF_057,CONFIGURACIÓN,Visualizar menú sin internet,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF378,57. Modo Offline (APP),RF_057,CONFIGURACIÓN,Guardar carrito localmente,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF379,57. Modo Offline (APP),RF_057,CONFIGURACIÓN,Sincronizar cuando hay conexión,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF380,57. Modo Offline (APP),RF_057,CONFIGURACIÓN,Indicador de conexión,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF381,57. Modo Offline (APP),RF_057,CONFIGURACIÓN,Funcionalidades limitadas sin internet,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF382,58. Reportes y Estadísticas (WEB),RF_058,REPORTES,Ventas totales por período,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF383,58. Reportes y Estadísticas (WEB),RF_058,REPORTES,Ingresos por producto,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF384,58. Reportes y Estadísticas (WEB),RF_058,REPORTES,Top productos más vendidos,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF385,58. Reportes y Estadísticas (WEB),RF_058,REPORTES,Clientes nuevos vs recurrentes,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF386,58. Reportes y Estadísticas (WEB),RF_058,REPORTES,Ingresos por sucursal,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF387,58. Reportes y Estadísticas (WEB),RF_058,REPORTES,Promedio de ticket,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF388,58. Reportes y Estadísticas (WEB),RF_058,REPORTES,Cantidad de pedidos por día,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF389,58. Reportes y Estadísticas (WEB),RF_058,REPORTES,Desempeño por repartidor,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF390,58. Reportes y Estadísticas (WEB),RF_058,REPORTES,Cancelaciones y devoluciones,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF391,58. Reportes y Estadísticas (WEB),RF_058,REPORTES,"Exportar reportes (PDF, Excel)",Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF392,59. Analítica (WEB),RF_059,REPORTES,Gráficos de ventas en tiempo real,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF393,59. Analítica (WEB),RF_059,REPORTES,Tendencias de productos,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF394,59. Analítica (WEB),RF_059,REPORTES,Tasas de conversión,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF395,59. Analítica (WEB),RF_059,REPORTES,Comportamiento del cliente,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF396,59. Analítica (WEB),RF_059,REPORTES,Heatmap de horarios pico,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF397,59. Analítica (WEB),RF_059,REPORTES,Rentabilidad por producto,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF398,59. Analítica (WEB),RF_059,REPORTES,KPIs personalizados,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF399,59. Analítica (WEB),RF_059,REPORTES,Comparativo período anterior,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF400,59. Analítica (WEB),RF_059,REPORTES,Predicciones (Forecasting),Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF401,60. API (WEB),RF_060,INTEGRACIONES,REST API completa,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF402,60. API (WEB),RF_060,INTEGRACIONES,Documentación de API,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF403,60. API (WEB),RF_060,INTEGRACIONES,Autenticación OAuth2,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF404,60. API (WEB),RF_060,INTEGRACIONES,Rate limiting,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF405,60. API (WEB),RF_060,INTEGRACIONES,Webhooks para eventos,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF406,60. API (WEB),RF_060,INTEGRACIONES,Sandbox para pruebas,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF407,60. API (WEB),RF_060,INTEGRACIONES,Claves API por aplicación,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF408,60. API (WEB),RF_060,INTEGRACIONES,Historial de llamadas API,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF409,60. API (WEB),RF_060,INTEGRACIONES,Monitoreo de uso,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF410,61. Integraciones (WEB),RF_061,INTEGRACIONES,"Pasarelas de pago (Stripe, MercadoPago)",Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF411,61. Integraciones (WEB),RF_061,INTEGRACIONES,SMS (Twilio),Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF412,61. Integraciones (WEB),RF_061,INTEGRACIONES,"Email (SendGrid, Gmail)",Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF413,61. Integraciones (WEB),RF_061,INTEGRACIONES,Google Maps,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF414,61. Integraciones (WEB),RF_061,INTEGRACIONES,Redes sociales,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF415,61. Integraciones (WEB),RF_061,INTEGRACIONES,Google Analytics,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF416,61. Integraciones (WEB),RF_061,INTEGRACIONES,Zapier/IFTTT,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF417,61. Integraciones (WEB),RF_061,INTEGRACIONES,Sistemas contables,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF418,61. Integraciones (WEB),RF_061,INTEGRACIONES,Facebook Pixel,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF419,62. SEO (WEB),RF_062,INTEGRACIONES,Meta descripción y títulos,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF420,62. SEO (WEB),RF_062,INTEGRACIONES,URLs amigables,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF421,62. SEO (WEB),RF_062,INTEGRACIONES,Sitemap XML,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF422,62. SEO (WEB),RF_062,INTEGRACIONES,Robots.txt,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF423,62. SEO (WEB),RF_062,INTEGRACIONES,Schema markup (JSON-LD),Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF424,62. SEO (WEB),RF_062,INTEGRACIONES,Open Graph tags,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF425,62. SEO (WEB),RF_062,INTEGRACIONES,Mobile-friendly checklist,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF426,62. SEO (WEB),RF_062,INTEGRACIONES,Velocidad de página,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF427,63. Auditoría (WEB),RF_063,ADMINISTRACIÓN,Registro de todas las acciones,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF428,63. Auditoría (WEB),RF_063,ADMINISTRACIÓN,"Quién, qué, cuándo, dónde",Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF429,63. Auditoría (WEB),RF_063,ADMINISTRACIÓN,Cambios en datos sensibles,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF430,63. Auditoría (WEB),RF_063,ADMINISTRACIÓN,Intentos de acceso fallidos,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF431,63. Auditoría (WEB),RF_063,ADMINISTRACIÓN,Exportar logs de auditoría,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF432,63. Auditoría (WEB),RF_063,ADMINISTRACIÓN,Retención de logs configurable,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF433,63. Auditoría (WEB),RF_063,ADMINISTRACIÓN,Alertas de actividades sospechosas,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF434,64. Backup y Recuperación (WEB),RF_064,ADMINISTRACIÓN,Backup automático diario,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF435,64. Backup y Recuperación (WEB),RF_064,ADMINISTRACIÓN,Backup bajo demanda,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF436,64. Backup y Recuperación (WEB),RF_064,ADMINISTRACIÓN,Almacenamiento redundante,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF437,64. Backup y Recuperación (WEB),RF_064,ADMINISTRACIÓN,Encriptación de backups,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF438,64. Backup y Recuperación (WEB),RF_064,ADMINISTRACIÓN,Recuperación a punto específico,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF439,64. Backup y Recuperación (WEB),RF_064,ADMINISTRACIÓN,Validación de integridad de backup,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF440,64. Backup y Recuperación (WEB),RF_064,ADMINISTRACIÓN,Historial de backups,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF441,64. Backup y Recuperación (WEB),RF_064,ADMINISTRACIÓN,Período de retención configurable,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF442,65. Horarios y Turnos (WEB),RF_065,ADMINISTRACIÓN,Crear turno laboral,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF443,65. Horarios y Turnos (WEB),RF_065,ADMINISTRACIÓN,Asignar empleados a turno,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF444,65. Horarios y Turnos (WEB),RF_065,ADMINISTRACIÓN,Cambios de turno,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF445,65. Horarios y Turnos (WEB),RF_065,ADMINISTRACIÓN,Ausencias y permisos,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF446,65. Horarios y Turnos (WEB),RF_065,ADMINISTRACIÓN,Cálculo de horas trabajadas,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF447,65. Horarios y Turnos (WEB),RF_065,ADMINISTRACIÓN,Alertas de incumplimiento,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF448,65. Horarios y Turnos (WEB),RF_065,ADMINISTRACIÓN,Integración con nómina,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF449,66. Sucursales (WEB),RF_066,ADMINISTRACIÓN,Crear sucursal,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF450,66. Sucursales (WEB),RF_066,ADMINISTRACIÓN,Dirección y teléfono,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF451,66. Sucursales (WEB),RF_066,ADMINISTRACIÓN,Horarios por sucursal,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF452,66. Sucursales (WEB),RF_066,ADMINISTRACIÓN,Inventario independiente,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF453,66. Sucursales (WEB),RF_066,ADMINISTRACIÓN,Empleados asignados,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF454,66. Sucursales (WEB),RF_066,ADMINISTRACIÓN,Datos de contacto,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF455,66. Sucursales (WEB),RF_066,ADMINISTRACIÓN,Ventas por sucursal,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF456,67. Usuarios y Permisos (APP),RF_067,ADMINISTRACIÓN,Crear usuario en app (Empleado),Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF457,67. Usuarios y Permisos (APP),RF_067,ADMINISTRACIÓN,Asignar rol a usuario,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF458,67. Usuarios y Permisos (APP),RF_067,ADMINISTRACIÓN,Permisos específicos de app,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF459,67. Usuarios y Permisos (APP),RF_067,ADMINISTRACIÓN,Desactivar acceso,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
+RF460,67. Usuarios y Permisos (APP),RF_067,ADMINISTRACIÓN,Cambiar contraseña,Pendiente de validación funcional en servidor,Completar tras probar el flujo en el entorno desplegado.
