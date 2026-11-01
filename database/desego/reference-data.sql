@@ -218,28 +218,16 @@ INSERT INTO `product_ingredients` (`product_id`, `ingredient_id`, `quantity`) VA
 INSERT INTO `restaurant_tables` (`id`, `table_number`, `label`, `zone`, `capacity`, `operational_status`, `is_active`, `created_by`, `updated_by`, `created_at`, `updated_at`) VALUES
 (1, 1, 'Mesa 01', 'Salón principal', 2, 'available', 1, NULL, NULL, '2026-10-09 13:13:48', '2026-10-09 13:13:48'),
 (2, 2, 'Mesa 02', 'Salón principal', 2, 'available', 1, NULL, NULL, '2026-10-09 13:13:48', '2026-10-09 13:13:48'),
-(3, 3, 'Mesa 03', 'Salón principal', 4, 'available', 1, NULL, NULL, '2026-10-09 13:13:48', '2026-10-09 13:13:48'),
-(4, 4, 'Mesa 04', 'Salón principal', 4, 'available', 1, NULL, NULL, '2026-10-09 13:13:48', '2026-10-09 13:13:48'),
+(3, 3, 'Mesa 03', 'Salón principal', 2, 'available', 1, NULL, NULL, '2026-10-09 13:13:48', '2026-10-09 13:13:48'),
+(4, 4, 'Mesa 04', 'Salón principal', 2, 'available', 1, NULL, NULL, '2026-10-09 13:13:48', '2026-10-09 13:13:48'),
 (5, 5, 'Mesa 05', 'Salón principal', 4, 'available', 1, NULL, NULL, '2026-10-09 13:13:48', '2026-10-09 13:13:48'),
 (6, 6, 'Mesa 06', 'Salón principal', 4, 'available', 1, NULL, NULL, '2026-10-09 13:13:48', '2026-10-09 13:13:48'),
 (7, 7, 'Mesa 07', 'Salón principal', 4, 'available', 1, NULL, NULL, '2026-10-09 13:13:48', '2026-10-09 13:13:48'),
-(8, 8, 'Mesa 08', 'Salón principal', 6, 'available', 1, NULL, NULL, '2026-10-09 13:13:48', '2026-10-09 13:13:48'),
-(9, 9, 'Mesa 09', 'Salón principal', 6, 'available', 1, NULL, NULL, '2026-10-09 13:13:48', '2026-10-09 13:13:48'),
+(8, 8, 'Mesa 08', 'Salón principal', 4, 'available', 1, NULL, NULL, '2026-10-09 13:13:48', '2026-10-09 13:13:48'),
+(9, 9, 'Mesa 09', 'Salón principal', 4, 'available', 1, NULL, NULL, '2026-10-09 13:13:48', '2026-10-09 13:13:48'),
 (10, 10, 'Mesa 10', 'Salón principal', 4, 'available', 1, NULL, NULL, '2026-10-09 13:13:48', '2026-10-09 13:13:48'),
 (11, 11, 'Mesa 11', 'Salón principal', 4, 'available', 1, NULL, NULL, '2026-10-09 13:13:48', '2026-10-09 13:13:48'),
-(12, 12, 'Mesa 12', 'Salón principal', 6, 'available', 1, NULL, NULL, '2026-10-09 13:13:48', '2026-10-09 13:13:48'),
-(13, 13, 'Mesa 13', 'Salón principal', 4, 'available', 1, NULL, NULL, '2026-10-09 13:13:48', '2026-10-09 13:13:48'),
-(14, 14, 'Mesa 14', 'Salón principal', 4, 'available', 1, NULL, NULL, '2026-10-09 13:13:48', '2026-10-09 13:13:48'),
-(15, 15, 'Mesa 15', 'Salón principal', 6, 'available', 1, NULL, NULL, '2026-10-09 13:13:48', '2026-10-09 13:13:48'),
-(16, 16, 'Mesa 16', 'Salón principal', 4, 'available', 1, NULL, NULL, '2026-10-09 13:13:48', '2026-10-09 13:13:48'),
-(17, 17, 'Mesa 17', 'Salón principal', 4, 'available', 1, NULL, NULL, '2026-10-09 13:13:48', '2026-10-09 13:13:48'),
-(18, 18, 'Mesa 18', 'Salón principal', 6, 'available', 1, NULL, NULL, '2026-10-09 13:13:48', '2026-10-09 13:13:48'),
-(19, 19, 'Mesa 19', 'Salón principal', 6, 'available', 1, NULL, NULL, '2026-10-09 13:13:48', '2026-10-09 13:13:48'),
-(20, 20, 'Mesa 20', 'Salón principal', 8, 'available', 1, NULL, NULL, '2026-10-09 13:13:48', '2026-10-09 13:13:48'),
-(21, 21, 'Mesa 21', 'Salón principal', 4, 'available', 1, NULL, NULL, '2026-10-09 13:13:48', '2026-10-09 13:13:48'),
-(22, 22, 'Mesa 22', 'Salón principal', 4, 'available', 1, NULL, NULL, '2026-10-09 13:13:48', '2026-10-09 13:13:48'),
-(23, 23, 'Mesa 23', 'Salón principal', 8, 'available', 1, NULL, NULL, '2026-10-09 13:13:48', '2026-10-09 13:13:48'),
-(24, 24, 'Mesa 24', 'Salón principal', 8, 'available', 1, NULL, NULL, '2026-10-09 13:13:48', '2026-10-09 13:13:48');
+(12, 12, 'Mesa 12', 'Salón principal', 4, 'available', 1, NULL, NULL, '2026-10-09 13:13:48', '2026-10-09 13:13:48');
 
 INSERT INTO `roles` (`id`, `code`, `name`, `description`, `is_system`, `created_at`, `updated_at`) VALUES
 (1, 'admin', 'Administrador General', 'Control total de la plataforma.', 1, '2026-10-09 13:12:50', '2026-10-09 13:12:50'),

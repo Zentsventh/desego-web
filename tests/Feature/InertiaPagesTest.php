@@ -69,7 +69,30 @@ class InertiaPagesTest extends TestCase
     {
         $this->get('/')->assertInertia(fn (Assert $page) => $page
             ->has('catalog.products.0', fn (Assert $product) => $product
-                ->hasAll(['id', 'slug', 'name', 'description', 'price', 'emoji', 'category_id', 'category', 'allergens', 'can_order', 'image', 'recipe_count', 'review'])));
+                ->hasAll([
+                    'id',
+                    'code',
+                    'slug',
+                    'name',
+                    'description',
+                    'price',
+                    'emoji',
+                    'is_featured',
+                    'is_popular',
+                    'is_new',
+                    'included_items',
+                    'image_url',
+                    'category_id',
+                    'category',
+                    'category_slug',
+                    'allergens',
+                    'can_order',
+                    'image',
+                    'recipe_count',
+                    'review',
+                    'gallery',
+                    'option_groups',
+                ])));
     }
 
     public function test_admin_panel_renders_login_when_there_is_no_session(): void
@@ -98,5 +121,18 @@ class InertiaPagesTest extends TestCase
             ->assertOk()
             ->assertJsonPath('ok', true)
             ->assertJsonStructure(['authenticated', 'user', 'csrfToken']);
+    }
+
+    public function test_favicon_is_present_and_referenced_in_html_views(): void
+    {
+        $this->get('/')
+            ->assertOk()
+            ->assertSee('images/favicon_desego.png', false)
+            ->assertSee('favicon.ico', false);
+
+        $this->assertFileExists(public_path('images/favicon_desego.png'));
+        $this->assertFileExists(public_path('favicon.ico'));
+        $this->assertFileExists(public_path('favicon.png'));
+        $this->assertGreaterThan(0, filesize(public_path('favicon.ico')));
     }
 }

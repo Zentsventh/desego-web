@@ -41,9 +41,21 @@ return [
         'model' => env('GEMINI_MODEL', 'gemini-2.5-flash'),
     ],
 
+    'groq' => [
+        'api_key' => env('GROQ_API_KEY'),
+        'api_key_secondary' => env('GROQ_API_KEY_SECONDARY'),
+        'model' => env('GROQ_MODEL', 'openai/gpt-oss-20b'),
+    ],
+
     'apiperu' => [
         'token' => env('API_PERU_TOKEN'),
         'document_url' => env('API_PERU_DOCUMENT_URL', 'https://api.apis.net.pe/v2'),
+    ],
+
+    'google' => [
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'redirect_uri' => env('GOOGLE_REDIRECT_URI', 'http://localhost:8000/auth/google/callback'),
     ],
 
     'google_maps' => [

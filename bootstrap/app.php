@@ -14,7 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->validateCsrfTokens(except: ['dining/payments/*/return']);
+        $middleware->validateCsrfTokens(except: ['dining/payments/*/return', 'pagos/niubiz/*/retorno']);
         $middleware->web(append: [
             AddLinkHeadersForPreloadedAssets::class,
             DesegoHeaders::class,

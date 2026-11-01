@@ -71,16 +71,37 @@ class CommunicationsController extends Controller
                         $params['status'] = $status;
                     }
                     $clause = $where ? 'WHERE '.implode(' AND ', $where) : '';
-                    $sql = "SELECT t.id,t.ticket_number,t.subject,t.category,t.priority,t.status,t.created_at,t.updated_at,t.resolved_at,c.name AS creator_name,a.name AS assignee_name,(SELECT COUNT(*) FROM support_ticket_messages m WHERE m.ticket_id=t.id AND m.is_internal=0) AS message_count,(SELECT MAX(m.created_at) FROM support_ticket_messages m WHERE m.ticket_id=t.id AND m.is_internal=0) AS last_message_at FROM support_tickets t JOIN users c ON c.id=t.created_by LEFT JOIN users a ON a.id=t.assigned_to $clause ORDER BY FIELD(t.status,'open','in_progress','waiting_user','resolved','closed'),FIELD(t.priority,'urgent','high','normal','low'),t.updated_at DESC LIMIT 250";
+                    $sql = "SELECT t.id,t.ticket_number,t.subject,t.category,t.priority,t.status,t.attachment_url,t.created_at,t.updated_at,t.resolved_at,c.name AS creator_name,c.email AS creator_email,a.name AS assignee_name,(SELECT COUNT(*) FROM support_ticket_messages m WHERE m.ticket_id=t.id AND m.is_internal=0) AS message_count,(SELECT MAX(m.created_at) FROM support_ticket_messages m WHERE m.ticket_id=t.id AND m.is_internal=0) AS last_message_at FROM support_tickets t JOIN users c ON c.id=t.created_by LEFT JOIN users a ON a.id=t.assigned_to $clause ORDER BY FIELD(t.status,'open','in_progress','waiting_user','resolved','closed'),FIELD(t.priority,'urgent','high','normal','low'),t.updated_at DESC LIMIT 250";
                     $q = $pdo->prepare($sql);
                     $q->execute($params);
                     $tickets = $q->fetchAll();
+                    $ticketIds = array_column($tickets, 'id');
+                    $messagesByTicket = [];
+                    if ($ticketIds !== []) {
+                        $placeholders = implode(',', array_fill(0, count($ticketIds), '?'));
+                        $msgStmt = $pdo->prepare("SELECT id,ticket_id,author_id,author_name,message,attachment_url,is_internal,created_at FROM support_ticket_messages WHERE ticket_id IN ($placeholders) ORDER BY created_at ASC, id ASC");
+                        $msgStmt->execute($ticketIds);
+                        $allMsgs = $msgStmt->fetchAll();
+                        foreach ($allMsgs as $m) {
+                            $messagesByTicket[(int) $m['ticket_id']][] = [
+                                'id' => (int) $m['id'],
+                                'ticket_id' => (int) $m['ticket_id'],
+                                'author_id' => (int) $m['author_id'],
+                                'author_name' => $m['author_name'],
+                                'message' => $m['message'],
+                                'attachment_url' => $m['attachment_url'],
+                                'is_internal' => (bool) $m['is_internal'],
+                                'created_at' => $m['created_at'],
+                            ];
+                        }
+                    }
                     foreach ($tickets as &$t) {
                         $t['id'] = (int) $t['id'];
                         $t['message_count'] = (int) $t['message_count'];
+                        $t['messages'] = $messagesByTicket[$t['id']] ?? [];
                     }unset($t);
                     $users = [];
-                    if (in_array('support.manage', $perms, true)) {
+                    if (in_array('support.manage', $perms, true) || in_array('support.view', $perms, true) || ($actor['role_code'] ?? '') === 'admin') {
                         $users = $pdo->query("SELECT id,name,email FROM users WHERE status='active' ORDER BY name")->fetchAll();
                     }
                     json_response(['ok' => true, 'tickets' => $tickets, 'users' => $users, 'can_manage' => in_array('support.manage', $perms, true), 'can_view_all' => $manager]);
@@ -93,7 +114,7 @@ class CommunicationsController extends Controller
                     }
                     $ticket = $this->comm_can_read_ticket($pdo, $actor, (int) $id);
                     $canManage = in_array('support.manage', $perms, true);
-                    $stmt = $pdo->prepare('SELECT m.id,m.author_id,m.author_name,m.message,m.is_internal,m.created_at FROM support_ticket_messages m WHERE m.ticket_id=:id '.($canManage ? '' : 'AND m.is_internal=0 ').'ORDER BY m.created_at,m.id');
+                    $stmt = $pdo->prepare('SELECT m.id,m.author_id,m.author_name,m.message,m.attachment_url,m.is_internal,m.created_at FROM support_ticket_messages m WHERE m.ticket_id=:id '.($canManage ? '' : 'AND m.is_internal=0 ').'ORDER BY m.created_at,m.id');
                     $stmt->execute(['id' => (int) $id]);
                     $messages = $stmt->fetchAll();
                     foreach ($messages as &$m) {
@@ -226,6 +247,80 @@ class CommunicationsController extends Controller
                 }
                 $this->comm_audit($pdo, $actor, 'support.ticket_replied', ['ticket_id' => (int) $id, 'internal' => $internal]);
                 json_response(['ok' => true, 'message' => $internal ? 'Nota interna agregada.' : 'Respuesta enviada.']);
+            }
+            if (in_array($action, ['support.update', 'support.manage_ticket'], true)) {
+                require_any_permission(['support.manage', 'support.reply']);
+                $id = filter_var($body['id'] ?? $body['ticket_id'] ?? null, FILTER_VALIDATE_INT);
+                if (! $id || $id < 1) {
+                    throw new CommunicationsProblem('Ticket no válido.');
+                }
+                $ticket = $this->comm_can_read_ticket($pdo, $actor, (int) $id);
+
+                $status = (string) ($body['status'] ?? $ticket['status']);
+                if (! in_array($status, ['open', 'in_progress', 'waiting_user', 'resolved', 'closed'], true)) {
+                    $status = (string) $ticket['status'];
+                }
+
+                $priority = (string) ($body['priority'] ?? $ticket['priority']);
+                if (! in_array($priority, ['low', 'normal', 'high', 'urgent'], true)) {
+                    $priority = (string) $ticket['priority'];
+                }
+
+                $assignedTo = array_key_exists('assigned_to', $body)
+                    ? (filter_var($body['assigned_to'], FILTER_VALIDATE_INT) ?: null)
+                    : ($ticket['assigned_to'] ? (int) $ticket['assigned_to'] : null);
+
+                $resolvedAt = in_array($status, ['resolved', 'closed'], true)
+                    ? ($ticket['resolved_at'] ?: gmdate('Y-m-d H:i:s'))
+                    : null;
+
+                $pdo->beginTransaction();
+                try {
+                    $updateStmt = $pdo->prepare('UPDATE support_tickets SET status=:status, priority=:priority, assigned_to=:assigned_to, resolved_at=:resolved, updated_at=UTC_TIMESTAMP() WHERE id=:id');
+                    $updateStmt->execute([
+                        'status' => $status,
+                        'priority' => $priority,
+                        'assigned_to' => $assignedTo,
+                        'resolved' => $resolvedAt,
+                        'id' => $id,
+                    ]);
+
+                    $messageText = trim((string) ($body['message'] ?? ''));
+                    if ($messageText !== '') {
+                        $internal = ! empty($body['is_internal']);
+                        $stmt = $pdo->prepare('INSERT INTO support_ticket_messages(ticket_id,author_id,author_name,message,attachment_url,is_internal,created_at) VALUES(:ticket,:uid,:name,:message,:attachment,:internal,UTC_TIMESTAMP())');
+                        $stmt->execute([
+                            'ticket' => (int) $id,
+                            'uid' => (int) $actor['id'],
+                            'name' => (string) $actor['name'],
+                            'message' => $messageText,
+                            'attachment' => ! empty($body['attachment_url']) ? (string) $body['attachment_url'] : null,
+                            'internal' => $internal ? 1 : 0,
+                        ]);
+
+                        if (! $internal && (int) $ticket['created_by'] !== (int) $actor['id']) {
+                            $this->comm_notification(
+                                $pdo,
+                                (int) $ticket['created_by'],
+                                'Respuesta en Ticket '.(string) $ticket['ticket_number'],
+                                'El equipo de DeSego ha respondido a tu ticket de soporte.',
+                                'info',
+                                'support',
+                                (int) $actor['id']
+                            );
+                        }
+                    }
+
+                    $pdo->commit();
+                    $this->comm_audit($pdo, $actor, 'support.ticket_updated', ['ticket_id' => $id, 'status' => $status, 'priority' => $priority]);
+
+                    json_response(['ok' => true, 'message' => 'Ticket de soporte actualizado correctamente.']);
+                } catch (Throwable $e) {
+                    if ($pdo->inTransaction()) {
+                        $pdo->rollBack();
+                    }
+                    throw $e;
+                }
             }
             if ($action === 'support.status') {
                 require_permission('support.manage');

@@ -67,5 +67,9 @@ class DatabaseSeeder extends Seeder
             app(DiningService::class)->prepare();
             $this->command?->info('Mesas del salón y tokens QR inicializados.');
         }
+
+        // 4. Sembrar catálogo oficial completo de DeSego (35 productos en 4 categorías, horarios y zonas)
+        $this->call(OfficialCatalogSeeder::class);
+        $this->command?->info('Catálogo oficial de DeSego Cevichería inicializado con éxito (35 platos).');
     }
 }

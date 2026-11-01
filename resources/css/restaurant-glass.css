@@ -159,6 +159,9 @@
 .dg-glass-admin .glass-metric-value,
 .dg-glass-admin table { font-variant-numeric: tabular-nums; }
 .dg-glass-admin :focus-visible { outline: 2px solid var(--g-brand) !important; outline-offset: 2px !important; }
+.dg-glass-admin input:focus-visible,
+.dg-glass-admin select:focus-visible,
+.dg-glass-admin textarea:focus-visible { outline: none !important; outline-offset: 0 !important; }
 
 /* ---------- Contenedor Principal (Marco de Cristal Arquitectónico) ---------- */
 .dg-glass-admin #dashboardScreen.dashboard-screen {
@@ -166,23 +169,36 @@
     display: grid !important;
     grid-template-columns: 256px minmax(0, 1fr) !important;
     gap: 16px;
-    min-height: calc(100svh - 40px) !important;
-    max-width: 1640px;
+    height: calc(100svh - 24px) !important;
+    max-height: calc(100svh - 24px) !important;
+    min-height: 0 !important;
+    max-width: 1680px;
     margin: 0 auto;
-    padding: 16px !important;
+    padding: 14px !important;
     border: 1.5px solid rgba(255, 255, 255, 0.86) !important;
-    border-radius: 28px !important;
+    border-radius: 26px !important;
     background: linear-gradient(
         135deg,
-        rgba(255, 255, 255, 0.34) 0%,
-        rgba(255, 255, 255, 0.14) 50%,
-        rgba(235, 245, 255, 0.26) 100%
+        rgba(255, 255, 255, 0.38) 0%,
+        rgba(255, 255, 255, 0.16) 50%,
+        rgba(235, 245, 255, 0.28) 100%
     ) !important;
     box-shadow:
-        inset 0 1.5px 1px rgba(255, 255, 255, 0.92),
+        inset 0 1.5px 1px rgba(255, 255, 255, 0.95),
         0 0 0 1px rgba(0, 71, 151, 0.08),
-        0 30px 80px -20px rgba(0, 50, 110, 0.2) !important;
-    overflow: visible !important;
+        0 24px 60px -16px rgba(0, 50, 110, 0.2) !important;
+    overflow: hidden !important;
+}
+
+@media (min-width: 1024px) {
+    #app.app-shell.dg-glass-admin:has(#dashboardScreen:not(.is-hidden)),
+    #app.app-shell.dg-glass-admin {
+        height: 100dvh !important;
+        max-height: 100dvh !important;
+        overflow: hidden !important;
+        padding: 12px !important;
+        box-sizing: border-box !important;
+    }
 }
 
 .dg-glass-admin .sidebar-mobile-backdrop {
@@ -190,28 +206,33 @@
 }
 
 .dg-glass-admin .enterprise-workspace {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
     background: transparent !important;
 }
 
 /* ---------- Navegación Lateral (Cápsula de Cristal Esmerilado) ---------- */
 .dg-glass-admin .smart-capsule-sidebar {
-    position: sticky !important;
-    top: 20px !important;
+    position: relative !important;
+    top: 0 !important;
     display: flex !important;
     flex-direction: column !important;
-    height: calc(100svh - 72px) !important;
+    height: 100% !important;
+    max-height: 100% !important;
     min-height: 0 !important;
-    padding: 20px 14px 14px !important;
+    padding: 18px 12px 12px !important;
     border: 1px solid var(--g-border) !important;
-    border-radius: 22px !important;
+    border-radius: 20px !important;
     background: var(--g-glass-strong) !important;
     color: var(--g-text) !important;
     box-shadow: var(--g-shadow) !important;
     -webkit-backdrop-filter: blur(26px) saturate(190%);
     backdrop-filter: blur(26px) saturate(190%);
+    overflow: hidden !important;
 }
 
 .dg-glass-admin .glass-navigation { width: 100%; min-width: 0; gap: 0 !important; justify-content: flex-start !important; }
@@ -225,33 +246,18 @@
     margin-bottom: 6px;
     border-bottom: 1px solid rgba(0, 71, 151, 0.09);
 }
-.dg-glass-admin .capsule-brand { display: flex; align-items: center; gap: 11px; text-decoration: none; }
+.dg-glass-admin .capsule-brand { display: flex; align-items: center; justify-content: center; flex: 1; min-width: 0; text-decoration: none; }
 .dg-glass-admin .capsule-brand img {
-    width: 40px;
-    height: 40px;
-    padding: 4px;
-    border: 1px solid rgba(255, 255, 255, 0.95);
-    border-radius: 12px;
-    background: linear-gradient(135deg, #ffffff 0%, #edf4ff 100%);
-    box-shadow: 0 6px 16px rgba(0, 71, 151, 0.16), inset 0 1px 0 #fff;
-}
-.dg-glass-admin .capsule-brand span {
     display: block;
-    color: var(--g-brand) !important;
-    font-size: 19px;
-    font-weight: 800;
-    letter-spacing: -0.025em;
-    line-height: 1.1;
-    text-transform: lowercase;
-}
-.glass-navigation-brand small {
-    display: block;
-    margin-top: 3px;
-    color: var(--g-muted);
-    font-size: 10.5px;
-    font-weight: 500;
-    letter-spacing: 0;
-    text-transform: none;
+    width: 100%;
+    max-width: 220px;
+    height: auto;
+    object-fit: contain;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
 }
 
 .glass-sidebar-close {
@@ -370,16 +376,17 @@
 
 /* ---------- Barra Superior (Cápsula Glassmorphism) ---------- */
 .dg-glass-admin .smart-topbar {
-    position: sticky !important;
-    top: 20px !important;
+    position: relative !important;
+    top: 0 !important;
+    flex-shrink: 0 !important;
     z-index: 30;
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
     gap: 16px;
-    min-height: 70px !important;
-    margin: 0 0 18px;
-    padding: 12px 22px !important;
+    min-height: 64px !important;
+    margin: 0 0 14px !important;
+    padding: 10px 20px !important;
     border: 1px solid var(--g-border) !important;
     border-radius: 20px !important;
     background: var(--g-glass-surface) !important;
@@ -541,10 +548,31 @@
 
 /* ---------- Contenido Principal ---------- */
 .dg-glass-admin .screen-content {
+    flex: 1 1 auto !important;
     width: 100%;
     max-width: none !important;
-    min-height: 0;
-    padding: 2px 2px 12px !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    overscroll-behavior: contain !important;
+    padding: 2px 8px 24px 2px !important;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 71, 151, 0.3) rgba(255, 255, 255, 0.25);
+}
+
+.dg-glass-admin .screen-content::-webkit-scrollbar {
+    width: 6px;
+}
+.dg-glass-admin .screen-content::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 999px;
+}
+.dg-glass-admin .screen-content::-webkit-scrollbar-thumb {
+    background: rgba(0, 71, 151, 0.28);
+    border-radius: 999px;
+}
+.dg-glass-admin .screen-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 71, 151, 0.5);
 }
 
 .glass-page-heading {
@@ -753,9 +781,24 @@
 /* ---------- Tarjetas KPI (Cristal + Acento #004797) ---------- */
 .glass-metrics {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
     margin-bottom: 16px;
+}
+@media (min-width: 1560px) {
+    .glass-metrics {
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+}
+@media (max-width: 1023px) {
+    .glass-metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+@media (max-width: 600px) {
+    .glass-metrics {
+        grid-template-columns: 1fr;
+    }
 }
 .glass-metric {
     position: relative;
@@ -795,7 +838,9 @@
     color: var(--g-brand);
     font-size: 10.5px;
     font-weight: 600;
-    text-align: right;
+    line-height: 1.2;
+    text-align: center;
+    white-space: nowrap;
 }
 .glass-metric h2 { color: var(--g-text-2); font-size: 12.5px; font-weight: 600; letter-spacing: 0; }
 .glass-metric-value {
@@ -1099,6 +1144,35 @@
 .glass-table label input { min-width: 0; width: 100%; color: var(--g-text); font-weight: 500; }
 .glass-table label input::placeholder { color: var(--g-muted); }
 .glass-table table { min-width: 100%; }
+.dg-glass-admin .glass-table .admin-records-table-wrap { width: 100%; min-width: 0; overflow: hidden; }
+.dg-glass-admin .glass-table table.admin-records-table { width: 100%; min-width: 0; table-layout: fixed; }
+.dg-glass-admin .glass-table table.admin-records-table th,
+.dg-glass-admin .glass-table table.admin-records-table td {
+    min-width: 0;
+    padding: 12px 10px;
+    overflow-wrap: anywhere;
+    white-space: normal;
+}
+.dg-glass-admin .glass-table table.admin-records-table .glass-badge { max-width: 100%; white-space: normal; text-align: center; }
+.dg-glass-admin .glass-table table.admin-records-table td[data-action="true"] .glass-row-action { max-width: 100%; justify-content: center; padding-inline: 8px; white-space: normal; }
+.dg-glass-admin .glass-table table.admin-records-table-support th:nth-child(1),
+.dg-glass-admin .glass-table table.admin-records-table-support td:nth-child(1) { width: 8%; }
+.dg-glass-admin .glass-table table.admin-records-table-support th:nth-child(2),
+.dg-glass-admin .glass-table table.admin-records-table-support td:nth-child(2) { width: 12%; }
+.dg-glass-admin .glass-table table.admin-records-table-support th:nth-child(3),
+.dg-glass-admin .glass-table table.admin-records-table-support td:nth-child(3) { width: 22%; }
+.dg-glass-admin .glass-table table.admin-records-table-support th:nth-child(4),
+.dg-glass-admin .glass-table table.admin-records-table-support td:nth-child(4) { width: 11%; }
+.dg-glass-admin .glass-table table.admin-records-table-support th:nth-child(5),
+.dg-glass-admin .glass-table table.admin-records-table-support td:nth-child(5) { width: 7%; }
+.dg-glass-admin .glass-table table.admin-records-table-support th:nth-child(6),
+.dg-glass-admin .glass-table table.admin-records-table-support td:nth-child(6) { width: 13%; }
+.dg-glass-admin .glass-table table.admin-records-table-support th:nth-child(7),
+.dg-glass-admin .glass-table table.admin-records-table-support td:nth-child(7) { width: 7%; }
+.dg-glass-admin .glass-table table.admin-records-table-support th:nth-child(8),
+.dg-glass-admin .glass-table table.admin-records-table-support td:nth-child(8) { width: 10%; }
+.dg-glass-admin .glass-table table.admin-records-table-support th:nth-child(9),
+.dg-glass-admin .glass-table table.admin-records-table-support td:nth-child(9) { width: 10%; }
 .glass-table thead tr {
     background: rgba(0, 71, 151, 0.065);
     color: var(--g-brand);
@@ -1345,11 +1419,63 @@ textarea.glass-input { resize: vertical; }
 }
 
 @media (max-width: 1023px) {
+    .dg-glass-admin .glass-table .admin-records-table-wrap { overflow: visible; }
+    .dg-glass-admin .glass-table table.admin-records-table,
+    .dg-glass-admin .glass-table table.admin-records-table tbody { display: block; }
+    .dg-glass-admin .glass-table table.admin-records-table thead { display: none; }
+    .dg-glass-admin .glass-table table.admin-records-table tbody { display: grid; gap: 12px; padding: 12px; }
+    .dg-glass-admin .glass-table table.admin-records-table tbody > tr {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px 14px;
+        padding: 12px;
+        border: 1px solid var(--g-border-hairline);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.62);
+    }
+    .dg-glass-admin .glass-table table.admin-records-table tbody > tr:first-child { border-top: 1px solid var(--g-border-hairline); }
+    .dg-glass-admin .glass-table table.admin-records-table tbody > tr > td {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 5px 0;
+        text-align: right;
+    }
+    .dg-glass-admin .glass-table table.admin-records-table tbody > tr > td::before {
+        content: attr(data-label);
+        flex: 0 1 44%;
+        color: var(--g-muted);
+        font-size: 10px;
+        font-weight: 650;
+        text-align: left;
+        text-transform: uppercase;
+    }
+    .dg-glass-admin .glass-table table.admin-records-table tbody > tr > td[data-action="true"] {
+        grid-column: 1 / -1;
+        align-items: center;
+        border-top: 1px solid var(--g-border-hairline);
+        padding-top: 10px;
+    }
+    .dg-glass-admin .glass-table table.admin-records-table tbody > tr > td[data-action="true"]::before { content: none; }
+    .dg-glass-admin .glass-table table.admin-records-table tbody > tr > td > * { min-width: 0; max-width: 56%; }
+}
+
+@media (max-width: 1023px) {
     #app.app-shell.dg-glass-admin:has(#dashboardScreen:not(.is-hidden)),
-    #app.app-shell.dg-glass-admin { padding: 12px !important; }
+    #app.app-shell.dg-glass-admin {
+        height: auto !important;
+        max-height: none !important;
+        min-height: 100svh !important;
+        overflow-y: auto !important;
+        padding: 10px !important;
+    }
     .dg-glass-admin #dashboardScreen.dashboard-screen {
         grid-template-columns: minmax(0, 1fr) !important;
-        min-height: calc(100svh - 24px) !important;
+        height: auto !important;
+        max-height: none !important;
+        min-height: calc(100svh - 20px) !important;
+        overflow: visible !important;
         padding: 10px !important;
         border-radius: 22px !important;
     }
@@ -1377,8 +1503,8 @@ textarea.glass-input { resize: vertical; }
         backdrop-filter: blur(4px);
     }
     .dg-glass-admin .is-sidebar-mobile-open .sidebar-mobile-backdrop { display: block; }
-    .dg-glass-admin .smart-topbar { top: 8px !important; padding: 12px 14px !important; }
-    .dg-glass-admin .screen-content { padding: 2px 2px 12px !important; }
+    .dg-glass-admin .smart-topbar { position: sticky !important; top: 8px !important; padding: 12px 14px !important; }
+    .dg-glass-admin .screen-content { height: auto !important; overflow-y: visible !important; padding: 2px 2px 12px !important; }
 }
 
 @media (max-width: 600px) {
@@ -1400,6 +1526,11 @@ textarea.glass-input { resize: vertical; }
     .glass-donut-wrap { grid-template-columns: minmax(0, 1fr); justify-items: center; }
     .glass-table > div:first-child { padding: 16px; }
     .glass-table > div:first-child label { width: 100%; }
+    .dg-glass-admin .glass-table table.admin-records-table tbody { padding: 8px; }
+    .dg-glass-admin .glass-table table.admin-records-table tbody > tr { grid-template-columns: minmax(0, 1fr); gap: 4px; padding: 10px; }
+    .dg-glass-admin .glass-table table.admin-records-table tbody > tr > td { gap: 10px; }
+    .dg-glass-admin .glass-table table.admin-records-table tbody > tr > td::before { flex-basis: 40%; }
+    .dg-glass-admin .glass-table table.admin-records-table tbody > tr > td > * { max-width: 60%; }
     .glass-table th,
     .glass-table td { padding-left: 14px; padding-right: 14px; }
 }
@@ -1411,3 +1542,112 @@ textarea.glass-input { resize: vertical; }
     .glass-metric:hover,
     .glass-tool-card:hover { transform: none; }
 }
+
+/* Accesos del equipo e historial del asistente. */
+.dg-glass-admin .access-module { display: grid; gap: 22px; min-width: 0; }
+.dg-glass-admin .access-module-head { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.dg-glass-admin .access-module-head h2 { margin: 5px 0 8px; font-size: 24px; font-weight: 750; }
+.dg-glass-admin .access-muted { color: var(--g-muted); font-size: 12px; line-height: 1.7; margin: 6px 0; }
+.dg-glass-admin .access-panel { padding: 24px; min-width: 0; }
+.dg-glass-admin .access-panel h3 { font-size: 15px; font-weight: 650; margin: 0; }
+.dg-glass-admin .access-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 20px; }
+.dg-glass-admin .access-toolbar .glass-input { max-width: 300px; }
+.dg-glass-admin .access-role-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; }
+.dg-glass-admin .access-role-card { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; padding: 20px; border: 1px solid var(--g-border); border-radius: 16px; background: #ffffff80; }
+.dg-glass-admin .access-role-card > svg { color: var(--g-brand); }
+.dg-glass-admin .access-card-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: auto; padding-top: 12px; }
+.dg-glass-admin .access-card-actions small { color: var(--g-muted); font-size: 10px; }
+.dg-glass-admin .access-table-scroll { overflow: auto; max-height: 550px; }
+.dg-glass-admin .access-matrix { width: 100%; border-collapse: collapse; font-size: 12px; }
+.dg-glass-admin .access-matrix th, .dg-glass-admin .access-matrix td { padding: 12px; border-bottom: 1px solid var(--g-border); min-width: 120px; }
+.dg-glass-admin .access-matrix thead th { position: sticky; top: 0; background: #edf4fc; z-index: 1; text-align: center; }
+.dg-glass-admin .access-matrix th:first-child { min-width: 250px; text-align: left; }
+.dg-glass-admin .access-matrix td { text-align: center; color: var(--g-muted); }
+.dg-glass-admin .access-matrix small { display: block; margin-top: 5px; color: var(--g-muted); font-size: 10px; font-weight: 400; }
+.dg-glass-admin .access-granted { color: #146f54; font-weight: 650; }
+.access-role-editor { width: min(820px, 94vw); }
+.dg-glass-admin .access-permissions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.dg-glass-admin .access-permissions fieldset { padding: 14px; border: 1px solid var(--g-border); border-radius: 12px; }
+.dg-glass-admin .access-permissions legend { width: auto; float: none; padding: 0 5px; font-size: 12px; font-weight: 700; text-transform: capitalize; }
+.dg-glass-admin .access-permissions label { display: flex; align-items: flex-start; gap: 9px; padding: 7px 0; font-size: 12px; }
+.dg-glass-admin .access-permissions input { margin-top: 3px; accent-color: var(--g-brand); }
+.dg-glass-admin .access-permissions small { display: block; font-size: 10px; color: var(--g-muted); }
+.dg-glass-admin .access-history { list-style: none; padding: 0; margin: 18px 0 0; display: grid; gap: 12px; max-height: 280px; overflow: auto; }
+.dg-glass-admin .access-history li { display: flex; justify-content: space-between; gap: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--g-border); font-size: 12px; }
+.dg-glass-admin .access-history span { color: var(--g-muted); }
+.dg-glass-admin .access-empty { display: grid; place-items: center; gap: 12px; padding: 48px 24px; color: var(--g-muted); font-size: 13px; text-align: center; }
+.dg-glass-admin .chat-history-layout { display: grid; grid-template-columns: minmax(260px, .8fr) minmax(0, 1.5fr); gap: 20px; align-items: start; }
+.dg-glass-admin .chat-history-sidebar { padding: 20px; }
+.dg-glass-admin .access-chat-search { display: flex; align-items: center; gap: 8px; }
+.dg-glass-admin .chat-conversation-list { display: grid; gap: 8px; margin-block: 16px; max-height: 600px; overflow: auto; }
+.dg-glass-admin .chat-conversation-item { display: grid; gap: 7px; width: 100%; padding: 16px; color: var(--g-text); border: 1px solid var(--g-border); border-radius: 12px; background: #ffffff75; text-align: left; cursor: pointer; overflow-wrap: anywhere; }
+.dg-glass-admin .chat-conversation-item strong { font-size: 12px; font-weight: 600; }
+.dg-glass-admin .chat-conversation-item span, .dg-glass-admin .chat-conversation-item small { font-size: 10px; color: var(--g-muted); }
+.dg-glass-admin .chat-conversation-item.is-selected { border-color: var(--g-brand); background: #eaf3ff; }
+.dg-glass-admin .chat-history-thread { min-height: 500px; overflow: hidden; }
+.dg-glass-admin .chat-history-thread > header { padding: 22px; border-bottom: 1px solid var(--g-border); }
+.dg-glass-admin .chat-history-thread h3 { margin: 8px 0 0; font-size: 16px; line-height: 1.5; overflow-wrap: anywhere; }
+.dg-glass-admin .chat-history-messages { display: flex; flex-direction: column; gap: 18px; padding: 24px; max-height: 650px; overflow: auto; }
+.dg-glass-admin .chat-history-new-messages { position: sticky; bottom: 8px; z-index: 2; align-self: center; padding: 8px 14px; border: 1px solid #004797; border-radius: 999px; background: #fff; box-shadow: 0 5px 16px #00479726; color: #004797; font-size: 11px; font-weight: 650; cursor: pointer; }
+.dg-glass-admin .chat-history-message { align-self: flex-start; max-width: 94%; padding: 14px 16px; border: 1px solid var(--g-border); border-radius: 14px; background: #ffffffb3; }
+.dg-glass-admin .chat-history-message.user { align-self: flex-end; background: #e8f2ff; }
+.dg-glass-admin .chat-history-message.is-error { background: #fff4ef; }
+.dg-glass-admin .chat-history-message small, .dg-glass-admin .chat-history-message > span { display: block; color: var(--g-muted); font-size: 10px; }
+.dg-glass-admin .chat-history-message p { margin: 8px 0; font-size: 13px; line-height: 1.8; white-space: pre-wrap; overflow-wrap: anywhere; }
+.dg-glass-admin .chat-message-receipt { margin-top: 6px; text-align: right; font-size: 10px !important; color: #d7eaff !important; }
+.dg-glass-admin .chat-message-receipt.is-read { color: #9de0ff !important; }
+.dg-glass-admin .chat-history-pagination { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 11px; }
+.dg-glass-admin .chat-conversation-entry { display: flex; align-items: stretch; gap: 6px; }
+.dg-glass-admin .chat-conversation-entry .chat-conversation-item { flex: 1; min-width: 0; }
+.dg-glass-admin .chat-conversation-archive { display: grid; place-items: center; flex: 0 0 40px; align-self: center; min-height: 40px; padding: 0; border: 1px solid #c6d9f3; border-radius: 11px; color: #14539a; background: #edf5ff; cursor: pointer; transition: background .2s, color .2s, border-color .2s; }
+.dg-glass-admin .chat-conversation-archive:hover:not(:disabled) { color: #fff; border-color: #004797; background: #004797; }
+.dg-glass-admin .chat-conversation-archive:disabled { opacity: .55; cursor: wait; }
+.dg-glass-admin .chat-history-filters { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 16px 0 10px; padding: 4px; border: 1px solid #d5e4f6; border-radius: 12px; background: #edf4fd; }
+.dg-glass-admin .chat-history-filters button { min-height: 34px; border: 0; border-radius: 9px; color: #405875; background: transparent; font-size: 11px; font-weight: 600; cursor: pointer; }
+.dg-glass-admin .chat-history-filters button.is-active { color: #fff; background: #004797; box-shadow: 0 3px 9px #00479735; }
+.dg-glass-admin .chat-history-thread-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 22px; border-bottom: 1px solid var(--g-border); }
+.dg-glass-admin .chat-history-thread-head h3 { margin: 7px 0 2px; color: #0a2b50; font-size: 16px; line-height: 1.4; overflow-wrap: anywhere; }
+.dg-glass-admin .chat-history-thread-head p { margin: 0; color: #526782; font-size: 11px; }
+.dg-glass-admin .chat-history-close { flex-shrink: 0; }
+.dg-glass-admin .chat-history-head-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; }
+.dg-glass-admin .chat-support-badge { display: inline-flex; width: fit-content; margin-top: 5px; padding: 3px 8px; border-radius: 999px; font-size: 9px; font-weight: 700; }
+.dg-glass-admin .chat-support-badge.is-requested { background: #fff3da; color: #80500b; }
+.dg-glass-admin .chat-support-badge.is-human { background: #dcf5ea; color: #176345; }
+.dg-glass-admin .chat-support-badge.is-unread { background: #004797; color: #fff; }
+.dg-glass-admin .chat-support-takeover { border-color: #004797 !important; background: #004797 !important; color: #fff !important; }
+.dg-glass-admin .chat-history-composer { display: flex; align-items: flex-end; gap: 10px; padding: 16px 20px; border-top: 1px solid var(--g-border); background: #fff; }
+.dg-glass-admin .chat-history-composer textarea { min-height: 48px; max-height: 140px; flex: 1; }
+.dg-glass-admin .chat-history-composer .glass-input:focus-visible { outline: none !important; outline-offset: 0 !important; }
+.dg-glass-admin .chat-history-messages { background: linear-gradient(180deg, #f3f8ff 0%, #eaf2fc 100%); }
+.dg-glass-admin .chat-history-day { display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; color: #476181; font-size: 10px; font-weight: 650; letter-spacing: .3px; text-align: center; }
+.dg-glass-admin .chat-history-day::before, .dg-glass-admin .chat-history-day::after { content: ''; width: min(18%, 100px); height: 1px; background: #c9d9ed; }
+.dg-glass-admin .chat-history-message { max-width: min(88%, 680px); padding: 14px 17px; border: 1px solid #0b5bb633; border-radius: 15px 15px 15px 4px; background: linear-gradient(145deg, #004797 0%, #075bb0 58%, #126bc0 100%); box-shadow: 0 8px 20px #00479720; color: #fff; }
+.dg-glass-admin .chat-history-message small, .dg-glass-admin .chat-history-message > span { color: #d7eaff; font-size: 10px; }
+.dg-glass-admin .chat-history-message p { margin: 8px 0 0; color: #fff; font-size: 13px; font-weight: 450; line-height: 1.75; }
+.dg-glass-admin .chat-history-message.user { align-self: flex-end; border-color: #c7d9f0; border-radius: 15px 15px 4px 15px; background: linear-gradient(145deg, #fff 0%, #e2efff 100%); box-shadow: 0 6px 16px #274d7512; color: #102b4b; }
+.dg-glass-admin .chat-history-message.user small, .dg-glass-admin .chat-history-message.user > span { color: #476181; }
+.dg-glass-admin .chat-history-message.user p { color: #102b4b; }
+.dg-glass-admin .chat-history-message.is-staff { border-color: #045aab; background: linear-gradient(145deg, #0065b8 0%, #004797 100%); }
+.dg-glass-admin .chat-history-message.is-error { border-color: #f0c6be; background: linear-gradient(145deg, #8b3028, #b44638); color: #fff; }
+.dg-glass-admin .chat-history-message.is-error small, .dg-glass-admin .chat-history-message.is-error p { color: #fff; }
+.dg-glass-admin .chat-history-older { align-self: center; }
+@media (max-width: 900px) { .dg-glass-admin .chat-history-layout { grid-template-columns: 1fr; } .dg-glass-admin .chat-conversation-list { max-height: 320px; } }
+@media (max-width: 600px) {
+    .dg-glass-admin .access-module-head, .dg-glass-admin .access-toolbar { align-items: stretch; flex-direction: column; }
+    .dg-glass-admin .access-permissions { grid-template-columns: 1fr; }
+    .dg-glass-admin .access-panel { padding: 18px; }
+    .dg-glass-admin .access-toolbar .glass-input { max-width: none; }
+    .dg-glass-admin .access-history li { flex-direction: column; }
+    .dg-glass-admin .chat-history-thread-head { align-items: stretch; flex-direction: column; }
+    .dg-glass-admin .chat-history-close { align-self: flex-start; }
+    .dg-glass-admin .chat-history-message { max-width: 96%; }
+}
+
+.reservation-admin-settings { padding: 20px; margin-bottom: 20px; }
+.reservation-admin-settings > p { margin: 18px 0; max-width: 85ch; font-size: .875rem; color: #52617b; }
+.reservation-admin-group { display: flex; align-items: end; gap: 16px; padding: 14px 0; border-top: 1px solid #dce3ef; }
+.reservation-admin-group > div:first-child { min-width: 155px; }
+.reservation-admin-group small { display: block; font-size: .75rem; color: #62718a; }
+.reservation-admin-group label { display: flex; flex: 1; flex-direction: column; gap: 5px; font-size: .75rem; }
+
+@media (max-width: 540px) { .reservation-admin-group { flex-wrap: wrap; } .reservation-admin-group label { flex-basis: 100%; } }

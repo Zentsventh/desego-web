@@ -61,12 +61,16 @@
 
 .dining-client button:focus-visible,
 .dining-floor-module button:focus-visible,
-.dining-primary-link:focus-visible,
+.dining-primary-link:focus-visible {
+    outline: 3px solid rgba(0, 71, 151, 0.35);
+    outline-offset: 2px;
+}
+
 .dining-client input:focus-visible,
 .dining-client select:focus-visible,
 .dining-floor-module select:focus-visible {
-    outline: 3px solid rgba(0, 71, 151, 0.35);
-    outline-offset: 2px;
+    outline: none !important;
+    outline-offset: 0 !important;
 }
 
 .dining-client button:disabled,

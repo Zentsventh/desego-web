@@ -63,6 +63,7 @@ class AdminController extends Controller
 
                 $availableTables = (int) DB::table('restaurant_tables')
                     ->where('is_active', 1)
+                    ->where('table_number', '<=', (int) config('dining.table_count', 12))
                     ->where('operational_status', 'available')
                     ->count();
 
@@ -180,6 +181,7 @@ class AdminController extends Controller
                 ];
 
                 $tables = DB::table('restaurant_tables')
+                    ->where('table_number', '<=', (int) config('dining.table_count', 12))
                     ->orderByDesc('is_active')
                     ->orderBy('zone')
                     ->orderBy('table_number')

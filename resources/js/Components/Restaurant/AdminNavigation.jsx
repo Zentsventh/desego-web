@@ -5,15 +5,15 @@ import {
     Archive, ArrowUpRight, BookOpen, CalendarDays, ChartNoAxesCombined, ChefHat,
     CircleHelp, ClipboardList, DatabaseBackup, Gift, LayoutDashboard,
     LogOut, Package, PanelsTopLeft, Settings2, ShieldCheck, ShoppingCart,
-    TicketPercent, Truck, UsersRound, UserRoundCog, Wallet, X,
+    Star, TicketPercent, Truck, UsersRound, UserRoundCog, Wallet, X, MessagesSquare,
 } from 'lucide-react';
 
 const groups = [
     { title: 'Resumen', keys: ['dashboard', 'reportes'] },
     { title: 'Operación', keys: ['salon', 'pedidos', 'cocina', 'delivery', 'reservas', 'caja'] },
-    { title: 'Catálogo', keys: ['carta', 'inventario', 'compras'] },
-    { title: 'Clientes', keys: ['clientes', 'promociones', 'fidelizacion', 'soporte'] },
-    { title: 'Administración', keys: ['equipo', 'roles', 'auditoria', 'backups'] },
+    { title: 'Catálogo', keys: ['carta', 'categorias', 'insumos', 'alergenos', 'inventario', 'compras'] },
+    { title: 'Clientes', keys: ['clientes', 'promociones', 'fidelizacion', 'resenas', 'chatbot', 'soporte'] },
+    { title: 'Administración', keys: ['configuracion', 'equipo', 'usuarios', 'roles', 'auditoria', 'backups'] },
 ];
 
 const icons = {
@@ -22,9 +22,11 @@ const icons = {
     reservas: CalendarDays, caja: Wallet, carta: BookOpen,
     salon: PanelsTopLeft,
     inventario: Package, compras: ShoppingCart, clientes: UsersRound,
-    promociones: TicketPercent, fidelizacion: Gift, soporte: CircleHelp,
-    equipo: UserRoundCog, roles: ShieldCheck, auditoria: Archive,
+    promociones: TicketPercent, fidelizacion: Gift, resenas: Star, soporte: CircleHelp,
+    configuracion: Settings2, equipo: UserRoundCog, roles: ShieldCheck, auditoria: Archive,
     backups: DatabaseBackup,
+    usuarios: UsersRound, chatbot: MessagesSquare,
+    categorias: BookOpen, insumos: Package, alergenos: ShieldCheck,
 };
 
 function groupModules(navigation) {
@@ -131,8 +133,7 @@ export default function AdminNavigation({ navigation, section, user, open, onClo
         <aside id="admin-navigation" className="enterprise-sidebar smart-capsule-sidebar glass-navigation" aria-label="Navegación administrativa" aria-hidden={isMobile && !open ? true : undefined} inert={isMobile && !open}>
             <div className="glass-navigation-brand">
                 <Link href={navigation.some((item) => item.key === 'dashboard') ? '/admin' : `/admin/seccion/${section}`} onClick={onClose} className="capsule-brand">
-                    <img src="/assets/desego-logo.png" alt="" />
-                    <span>desego<small>Gestión del restaurante</small></span>
+                    <img src="/assets/desego-logo.png" alt="DESEGO Cevichería" width="800" height="300" />
                 </Link>
                 <button ref={closeRef} type="button" className="glass-sidebar-close" onClick={onClose} aria-label="Cerrar navegación"><X size={18} aria-hidden="true" /></button>
             </div>

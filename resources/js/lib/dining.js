@@ -40,8 +40,34 @@ export function qrMatrix(text) {
 }
 
 export async function diningApi(path, { token, method='GET', body } = {}) {
-    const response = await fetch(`/api/mobile/dining/${path}`, { method, credentials:'same-origin', headers:{ Accept:'application/json', 'Content-Type':'application/json', 'X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]')?.content || '', ...(token?{'X-Dining-Token':token}:{}) }, ...(body?{body:JSON.stringify(body)}:{}) });
-    const result=await response.json();
-    if(!response.ok){ const first=Object.values(result.errors||{}).flat()[0]; throw new Error(first||result.message||'No se pudo completar la solicitud.'); }
+    const response = await fetch(`/api/mobile/dining/${path}`, {
+        method,
+        credentials: 'same-origin',
+        headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+            ...(token ? { 'X-Dining-Token': token } : {}),
+        },
+        ...(body ? { body: JSON.stringify(body) } : {}),
+    });
+    let result;
+    try {
+        result = await response.json();
+    } catch {
+        throw new Error(
+            response.ok
+                ? 'El servidor devolvió una respuesta no válida. Inténtalo nuevamente.'
+                : `No se pudo completar el pedido (error ${response.status}). Actualiza la página o pide ayuda al mesero.`
+        );
+    }
+    if (!response.ok) {
+        const first = Object.values(result.errors || {}).flat()[0];
+        throw new Error(
+            first ||
+                result.message ||
+                `No se pudo completar la solicitud (error ${response.status}).`
+        );
+    }
     return result;
 }

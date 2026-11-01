@@ -13,9 +13,9 @@ class DocumentLookupController extends Controller
     {
         $validated = $request->validate([
             'type' => 'required|in:DNI,RUC',
-            'number' => 'required|digits_between:8,11',
+            'number' => $request->input('type') === 'DNI' ? 'required|digits:8' : 'required|digits:11',
         ]);
 
-        return response()->json($documents->lookup($validated['type'], $validated['number']));
+        return response()->json($documents->lookup($validated['type'], $validated['number']))->header('Cache-Control', 'no-store');
     }
 }

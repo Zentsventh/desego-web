@@ -21,7 +21,7 @@ class DesegoHeaders
             'X-Content-Type-Options' => 'nosniff',
             'X-Frame-Options' => 'DENY',
             'Referrer-Policy' => 'strict-origin-when-cross-origin',
-            'Permissions-Policy' => 'camera=(), microphone=(), geolocation=()',
+            'Permissions-Policy' => 'camera=(), microphone=(), geolocation=(self)',
             'Cross-Origin-Resource-Policy' => 'same-origin',
             'Cache-Control' => 'no-store, max-age=0',
         ]);

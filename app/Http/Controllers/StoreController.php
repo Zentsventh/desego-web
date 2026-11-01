@@ -125,6 +125,7 @@ class StoreController extends Controller
 
             $tables = DB::table('restaurant_tables')
                 ->where('is_active', 1)
+                ->where('table_number', '<=', (int) config('dining.table_count', 12))
                 ->where('operational_status', 'available')
                 ->orderBy('zone')
                 ->orderBy('table_number')

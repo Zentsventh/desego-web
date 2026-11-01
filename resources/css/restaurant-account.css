@@ -1,3 +1,2510 @@
-.dg-auth{display:grid;grid-template-columns:1fr 1fr;min-height:100dvh}.dg-auth-photo{position:relative;overflow:hidden;background:#183d3c;color:#fff;min-height:100vh}.dg-auth-photo>img{position:absolute;width:100%;height:100%;object-fit:cover}.dg-auth-photo>div{position:absolute;inset:0;background:linear-gradient(180deg,#123d3a44,#0d2e30b8)}.dg-auth-photo>.dg-brand{position:absolute;top:45px;left:50px}.dg-auth-photo>section{position:absolute;bottom:70px;left:50px;right:35px}.dg-auth-photo h1{font-size:67px;line-height:1.07;margin:20px 0}.dg-auth-photo p{font-size:12px;color:#e4e0ce}.dg-auth-form{display:flex;flex-direction:column;justify-content:space-between;padding:40px 60px;gap:35px}.dg-auth-form>.dg-text-button{align-self:flex-start;font-size:10px}.dg-auth-form>div{max-width:375px;width:100%;margin:auto}.dg-auth-form h2{font:39px/1.1 Georgia,serif;letter-spacing:-1.6px;margin:17px 0}.dg-auth-form>div>p{font-size:12px;color:#81917c;line-height:1.9;margin-bottom:28px}.dg-auth-form>small{font-size:9px;color:#87947d;text-align:center}.dg-auth-switch{margin:22px 0 15px!important;font-size:11px!important}.dg-auth-switch a{color:#254e40;font-weight:600;border-bottom:1px solid #7c9872;padding-bottom:3px;margin-left:5px}.dg-auth-security{display:flex;align-items:center;gap:7px;font-size:9px;color:#9aa18f}.dg-account{min-height:100vh;padding-bottom:80px}.dg-account-header{height:110px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #e2e4d8}.dg-account-welcome{display:flex;justify-content:space-between;align-items:center;padding:55px 0 35px}.dg-account h1{font-size:54px;margin:12px 0}.dg-account h1 em{color:#8d9e73}.dg-account-welcome p{color:#89917e;font-size:12px}.dg-account-tabs{display:flex;gap:7px;border-bottom:1px solid #dde2d3;padding-bottom:15px;overflow-x:auto}.dg-account-tabs button{display:flex;gap:10px;align-items:center;padding:12px 20px;background:none;color:#7c8d77;border:0;border-radius:3px;font-size:11px;white-space:nowrap;cursor:pointer}.dg-account-tabs button.active{color:white;background:#264f45}.dg-account-section{padding:35px 0}.dg-account-section h2{font:29px Georgia,serif;margin:0 0 25px}.dg-account-section-head{display:flex;justify-content:space-between;align-items:start}.dg-order-card{padding:25px;border:1px solid #e2e5d8;background:#fffcf6;margin-bottom:20px}.dg-order-card header{display:flex;gap:20px;align-items:center;justify-content:space-between}.dg-order-card header>div{flex:1}.dg-order-card header p{font-size:10px;color:#8b957f;margin:5px 0}.dg-order-card header strong{font-size:17px}.dg-order-card>div{border-block:1px solid #e7e8df;padding:15px 0;margin:15px 0}.dg-order-card>div>p{display:flex;justify-content:space-between;font-size:11px;color:#6f826f;margin:5px 0}.dg-order-card footer{display:flex;align-items:center;gap:23px}.dg-order-card footer small{flex:1;color:#8a987f;font-size:10px}.dg-order-card footer button{font-size:10px}.dg-account-columns{display:grid;grid-template-columns:1fr 1fr;gap:65px}.dg-address-card{display:flex;align-items:center;gap:18px;padding:23px;background:#fffdf7;border:1px solid #e1e5d6;margin:15px 0}.dg-address-card>div{flex:1}.dg-address-card strong{font-size:12px}.dg-address-card p,.dg-address-card small{font-size:11px;color:#8c967f;margin:6px 0 0}.dg-account-form{max-width:430px;padding:27px;background:#f0f2e8;border:1px solid #e3e5d9}.dg-account-form h3{font:26px Georgia,serif;margin:0 0 5px}.dg-account .dg-confirmation{margin:24px 0 0}
-@media(max-width:850px){.dg-auth{grid-template-columns:.8fr 1fr}.dg-auth-form{padding:35px}.dg-auth-photo h1{font-size:48px}.dg-auth-photo>section{left:30px}.dg-auth-photo>.dg-brand{left:30px}.dg-account-columns{gap:30px}.dg-account-header{height:90px}.dg-account-welcome{padding-top:40px}}
-@media(max-width:600px){.dg-auth{grid-template-columns:1fr}.dg-auth-photo{min-height:260px;height:260px}.dg-auth-photo>img{object-position:50% 55%}.dg-auth-photo h1{font-size:35px}.dg-auth-photo h1 br:last-of-type{display:none}.dg-auth-photo>section{bottom:18px;left:24px}.dg-auth-photo .dg-eyebrow{display:none}.dg-auth-photo>.dg-brand{top:25px;left:24px}.dg-auth-photo p{display:none}.dg-auth-form{padding:25px 24px;gap:25px}.dg-auth-form h2{font-size:34px}.dg-account h1{font-size:43px}.dg-account-welcome{align-items:start;gap:15px}.dg-account-welcome>.dg-text-button{font-size:8px}.dg-account-tabs{gap:2px}.dg-account-tabs button{padding:10px;font-size:9px;gap:6px}.dg-account-columns{grid-template-columns:1fr;gap:20px}.dg-account-section h2{font-size:24px}.dg-order-card{padding:18px}.dg-order-card header{gap:8px}.dg-order-card header strong{font-size:13px}.dg-order-card .dg-eyebrow{font-size:7px}.dg-order-card footer{gap:12px;flex-wrap:wrap}.dg-order-card footer small{width:100%;flex:none}.dg-address-card{padding:15px;gap:10px}.dg-address-card>button{font-size:9px}.dg-account-header>.dg-text-button{font-size:9px}.dg-auth .dg-form{gap:13px}}
+/* ==========================================================================
+   DESEGO CEVICHERÍA — PORTAL DE CUENTA DE CLIENTE (MODO PREMIUM LUXURY)
+   Botón Primario y Marca Corporativa: #004797
+   Escala tipográfica moderada, equilibrada y elegante (11px – 26px)
+   ========================================================================== */
+
+/* --- AUTH SCREENS (LOGIN / REGISTRO) --- */
+.dg-auth {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: 100dvh;
+    background: #f8fafc;
+}
+.dg-auth-photo {
+    position: relative;
+    overflow: hidden;
+    background: #021a38;
+    color: #fff;
+    min-height: 100vh;
+}
+.dg-auth-photo > img {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.85;
+}
+.dg-auth-photo > div {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(2, 26, 56, 0.45) 0%, rgba(0, 71, 151, 0.88) 100%);
+}
+.dg-auth-photo > .dg-brand {
+    position: absolute;
+    top: 40px;
+    left: 48px;
+    z-index: 2;
+}
+.dg-auth-photo > section {
+    position: absolute;
+    bottom: 60px;
+    left: 48px;
+    right: 40px;
+    z-index: 2;
+}
+.dg-auth-photo h1 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 34px;
+    line-height: 1.2;
+    margin: 16px 0 12px;
+    color: #ffffff;
+    font-weight: 700;
+}
+.dg-auth-photo p {
+    font-size: 14px;
+    color: #e2e8f0;
+    max-width: 440px;
+    line-height: 1.6;
+}
+.dg-auth-form {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 40px 52px;
+    gap: 24px;
+    background: #ffffff;
+}
+.dg-auth-form > div {
+    max-width: 400px;
+    width: 100%;
+    margin: auto;
+}
+.dg-auth-form h2 {
+    font-size: 24px;
+    color: #0f172a;
+    font-weight: 700;
+    letter-spacing: -0.4px;
+    margin: 14px 0 8px;
+}
+.dg-auth-form > div > p {
+    font-size: 13px;
+    color: #64748b;
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
+.dg-auth-switch {
+    margin: 18px 0 10px !important;
+    font-size: 13px !important;
+    color: #64748b;
+}
+.dg-auth-switch a {
+    color: #004797;
+    font-weight: 600;
+    text-decoration: underline;
+    margin-left: 6px;
+}
+.dg-auth-security {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #94a3b8;
+}
+.dg-google-auth-wrap {
+    margin: 18px 0 14px;
+}
+.dg-google-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    width: 100%;
+    padding: 11px 18px;
+    background: #ffffff;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1e293b;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+.dg-google-btn:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+.dg-auth-divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 18px 0 14px;
+}
+.dg-auth-divider::before,
+.dg-auth-divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #e2e8f0;
+}
+.dg-auth-divider span {
+    padding: 0 14px;
+    font-size: 12px;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+}
+
+/* --- MAIN ACCOUNT SHELL --- */
+.dg-account {
+    min-height: 100vh;
+    background: #f8fafc;
+    padding-bottom: 48px;
+    color: #1e293b;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-size: 13px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+}
+.dg-account-header {
+    height: 68px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #e2e8f0;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(12px);
+    position: sticky;
+    top: 0;
+    z-index: 40;
+}
+.dg-account-header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 100%;
+    gap: 20px;
+}
+.dg-account-header-brand {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+.dg-account-logo {
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+    width: 140px;
+}
+.dg-account-logo img {
+    display: block;
+    width: 100%;
+    max-height: 46px;
+    height: auto;
+    object-fit: contain;
+}
+.dg-account-header-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    flex: 0 0 auto;
+}
+
+/* --- BUTTONS & ACTIONS (STRICT BRAND COLOR #004797) --- */
+.dg-account .dg-button,
+.dg-btn-primary {
+    background: #004797 !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: 10px;
+    padding: 9px 18px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    box-shadow: 0 1px 2px rgba(0, 71, 151, 0.15);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    text-decoration: none;
+    min-height: 40px;
+}
+.dg-account .dg-button:hover,
+.dg-btn-primary:hover {
+    background: #003775 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 71, 151, 0.2);
+}
+.dg-account .dg-button:active,
+.dg-btn-primary:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 3px rgba(0, 71, 151, 0.25);
+}
+.dg-account .dg-button:disabled,
+.dg-btn-primary:disabled {
+    background: #cbd5e1 !important;
+    color: #64748b !important;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+}
+
+.dg-btn-outline {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #004797;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    min-height: 40px;
+}
+.dg-btn-outline:hover {
+    background: #f8fafc;
+    border-color: #004797;
+    color: #003775;
+    transform: translateY(-1px);
+}
+
+.dg-account .dg-text-button {
+    background: transparent;
+    border: none;
+    color: #004797 !important;
+    font-weight: 600;
+    font-size: 13px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 8px;
+    transition: all 0.15s ease;
+    text-decoration: none;
+}
+.dg-account .dg-text-button:hover {
+    color: #002b5c !important;
+    background: rgba(0, 71, 151, 0.06);
+}
+
+.dg-btn-danger {
+    background: #dc2626 !important;
+    color: #ffffff !important;
+    border: none;
+    border-radius: 10px;
+    padding: 9px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 40px;
+}
+.dg-btn-danger:hover {
+    background: #b91c1c !important;
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
+}
+
+/* --- STAFF ACCESS BANNER --- */
+.dg-staff-banner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    background: #edf3fb;
+    color: #3b526d;
+    padding: 8px 16px;
+    border-radius: 10px;
+    margin-top: 16px;
+    font-size: 12px;
+    border: 1px solid #dce6f2;
+}
+.dg-staff-banner a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #004797;
+    font-weight: 600;
+    text-decoration: none;
+    padding: 5px 12px;
+    background: #fff;
+    border-radius: 6px;
+    transition: all 0.15s ease;
+    border: 1px solid #cbdbeb;
+}
+.dg-staff-banner a:hover {
+    background: #f0f7ff;
+}
+
+/* --- BREADCRUMB --- */
+.dg-account-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #94a3b8;
+    margin-top: 14px;
+    margin-bottom: 4px;
+}
+.dg-account-breadcrumb a {
+    color: #64748b;
+    text-decoration: none;
+    transition: color 0.15s ease;
+}
+.dg-account-breadcrumb a:hover {
+    color: #004797;
+}
+
+/* --- HERO WELCOME BAR --- */
+.dg-account-hero {
+    position: relative;
+    color: #1e293b;
+    padding: 12px 0 18px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #e2e8f0;
+}
+.dg-account-hero-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+.dg-account-hero-left {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.dg-account-hero-badges {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.dg-account-hero-title {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.4px;
+    color: #0f172a;
+    margin: 0;
+}
+.dg-code-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #edf3fb;
+    border: 1px solid #d9e4f2;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #004797;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+.dg-code-pill:hover {
+    background: #e1ebf8;
+}
+.dg-hero-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* --- STAT METRIC CARDS --- */
+.dg-account-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 24px;
+}
+.dg-stat-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 16px 14px;
+    text-align: left;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.dg-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px -4px rgba(0, 71, 151, 0.1);
+    border-color: #b9d3f1;
+}
+.dg-stat-icon-wrap {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.dg-stat-icon-blue { background: #edf4fd; color: #004797; }
+.dg-stat-icon-gold { background: #fef3c7; color: #b45309; }
+.dg-stat-icon-green { background: #ecfdf5; color: #15803d; }
+.dg-stat-icon-rose { background: #fff1f2; color: #e11d48; }
+
+.dg-stat-card-body {
+    flex: 1;
+    min-width: 0;
+}
+.dg-stat-card-body span {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: #64748b;
+    margin-bottom: 2px;
+}
+.dg-stat-card-body strong {
+    font-size: 20px;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.2;
+    font-variant-numeric: tabular-nums;
+    display: block;
+}
+.dg-stat-card-body small {
+    display: block;
+    font-size: 11px;
+    color: #94a3b8;
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* --- FREQUENT DISHES --- */
+.dg-frequent-box {
+    margin-bottom: 24px;
+    padding: 16px 20px;
+    border-radius: 16px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
+}
+.dg-frequent-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.dg-frequent-head h3 {
+    font-size: 14px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+}
+.dg-frequent-head a {
+    font-size: 12px;
+    font-weight: 600;
+    color: #004797;
+    text-decoration: none;
+    transition: color 0.15s ease;
+}
+.dg-frequent-head a:hover {
+    color: #002b5c;
+    text-decoration: underline;
+}
+.dg-frequent-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 10px;
+}
+.dg-frequent-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    transition: all 0.2s ease;
+}
+.dg-frequent-item:hover {
+    border-color: #cbd5e1;
+    background: #f1f5f9;
+}
+.dg-frequent-item img {
+    width: 44px;
+    height: 44px;
+    border-radius: 8px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+.dg-frequent-info {
+    flex: 1;
+    min-width: 0;
+}
+.dg-frequent-title {
+    display: block;
+    font-weight: 600;
+    font-size: 13px;
+    color: #0f172a;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.dg-frequent-meta {
+    display: block;
+    font-size: 11px;
+    color: #64748b;
+    margin-top: 1px;
+}
+.dg-frequent-item .dg-button {
+    padding: 6px 12px !important;
+    font-size: 11px !important;
+    border-radius: 8px !important;
+    min-height: auto !important;
+    flex-shrink: 0;
+}
+
+/* --- TABS NAVIGATION BAR --- */
+.dg-account-nav-wrap {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 6px;
+    margin-bottom: 28px;
+    box-shadow: 0 2px 12px rgba(15, 23, 42, 0.03);
+}
+.dg-account-tabs {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 8px;
+}
+.dg-account-tabs button {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: transparent;
+    color: #475569;
+    border: none;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    min-height: 40px;
+    text-align: left;
+    width: 100%;
+}
+.dg-account-tabs button > span {
+    flex: 1;
+}
+.dg-account-tabs button:hover:not(.active) {
+    background: #f8fafc;
+    color: #004797;
+}
+.dg-account-tabs button.active {
+    background: #edf4fd !important;
+    color: #004797 !important;
+    font-weight: 700;
+}
+
+/* --- NOTIFICATIONS / CONFIRMATION --- */
+.dg-confirmation {
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    color: #065f46;
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 1px 3px rgba(16, 185, 129, 0.08);
+}
+
+/* --- SECTIONS HEADINGS --- */
+.dg-account-section {
+    padding: 24px 26px;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    background: #ffffff;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
+}
+.dg-account-section-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 14px;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+.dg-account-section-head h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+    letter-spacing: -0.3px;
+}
+
+/* --- ORDER FILTERS TOOLBAR --- */
+.dg-orders-filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 18px;
+}
+.dg-account-order-search {
+    position: relative;
+    flex: 1;
+    min-width: 220px;
+}
+.dg-account-order-search svg {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    pointer-events: none;
+}
+.dg-account-order-search input {
+    width: 100%;
+    padding: 8px 12px 8px 36px !important;
+    border-radius: 10px !important;
+    border: 1px solid #cbd5e1 !important;
+    background: #ffffff !important;
+    font-size: 13px !important;
+    color: #0f172a !important;
+    min-height: 38px !important;
+    outline: none;
+    transition: all 0.15s ease;
+}
+.dg-account-order-search input:focus {
+    border-color: #004797 !important;
+    box-shadow: 0 0 0 3px rgba(0, 71, 151, 0.12) !important;
+}
+.dg-orders-filter-bar select {
+    padding: 8px 12px !important;
+    border-radius: 10px !important;
+    border: 1px solid #cbd5e1 !important;
+    background: #ffffff !important;
+    font-size: 13px !important;
+    color: #334155 !important;
+    min-height: 38px !important;
+    outline: none;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.dg-orders-filter-bar select:focus {
+    border-color: #004797 !important;
+    box-shadow: 0 0 0 3px rgba(0, 71, 151, 0.12) !important;
+}
+
+/* --- ORDER CARDS --- */
+.dg-order-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 20px 22px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.dg-order-card:hover {
+    box-shadow: 0 8px 24px -4px rgba(0, 71, 151, 0.08);
+    border-color: #cbdbee;
+}
+.dg-order-card header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #f1f5f9;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+.dg-order-number-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #004797;
+    letter-spacing: 0.01em;
+}
+.dg-order-date {
+    font-size: 12px;
+    color: #64748b;
+    margin-top: 2px;
+}
+.dg-status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+.status-entregado { background: #ecfdf5; color: #15803d; }
+.status-pendiente { background: #fffbeb; color: #b45309; }
+.status-camino { background: #edf4fd; color: #004797; }
+.status-cancelado { background: #fef2f2; color: #b91c1c; }
+
+/* Stepper progress */
+.dg-order-progress-box {
+    margin: 12px 0 16px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+}
+.dg-order-progress {
+    display: grid;
+    gap: 8px;
+    position: relative;
+}
+.dg-order-progress-step {
+    text-align: center;
+    position: relative;
+}
+.dg-order-progress-bar {
+    height: 5px;
+    border-radius: 999px;
+    margin-bottom: 5px;
+    transition: background 0.3s ease;
+}
+.dg-order-progress-step.is-done .dg-order-progress-bar {
+    background: #004797;
+}
+.dg-order-progress-step:not(.is-done) .dg-order-progress-bar {
+    background: #e2e8f0;
+}
+.dg-order-progress-label {
+    font-size: 11px;
+    font-weight: 600;
+}
+.dg-order-progress-step.is-done .dg-order-progress-label {
+    color: #004797;
+}
+.dg-order-progress-step:not(.is-done) .dg-order-progress-label {
+    color: #94a3b8;
+}
+
+.dg-order-items-table {
+    padding: 12px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.dg-order-item-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    gap: 12px;
+}
+.dg-order-item-name {
+    font-weight: 600;
+    color: #1e293b;
+}
+.dg-order-item-note {
+    font-size: 11px;
+    color: #64748b;
+    font-style: italic;
+    margin-top: 2px;
+}
+.dg-order-card footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 14px;
+    border-top: 1px solid #f1f5f9;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+/* --- INVOICE SUNAT BOX --- */
+.dg-invoice-box {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin: 12px 0;
+    font-size: 12px;
+}
+.dg-invoice-box header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+    border-bottom: none;
+    padding-bottom: 0;
+}
+.dg-invoice-box strong {
+    color: #0f172a;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.dg-invoice-meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 6px;
+    color: #475569;
+    margin-top: 6px;
+    font-size: 12px;
+}
+
+/* --- CLUB DESEGO VIP METAL CARD --- */
+.dg-tier-card {
+    background: linear-gradient(135deg, #021a38 0%, #002b5e 60%, #004797 100%);
+    border-radius: 18px;
+    padding: 26px 30px;
+    color: #ffffff;
+    box-shadow: 0 10px 30px -4px rgba(0, 71, 151, 0.28);
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+.dg-tier-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 90% 10%, rgba(255, 255, 255, 0.15) 0%, transparent 50%);
+    pointer-events: none;
+}
+.dg-tier-card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    position: relative;
+    z-index: 2;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+.dg-tier-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 14px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+.dg-tier-badge.tier-oro {
+    background: linear-gradient(135deg, #ffd700 0%, #d4af37 100%);
+    color: #3d2800;
+}
+.dg-tier-badge.tier-plata {
+    background: linear-gradient(135deg, #f1f5f9 0%, #cbd5e1 100%);
+    color: #1e293b;
+}
+.dg-tier-badge.tier-bronce {
+    background: linear-gradient(135deg, #fed7aa 0%, #ea580c 100%);
+    color: #431407;
+}
+.dg-tier-card-stats {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+.dg-tier-card-points {
+    font-size: 32px;
+    font-weight: 800;
+    color: #ffffff;
+    line-height: 1;
+}
+.dg-tier-card-points span {
+    font-size: 13px;
+    font-weight: 500;
+    color: #93c5fd;
+    margin-left: 6px;
+}
+.dg-tier-progress-track {
+    width: 100%;
+    height: 7px;
+    background: rgba(255, 255, 255, 0.22);
+    border-radius: 8px;
+    margin-top: 16px;
+    overflow: hidden;
+}
+.dg-tier-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #60a5fa 0%, #fde047 100%);
+    border-radius: 8px;
+    transition: width 0.5s ease;
+}
+
+/* --- REDEMPTION VOUCHER CARD --- */
+.dg-redemption-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 14px;
+    padding: 16px 20px;
+    border-radius: 14px;
+    background: #ffffff;
+    border: 1px dashed #cbd5e1;
+    margin-bottom: 12px;
+    transition: all 0.2s ease;
+}
+.dg-redemption-card:hover {
+    border-color: #004797;
+    background: #fafcff;
+}
+.dg-redemption-code {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 8px;
+    background: #edf4fd;
+    color: #004797;
+    font-family: monospace, monospace;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.05em;
+}
+
+/* --- TICKET / REVIEW CARD --- */
+.dg-ticket-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 18px 20px;
+    margin-bottom: 14px;
+    transition: border-color 0.2s ease;
+}
+.dg-ticket-card:hover {
+    border-color: #cbd5e1;
+}
+.dg-ticket-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #f1f5f9;
+}
+.dg-ticket-messages {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 14px 0;
+}
+.dg-ticket-msg-bubble {
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    font-size: 13px;
+}
+.dg-ticket-msg-bubble.from-client {
+    background: #f0f7ff;
+    border-color: #d0e4f9;
+}
+.dg-ticket-badge-open {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    background: #fef3c7;
+    color: #92400e;
+}
+.dg-ticket-badge-resolved {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    background: #ecfdf5;
+    color: #065f46;
+}
+
+.dg-star-interactive {
+    background: transparent;
+    border: none;
+    padding: 4px;
+    cursor: pointer;
+    color: #cbd5e1;
+    transition: transform 0.15s ease, color 0.15s ease;
+}
+.dg-star-interactive:hover,
+.dg-star-interactive.active {
+    color: #f59e0b;
+    transform: scale(1.1);
+}
+
+/* --- FORMS AND CONTROLS --- */
+.dg-account-form {
+    padding: 24px;
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+.dg-account-form :is(h2, h3) {
+    font-size: 19px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+}
+.dg-account-form > p {
+    font-size: 13px;
+    color: #64748b;
+    line-height: 1.5;
+    margin: 0 !important;
+}
+.dg-account label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 0;
+}
+.dg-account :is(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea) {
+    font-size: 14px;
+    color: #0f172a;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    padding: 10px 14px;
+    border-radius: 10px;
+    min-height: 44px;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    width: 100%;
+    max-width: 100%;
+}
+.dg-account :is(input, select, textarea):focus {
+    border-color: #004797;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0, 71, 151, 0.15);
+}
+
+/* Document lookup row and verified status */
+.dg-profile-document-fields {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    gap: 14px;
+}
+.dg-profile-document-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-size: 13px;
+    line-height: 1.5;
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+}
+.dg-profile-document-status > svg {
+    flex-shrink: 0;
+}
+.dg-profile-document-status > span {
+    flex: 1;
+}
+.dg-profile-document-status.is-success {
+    background: #ecfdf5;
+    color: #065f46;
+    border-color: #a7f3d0;
+}
+.dg-profile-document-status.is-error {
+    background: #fffbeb;
+    color: #92400e;
+    border-color: #fde68a;
+}
+.dg-profile-document-status > button {
+    background: none;
+    border: 0;
+    color: #004797;
+    padding: 0;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: underline;
+    cursor: pointer;
+}
+.dg-spin {
+    animation: dg-document-loading 1s linear infinite;
+}
+@keyframes dg-document-loading {
+    to { transform: rotate(360deg); }
+}
+
+/* Switch rows for preferences */
+.dg-account .dg-switch-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px 0;
+    border-bottom: 1px solid #f1f5f9;
+}
+.dg-switch-row > div {
+    flex: 1;
+    min-width: 0;
+}
+.dg-account .dg-switch-row strong {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1e293b;
+    display: block;
+}
+.dg-account .dg-switch-row small {
+    font-size: 12px;
+    color: #64748b;
+    display: block;
+    margin-top: 2px;
+}
+.dg-account .dg-switch-row input[type="checkbox"] {
+    appearance: none;
+    flex: 0 0 38px;
+    width: 38px;
+    min-height: 22px;
+    height: 22px;
+    padding: 0;
+    border: 0;
+    border-radius: 20px;
+    background: #cbd5e1;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.dg-account .dg-switch-row input[type="checkbox"]::before {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    top: 3px;
+    left: 3px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+    transition: transform 0.2s;
+}
+.dg-account .dg-switch-row input[type="checkbox"]:checked {
+    background: #004797;
+}
+.dg-account .dg-switch-row input[type="checkbox"]:checked::before {
+    transform: translateX(16px);
+}
+
+/* Checkbox estándar */
+.dg-account input[type="checkbox"]:not([role="switch"]),
+.dg-form input[type="checkbox"]:not([role="switch"]),
+.dg-checkbox {
+    appearance: auto !important;
+    -webkit-appearance: checkbox !important;
+    width: 18px !important;
+    min-width: 18px !important;
+    max-width: 18px !important;
+    height: 18px !important;
+    min-height: 18px !important;
+    max-height: 18px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: 1.5px solid #cbd5e1 !important;
+    border-radius: 4px !important;
+    accent-color: #004797 !important;
+    cursor: pointer !important;
+    flex-shrink: 0 !important;
+    box-shadow: none !important;
+    outline: none !important;
+    background: transparent !important;
+}
+
+/* --- RESERVATIONS CARDS --- */
+.dg-reservation-card {
+    display: grid;
+    grid-template-columns: 76px minmax(0, 1fr) auto;
+    gap: 20px;
+    align-items: center;
+    padding: 22px;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    background: #ffffff;
+    margin-bottom: 16px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.dg-reservation-card:hover {
+    border-color: #cbdbee;
+    box-shadow: 0 6px 18px rgba(0, 71, 151, 0.06);
+}
+.dg-reservation-date {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    align-self: start;
+    background: #edf4fd;
+    color: #004797;
+    border: 1px solid #dbe6f5;
+    border-radius: 12px;
+    padding: 12px 8px;
+    gap: 2px;
+}
+.dg-reservation-date > span {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+}
+.dg-reservation-date > strong {
+    font-size: 22px;
+    line-height: 1.15;
+    font-weight: 700;
+}
+.dg-reservation-body {
+    min-width: 0;
+}
+.dg-reservation-card-top {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+.dg-reservation-code {
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748b;
+}
+.dg-account .dg-reservation-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 6px;
+}
+.dg-reservation-time {
+    color: #475569;
+    font-size: 13px;
+    margin: 0;
+    line-height: 1.5;
+}
+.dg-reservation-details {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #f1f5f9;
+}
+.dg-reservation-details > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #64748b;
+    font-size: 12px;
+}
+.dg-reservation-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 12px;
+    color: #64748b;
+    margin: 10px 0 0;
+}
+.dg-reservation-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    padding-left: 16px;
+    border-left: 1px solid #f1f5f9;
+}
+.dg-reservation-cancel {
+    border: 0;
+    background: transparent;
+    color: #b91c1c;
+    padding: 8px 12px;
+    font-size: 12px !important;
+    font-weight: 600;
+    min-height: 38px;
+    cursor: pointer;
+    border-radius: 8px;
+}
+.dg-reservation-cancel:hover {
+    background: #fef2f2;
+}
+
+/* --- ADDRESSES & FAVORITES --- */
+.dg-address-card {
+    display: flex;
+    align-items: flex-start;
+    padding: 18px 20px;
+    gap: 14px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    margin-bottom: 14px;
+}
+.dg-badge-default {
+    display: inline-block;
+    background: #e0f2fe;
+    color: #004797;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+.dg-account :is(.dg-rewards-grid, .dg-favorites-grid) {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+    gap: 18px;
+}
+.dg-account .dg-reward-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 20px;
+}
+.dg-account .dg-reward-card h4 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 6px 0;
+}
+.dg-account .dg-favorite-card {
+    border-radius: 14px;
+    overflow: hidden;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+}
+.dg-account .dg-favorite-card-body {
+    padding: 18px;
+}
+
+/* --- TABLES --- */
+.dg-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+.dg-table th,
+.dg-table td {
+    padding: 12px 14px;
+    text-align: left;
+    border-bottom: 1px solid #f1f5f9;
+}
+.dg-table th {
+    background: #f8fafc;
+    color: #475569;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+}
+
+/* --- EMPTY STATES --- */
+.dg-account .dg-empty {
+    text-align: center;
+    padding: 44px 20px;
+    background: #ffffff;
+    border: 1px dashed #cbd5e1;
+    border-radius: 16px;
+    color: #64748b;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+.dg-account .dg-empty > svg {
+    padding: 12px;
+    background: #edf3fb;
+    border-radius: 16px;
+    color: #004797;
+}
+.dg-account .dg-empty h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 8px 0 2px;
+}
+.dg-account .dg-empty p {
+    max-width: 380px;
+    margin: 0;
+    font-size: 13px;
+    color: #64748b;
+}
+
+/* --- DISCOVER BANNER --- */
+.dg-account-discover {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1.35fr 1fr;
+    background: #eaf1fa;
+    border: 1px solid #dfe8f4;
+    border-radius: 18px;
+    overflow: hidden;
+    min-height: 220px;
+}
+.dg-account-discover-copy {
+    position: relative;
+    padding: 24px 28px;
+    z-index: 1;
+}
+.dg-account-discover-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #004797;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+.dg-account-discover h2 {
+    font-size: 22px;
+    line-height: 1.25;
+    margin: 10px 0 8px;
+    color: #0a2540;
+    font-weight: 700;
+}
+.dg-account-discover p {
+    max-width: 320px;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #475569;
+    margin-bottom: 16px;
+}
+.dg-account-discover .dg-button {
+    padding: 10px 18px;
+    font-size: 13px;
+}
+.dg-account-discover > img {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    right: 0;
+    max-width: 42%;
+    object-fit: cover;
+    mask-image: linear-gradient(to right, transparent, #000 24%);
+}
+.dg-account-discover-seal {
+    position: absolute;
+    bottom: 16px;
+    right: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.94);
+    color: #004797;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+/* --- SIDEBAR AND LAYOUT --- */
+.dg-account .dg-container {
+    width: min(1280px, calc(100% - 48px));
+    margin-inline: auto;
+}
+.dg-account-layout {
+    display: grid;
+    grid-template-columns: 250px minmax(0, 1fr);
+    gap: 24px;
+    align-items: start;
+    margin-top: 14px;
+}
+.dg-account-sidebar {
+    position: sticky;
+    top: 86px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
+}
+.dg-account-sidebar-person {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 22px 16px 18px;
+    border-bottom: 1px solid #f1f5f9;
+    gap: 4px;
+}
+.dg-account-sidebar-person .dg-user-avatar-circle {
+    width: 52px;
+    height: 52px;
+    font-size: 20px;
+    font-weight: 700;
+    color: #004797;
+    background: #edf4fd;
+    border: 2px solid #ffffff;
+    box-shadow: 0 0 0 1.5px #dbe6f5;
+    margin-bottom: 4px;
+}
+.dg-account-sidebar-person > strong {
+    font-size: 14px;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.3;
+}
+.dg-account-sidebar-person > span:not(.dg-account-member) {
+    color: #64748b;
+    font-size: 12px;
+}
+.dg-account-member {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 4px;
+    padding: 3px 10px;
+    background: #edf4fd;
+    color: #004797;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 20px;
+}
+.dg-account-tabs {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 8px;
+}
+.dg-account-tabs button {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    background: transparent;
+    color: #475569;
+    border: none;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    min-height: 40px;
+    text-align: left;
+    width: 100%;
+}
+.dg-account-tabs button svg {
+    flex-shrink: 0;
+}
+.dg-account-tabs button > span {
+    flex: 1;
+}
+.dg-account-tabs button:hover:not(.active) {
+    background: #f8fafc;
+    color: #004797;
+}
+.dg-account-tabs button.active {
+    background: #edf4fd !important;
+    color: #004797 !important;
+    font-weight: 700;
+}
+.dg-account-club-preview {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: calc(100% - 16px);
+    margin: 4px 8px 12px;
+    padding: 10px 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #f8fafc;
+    color: #004797;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.dg-account-club-preview:hover {
+    background: #edf4fd;
+    border-color: #cbd5e1;
+}
+.dg-account-club-preview small {
+    display: block;
+    font-size: 10px;
+    letter-spacing: 0.04em;
+    color: #64748b;
+    text-transform: uppercase;
+    font-weight: 700;
+}
+.dg-account-club-preview strong {
+    display: block;
+    font-size: 14px;
+    font-weight: 700;
+    color: #0f172a;
+}
+.dg-account-sidebar-bottom {
+    border-top: 1px solid #f1f5f9;
+    padding: 8px;
+}
+.dg-account-sidebar-bottom > button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    background: none;
+    border: 0;
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: #64748b;
+    font-size: 13px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.15s ease;
+}
+.dg-account-sidebar-bottom > button:hover {
+    background: #fef2f2;
+    color: #b91c1c;
+}
+
+/* 2-column layout for Profile tab */
+.dg-account-columns {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+}
+.dg-account-view-profile > .dg-account-section {
+    border: 0;
+    background: transparent;
+    padding: 0;
+}
+.dg-account-view-profile .dg-account-columns {
+    align-items: start;
+    grid-template-areas: 'details verification' 'details security' 'preferences privacy';
+}
+.dg-account-view-profile .dg-account-columns > div {
+    display: contents;
+}
+.dg-profile-details { grid-area: details; }
+.dg-profile-preferences { grid-area: preferences; }
+.dg-profile-verification { grid-area: verification; }
+.dg-profile-security { grid-area: security; }
+.dg-account-view-profile .dg-danger-zone {
+    grid-area: privacy;
+    margin-top: 0;
+    border: 1px solid #fee2e2;
+    background: #ffffff;
+    padding: 22px;
+    border-radius: 16px;
+}
+.dg-danger-zone h4 {
+    color: #991b1b;
+    font-size: 16px;
+    font-weight: 700;
+    margin: 0 0 6px;
+}
+
+.dg-account-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    border-top: 1px solid #e2e8f0;
+    margin-top: 28px;
+    padding-top: 18px;
+    font-size: 12px;
+    color: #94a3b8;
+}
+
+/* --- RESPONSIVE MEDIA QUERIES --- */
+.dg-account-bottom-nav,
+.dg-account-mobile-sheet {
+    display: none;
+}
+
+/* --- HORIZONTAL APP NAVIGATION CAROUSEL (RESPONSIVE / APP MODE) --- */
+.dg-account-app-nav {
+    display: none;
+    margin: 0 0 16px;
+    position: sticky;
+    top: 68px;
+    z-index: 30;
+    background: rgba(248, 250, 252, 0.96);
+    backdrop-filter: blur(12px);
+    padding: 6px 0;
+    border-bottom: 1px solid #e2e8f0;
+}
+.dg-account-app-nav-scroll {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding: 2px 2px;
+    scroll-snap-type: x proximity;
+}
+.dg-account-app-nav-scroll::-webkit-scrollbar {
+    display: none;
+}
+.dg-account-app-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 14px;
+    border-radius: 9999px;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    color: #475569;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    scroll-snap-align: center;
+    flex-shrink: 0;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    min-height: 38px;
+}
+.dg-account-app-pill:hover:not(.is-active) {
+    background: #f1f5f9;
+    color: #004797;
+    border-color: #cbd5e1;
+}
+.dg-account-app-pill.is-active {
+    background: #004797 !important;
+    color: #ffffff !important;
+    border-color: #004797 !important;
+    box-shadow: 0 2px 10px rgba(0, 71, 151, 0.25) !important;
+}
+.dg-account-app-pill svg {
+    flex-shrink: 0;
+}
+.dg-account-app-pill.is-active svg {
+    color: #ffffff;
+}
+.dg-app-pill-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 1px 7px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 700;
+    background: #edf4fd;
+    color: #004797;
+    line-height: 1.3;
+}
+.dg-account-app-pill.is-active .dg-app-pill-badge {
+    background: rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+}
+
+/* Sidebar Badges (Desktop) */
+.dg-sidebar-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 1px 7px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 700;
+    background: #edf4fd;
+    color: #004797;
+    margin-left: auto;
+    margin-right: 4px;
+}
+.dg-account-tabs button.active .dg-sidebar-badge {
+    background: #004797;
+    color: #ffffff;
+}
+
+/* Hero Points Badge & Subtitle */
+.dg-account-hero-points-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 9999px;
+    background: #fef3c7;
+    border: 1px solid #fde68a;
+    color: #92400e;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.dg-account-hero-points-badge:hover {
+    background: #fde68a;
+}
+.dg-account-hero-subtitle {
+    font-size: 13px;
+    color: #64748b;
+    margin: 4px 0 0;
+    line-height: 1.4;
+}
+.dg-account-hero-avatar-wrap {
+    display: none;
+}
+
+@media (max-width: 1024px) {
+    .dg-account-app-nav {
+        display: block;
+    }
+    .dg-account-view-profile .dg-account-columns {
+        grid-template-areas: 'details' 'verification' 'security' 'preferences' 'privacy';
+    }
+    .dg-reservation-card {
+        grid-template-columns: 68px minmax(0, 1fr);
+        padding: 18px;
+    }
+    .dg-reservation-actions {
+        grid-column: 1 / -1;
+        flex-direction: row;
+        border-left: 0;
+        padding-left: 0;
+        padding-top: 12px;
+        border-top: 1px solid #f1f5f9;
+        justify-content: space-between;
+    }
+    .dg-account-layout {
+        grid-template-columns: 210px minmax(0, 1fr);
+        gap: 20px;
+    }
+    .dg-account-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .dg-account-columns {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .dg-account {
+        padding-bottom: calc(90px + env(safe-area-inset-bottom, 0px));
+    }
+    .dg-account-bottom-nav {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 80;
+        padding: 6px max(8px, env(safe-area-inset-right, 0px)) calc(6px + env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px));
+        border-top: 1px solid #e2e8f0;
+        background: rgba(255, 255, 255, 0.98);
+        backdrop-filter: blur(16px);
+        box-shadow: 0 -4px 16px rgba(15, 23, 42, 0.05);
+    }
+    .dg-account-bottom-nav > button {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        min-height: 52px;
+        padding: 3px 0;
+        border: 0;
+        border-radius: 10px;
+        background: transparent;
+        color: #64748b;
+        font-size: 11px;
+        line-height: 1.2;
+        font-weight: 600;
+        cursor: pointer;
+        position: relative;
+    }
+    .dg-account-bottom-icon {
+        display: grid;
+        place-items: center;
+        width: 36px;
+        height: 26px;
+        border-radius: 8px;
+        transition: background 0.18s;
+        position: relative;
+    }
+    .dg-account-bottom-nav > button.is-active {
+        color: #004797;
+        font-weight: 700;
+    }
+    .dg-account-bottom-nav > button.is-active .dg-account-bottom-icon {
+        background: #edf4fd;
+    }
+    .dg-bottom-nav-dot {
+        position: absolute;
+        top: 2px;
+        right: 4px;
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #004797;
+    }
+
+    /* LUXURY MOBILE BOTTOM SHEET (DESEGO APP STYLE) */
+    .dg-account-mobile-sheet[open] {
+        display: block;
+        position: fixed;
+        inset: auto 0 0;
+        margin: 0 auto;
+        width: 100%;
+        max-width: 560px;
+        max-height: calc(92dvh);
+        padding: 0;
+        border: 0;
+        border-radius: 24px 24px 0 0;
+        background: #ffffff;
+        color: #0f172a;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        box-shadow: 0 -12px 48px rgba(2, 26, 56, 0.22);
+        animation: dgSheetSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        z-index: 9999;
+    }
+    @keyframes dgSheetSlideUp {
+        from {
+            transform: translateY(100%);
+            opacity: 0.7;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+    .dg-account-mobile-sheet::backdrop {
+        background: rgba(2, 26, 56, 0.6);
+        backdrop-filter: blur(6px);
+    }
+    .dg-account-mobile-sheet-inner {
+        padding: 12px 18px calc(24px + env(safe-area-inset-bottom, 0px));
+    }
+    .dg-account-sheet-handle {
+        width: 42px;
+        height: 5px;
+        border-radius: 9999px;
+        background: #cbd5e1;
+        margin: 0 auto 14px;
+    }
+    .dg-account-sheet-profile {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 14px;
+        background: linear-gradient(135deg, #f0f6ff 0%, #e2eefd 100%);
+        border: 1px solid #c7ddfb;
+        border-radius: 16px;
+        margin-bottom: 16px;
+    }
+    .dg-account-sheet-avatar {
+        width: 46px;
+        height: 46px;
+        border-radius: 50%;
+        background: #004797;
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 19px;
+        font-weight: 700;
+        box-shadow: 0 4px 12px rgba(0, 71, 151, 0.25);
+        flex-shrink: 0;
+    }
+    .dg-account-sheet-user-info {
+        flex: 1;
+        min-width: 0;
+    }
+    .dg-sheet-user-name {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    .dg-sheet-user-name strong {
+        font-size: 14px;
+        font-weight: 700;
+        color: #0f172a;
+    }
+    .dg-sheet-tier-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        padding: 2px 8px;
+        background: #004797;
+        color: #ffffff;
+        border-radius: 9999px;
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+    .dg-sheet-user-email {
+        display: block;
+        font-size: 12px;
+        color: #475569;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-top: 1px;
+    }
+    .dg-sheet-user-meta {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 4px;
+        font-size: 11px;
+        color: #64748b;
+    }
+    .dg-sheet-points-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 1px 7px;
+        background: #fef3c7;
+        color: #92400e;
+        border-radius: 9999px;
+        font-weight: 700;
+    }
+    .dg-account-sheet-close {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        border: none;
+        background: rgba(255, 255, 255, 0.85);
+        color: #475569;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        flex-shrink: 0;
+        transition: all 0.15s ease;
+    }
+    .dg-account-sheet-close:hover {
+        background: #ffffff;
+        color: #0f172a;
+    }
+    .dg-account-sheet-title-row {
+        margin-bottom: 12px;
+    }
+    .dg-account-sheet-title-row h2 {
+        font-size: 18px;
+        font-weight: 700;
+        color: #0f172a;
+        margin: 2px 0 0;
+    }
+    .dg-account-sheet-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 16px;
+    }
+    .dg-account-sheet-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 12px;
+        border-radius: 14px;
+        border: 1px solid #e2e8f0;
+        background: #ffffff;
+        color: #1e293b;
+        text-align: left;
+        cursor: pointer;
+        transition: all 0.18s ease;
+        width: 100%;
+    }
+    .dg-account-sheet-item:hover {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+        transform: translateX(2px);
+    }
+    .dg-account-sheet-item.is-active {
+        background: #edf4fd !important;
+        border-color: #004797 !important;
+    }
+    .dg-sheet-item-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        background: #edf4fd;
+        color: #004797;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: all 0.18s ease;
+    }
+    .dg-account-sheet-item.is-active .dg-sheet-item-icon {
+        background: #004797;
+        color: #ffffff;
+    }
+    .dg-sheet-item-text {
+        flex: 1;
+        min-width: 0;
+    }
+    .dg-sheet-item-title-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 6px;
+    }
+    .dg-sheet-item-title-row strong {
+        font-size: 13px;
+        font-weight: 700;
+        color: #0f172a;
+    }
+    .dg-sheet-item-badge {
+        font-size: 11px;
+        font-weight: 700;
+        padding: 1px 8px;
+        border-radius: 9999px;
+        background: #edf4fd;
+        color: #004797;
+    }
+    .dg-sheet-item-text small {
+        display: block;
+        font-size: 11px;
+        color: #64748b;
+        margin-top: 1px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .dg-sheet-item-chevron {
+        color: #94a3b8;
+        flex-shrink: 0;
+        transition: transform 0.15s ease;
+    }
+    .dg-account-sheet-item:hover .dg-sheet-item-chevron {
+        color: #004797;
+        transform: translateX(2px);
+    }
+    .dg-account-sheet-quick-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 14px;
+        padding-top: 10px;
+        border-top: 1px solid #f1f5f9;
+    }
+    .dg-account-sheet-quick-actions .dg-btn-outline {
+        justify-content: center;
+        font-size: 12px;
+        padding: 8px 10px;
+    }
+    .dg-account-sheet-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding-top: 12px;
+        border-top: 1px solid #e2e8f0;
+        font-size: 12px;
+        color: #64748b;
+    }
+    .dg-account-sheet-footer button {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: transparent;
+        border: 1px solid #fca5a5;
+        color: #b91c1c;
+        border-radius: 8px;
+        padding: 6px 12px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s ease;
+    }
+    .dg-account-sheet-footer button:hover {
+        background: #fef2f2;
+    }
+
+    .dg-auth {
+        grid-template-columns: 1fr;
+    }
+    .dg-auth-photo {
+        min-height: 240px;
+        height: 240px;
+    }
+    .dg-account .dg-container {
+        width: calc(100% - 24px);
+    }
+    .dg-account-layout {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 16px;
+        margin-top: 12px;
+    }
+    .dg-account-sidebar {
+        display: none;
+    }
+    .dg-account-header {
+        height: 60px;
+    }
+    .dg-account-logo {
+        width: 130px;
+    }
+    .dg-account-header-caption {
+        display: none;
+    }
+    .dg-account-breadcrumb {
+        display: none;
+    }
+    .dg-account-discover {
+        grid-template-columns: 1fr;
+        min-height: auto;
+    }
+    .dg-account-discover > img {
+        display: none;
+    }
+    .dg-account-discover-seal {
+        display: none;
+    }
+    .dg-account-hero {
+        padding: 8px 0 14px;
+        margin-bottom: 12px;
+    }
+    .dg-account-hero-content {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+    .dg-account-hero-left {
+        flex-direction: row;
+        align-items: center;
+        gap: 12px;
+    }
+    .dg-account-hero-avatar-wrap {
+        display: block;
+        flex-shrink: 0;
+    }
+    .dg-account-hero-avatar-wrap .dg-user-avatar-circle {
+        width: 48px;
+        height: 48px;
+        font-size: 20px;
+    }
+    .dg-account-hero-title {
+        font-size: 20px;
+    }
+    .dg-hero-actions {
+        width: 100%;
+    }
+    .dg-hero-actions .dg-btn-outline {
+        width: 100%;
+        justify-content: center;
+    }
+    .dg-account-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        margin: 12px 0 16px;
+    }
+    .dg-stat-card {
+        padding: 12px 10px;
+    }
+    .dg-reservation-card {
+        grid-template-columns: 56px minmax(0, 1fr);
+        padding: 14px 12px;
+        gap: 10px;
+    }
+    .dg-reservation-date > strong {
+        font-size: 19px;
+    }
+    .dg-reservation-date > svg {
+        display: none;
+    }
+    .dg-profile-document-fields {
+        grid-template-columns: 1fr;
+    }
+    .dg-orders-filter-bar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
+    .dg-account-order-search {
+        min-width: 0;
+        width: 100%;
+    }
+    .dg-orders-filter-bar select {
+        width: 100%;
+    }
+}
+
+.dg-account-confirm-dialog {
+    position: fixed;
+    inset: 0;
+    width: min(440px, calc(100vw - 32px));
+    max-width: none;
+    max-height: calc(100vh - 32px);
+    max-height: calc(100dvh - 32px);
+    margin: auto;
+    padding: 28px;
+    overflow-y: auto;
+    border: 1px solid #e5eaf1;
+    border-radius: 22px;
+    background: #fff;
+    color: #1f3047;
+    box-shadow: 0 24px 80px rgba(16, 44, 83, 0.24);
+}
+.dg-account-confirm-dialog::backdrop {
+    background: rgba(15, 32, 54, 0.56);
+    backdrop-filter: blur(5px);
+}
+.dg-account-confirm-dialog-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+.dg-account-confirm-dialog-icon {
+    display: grid;
+    place-items: center;
+    width: 54px;
+    height: 54px;
+    margin-bottom: 16px;
+    border-radius: 50%;
+}
+.dg-account-confirm-dialog-icon.is-danger {
+    background: #fff1ef;
+    color: #b42318;
+}
+.dg-account-confirm-dialog-icon.is-primary {
+    background: #edf4fd;
+    color: #004797;
+}
+.dg-account-confirm-dialog h2 {
+    margin: 0 0 8px;
+    color: #172b45;
+    font-size: 21px;
+    line-height: 1.35;
+}
+.dg-account-confirm-dialog p {
+    margin: 0;
+    color: #64748b;
+    font-size: 14px;
+    line-height: 1.65;
+}
+.dg-account-confirm-dialog .dg-error {
+    width: 100%;
+    margin-top: 16px;
+    text-align: left;
+}
+.dg-account-confirm-dialog-actions {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    width: 100%;
+    margin-top: 24px;
+}
+.dg-account-confirm-dialog-actions button {
+    min-height: 44px;
+}
+.dg-account-confirm-dialog-actions .dg-button.is-danger {
+    background: #b42318;
+}
+.dg-account-confirm-dialog-actions .dg-button.is-primary {
+    background: #004797;
+}
+@media (max-width: 480px) {
+    .dg-account-confirm-dialog {
+        padding: 24px 20px;
+    }
+    .dg-account-confirm-dialog-actions {
+        flex-direction: column-reverse;
+    }
+    .dg-account-confirm-dialog-actions button {
+        width: 100%;
+    }
+    .dg-account-app-pill {
+        padding: 7px 12px;
+        font-size: 12px;
+    }
+    .dg-account-sheet-profile {
+        padding: 10px 12px;
+    }
+    .dg-account-sheet-avatar {
+        width: 40px;
+        height: 40px;
+        font-size: 17px;
+    }
+    .dg-account-sheet-item {
+        padding: 9px 11px;
+    }
+    .dg-sheet-item-icon {
+        width: 34px;
+        height: 34px;
+    }
+    .dg-account-stats {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+    .dg-stat-card {
+        padding: 10px 8px;
+        gap: 8px;
+    }
+    .dg-stat-icon-wrap {
+        width: 34px;
+        height: 34px;
+    }
+    .dg-stat-icon-wrap svg {
+        width: 16px;
+        height: 16px;
+    }
+    .dg-stat-card-body strong {
+        font-size: 14px;
+    }
+    .dg-tier-card {
+        padding: 18px 16px;
+    }
+    .dg-tier-card-head {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    .dg-tier-card-points {
+        font-size: 30px;
+    }
+    .dg-redemption-card {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    .dg-redemption-card > div:last-child {
+        width: 100%;
+        justify-content: space-between;
+    }
+    .dg-order-card header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    .dg-order-card footer {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+    .dg-order-card footer > div {
+        flex-direction: column;
+        width: 100%;
+    }
+    .dg-order-card footer > div button,
+    .dg-order-card footer > div a {
+        width: 100%;
+        justify-content: center;
+    }
+}

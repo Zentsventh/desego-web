@@ -9,13 +9,21 @@ const STATUS_STYLES = {
     Entregado: 'bg-slate-200 text-slate-700',
     Cancelado: 'bg-red-100 text-red-700',
     Confirmada: 'bg-sky-100 text-sky-800',
+    CONFIRMED: 'bg-sky-100 text-sky-800',
+    CHECKED_IN: 'bg-indigo-100 text-indigo-800',
+    IN_SERVICE: 'bg-red-100 text-red-800',
+    NO_SHOW: 'bg-rose-100 text-rose-800',
     Sentada: 'bg-emerald-100 text-emerald-800',
     Completada: 'bg-slate-200 text-slate-700',
+    COMPLETED: 'bg-slate-200 text-slate-700',
     Cancelada: 'bg-red-100 text-red-700',
+    CANCELLED: 'bg-red-100 text-red-700',
     available: 'bg-emerald-100 text-emerald-800',
     occupied: 'bg-red-100 text-red-700',
-    reserved: 'bg-amber-100 text-amber-800',
+    reserved: 'bg-sky-100 text-sky-800',
+    cleaning: 'bg-amber-100 text-amber-800',
     maintenance: 'bg-slate-200 text-slate-700',
+    disabled: 'bg-slate-200 text-slate-700',
     unavailable: 'bg-slate-200 text-slate-700',
     active: 'bg-emerald-100 text-emerald-800',
     inactive: 'bg-slate-200 text-slate-700',
@@ -441,8 +449,12 @@ export function Menu({ can, initialData }) {
 
 const RESERVATION_ACTIONS = {
     Pendiente: ['Confirmada', 'Cancelada'],
-    Confirmada: ['Sentada', 'Cancelada'],
+    Confirmada: ['REGISTRAR LLEGADA', 'Sentada', 'Cancelada'],
+    CONFIRMED: ['REGISTRAR LLEGADA', 'Sentada', 'Cancelada'],
+    CHECKED_IN: ['Sentada', 'Cancelada'],
+    IN_SERVICE: ['Completada'],
     Sentada: ['Completada'],
+    NO_SHOW: ['Excepción'],
 };
 
 export function Reservations({ can, initialData }) {
@@ -451,7 +463,16 @@ export function Reservations({ can, initialData }) {
 
     const change = async (reservation, status) => {
         try {
-            const result = await api('/api/reservations.php', { method: 'POST', body: { action: 'reservation.status', id: reservation.id, status } });
+            let result;
+            if (status === 'REGISTRAR LLEGADA') {
+                result = await api(`/api/admin/reservas/${reservation.id}/check-in`, { method: 'POST' });
+            } else if (status === 'Sentada') {
+                result = await api(`/api/admin/reservas/${reservation.id}/sentar`, { method: 'POST' });
+            } else if (status === 'Excepción') {
+                result = await api(`/api/admin/reservas/${reservation.id}/check-in`, { method: 'POST' });
+            } else {
+                result = await api('/api/reservations.php', { method: 'POST', body: { action: 'reservation.status', id: reservation.id, status } });
+            }
             setNotice(result.message ?? 'Reserva actualizada.');
             reload();
         } catch (problem) {

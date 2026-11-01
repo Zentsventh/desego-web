@@ -125,6 +125,7 @@ class RestaurantExperienceTest extends TestCase
 
     public function test_real_reservations_can_be_seen_on_account_and_cancelled(): void
     {
+        DB::table('branches')->where('is_main', 1)->update(['opening_time' => '12:00:00', 'closing_time' => '22:00:00']);
         $this->registerCustomer();
         $date = now('America/Lima')->addDays(2)->format('Y-m-d');
         $result = $this->postJson('/api/mobile/reservations', ['customer_name' => 'Cliente Real', 'phone' => '999111222', 'date' => $date, 'time' => '13:00', 'people' => 2])->assertOk();

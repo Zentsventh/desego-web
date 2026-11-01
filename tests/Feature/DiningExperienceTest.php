@@ -49,7 +49,9 @@ class DiningExperienceTest extends TestCase
     {
         $this->tableToken();
 
-        $this->assertSame(12, DB::table('restaurant_tables')->where('table_number', '<=', 12)->count());
+        $this->assertSame(12, DB::table('restaurant_tables')->count());
+        $this->assertSame(4, DB::table('restaurant_tables')->where('capacity', 2)->count());
+        $this->assertSame(8, DB::table('restaurant_tables')->where('capacity', 4)->count());
         $this->assertSame(12, DB::table('restaurant_tables')->whereNotNull('dining_qr_token')->distinct()->count('dining_qr_token'));
     }
 
@@ -110,6 +112,32 @@ class DiningExperienceTest extends TestCase
         $this->assertSame('Mesa', DB::table('orders')->where('id', $first['order_id'])->value('order_type'));
         $this->assertSame('Pendiente', DB::table('orders')->where('id', $first['order_id'])->value('status'));
         $this->assertGreaterThan(0, $first['balance']);
+    }
+
+    public function test_table_order_is_sent_to_the_kitchen_when_inventory_recipe_is_missing(): void
+    {
+        User::factory()->create(['role_id' => DB::table('roles')->where('code', 'admin')->value('id')]);
+        $productId = $this->orderableProductId();
+        DB::table('product_ingredients')->where('product_id', $productId)->delete();
+        $token = $this->tableToken();
+        $member = $this->join($token)['member_token'];
+
+        $response = $this->postJson('/api/mobile/dining/orders', [
+            'checkout_key' => 'f3f604f4-9109-4ad0-9ec8-0a0e54db1f90',
+            'items' => [['product_id' => $productId, 'quantity' => 1]],
+        ], ['X-Dining-Token' => $member])
+            ->assertOk()
+            ->assertJsonPath('ok', true)
+            ->assertJsonPath('inventory_warning', 'Pedido recibido; cocina debe verificar la receta y el inventario de: '.DB::table('products')->where('id', $productId)->value('name').'.');
+
+        $orderId = $response->json('order_id');
+        $this->assertDatabaseHas('orders', [
+            'id' => $orderId,
+            'status' => 'Pendiente',
+            'notes' => '[INVENTARIO SIN RECETA] '.DB::table('products')->where('id', $productId)->value('name'),
+        ]);
+        $this->assertDatabaseHas('order_items', ['order_id' => $orderId, 'product_id' => $productId]);
+        $this->assertDatabaseMissing('order_ingredients', ['order_id' => $orderId]);
     }
 
     public function test_calling_the_waiter_is_not_duplicated_and_asking_for_the_bill_starts_checkout(): void

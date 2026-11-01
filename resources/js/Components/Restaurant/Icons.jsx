@@ -19,6 +19,22 @@ function Svg({ size = 18, strokeWidth = 1.8, className = '', children }) {
     );
 }
 
+export const Copy = (props) => (
+    <Svg {...props}>
+        <rect x="8" y="8" width="13" height="13" rx="2" />
+        <path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3" />
+    </Svg>
+);
+
+export const MessagesSquare = (props) => (
+    <Svg {...props}>
+        <path d="M7 3h12a2 2 0 0 1 2 2v10l-4-3H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z" />
+        <path d="M5 7H3a2 2 0 0 0-2 2v12l4-3h10a2 2 0 0 0 2-2v-4" />
+    </Svg>
+);
+
+export const MessageSquare = MessagesSquare;
+
 export const ArrowUpRight = (props) => (
     <Svg {...props}>
         <path d="M7 17 17 7M7 7h10v10" />
@@ -28,6 +44,12 @@ export const ArrowUpRight = (props) => (
 export const ArrowRight = (props) => (
     <Svg {...props}>
         <path d="M5 12h14m-6-6 6 6-6 6" />
+    </Svg>
+);
+
+export const ChevronRight = (props) => (
+    <Svg {...props}>
+        <path d="m9 6 6 6-6 6" />
     </Svg>
 );
 
@@ -145,6 +167,15 @@ export const UserRound = (props) => (
         <path d="M20 21a8 8 0 0 0-16 0" />
     </Svg>
 );
+
+export const Tag = (props) => (
+    <Svg {...props}>
+        <path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z" />
+        <path d="M7 7h.01" />
+    </Svg>
+);
+
+
 
 export const UsersRound = (props) => (
     <Svg {...props}>
@@ -398,5 +429,145 @@ export const Bell = (props) => (
     <Svg {...props}>
         <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
         <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+    </Svg>
+);
+
+export const Star = ({ filled = false, ...props }) => (
+    <Svg {...props}>
+        <polygon
+            points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+            fill={filled ? 'currentColor' : 'none'}
+        />
+    </Svg>
+);
+
+export const FileText = (props) => (
+    <Svg {...props}>
+        <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+        <polyline points="14 2 14 8 20 8" />
+        <line x1="16" x2="8" y1="13" y2="13" />
+        <line x1="16" x2="8" y1="17" y2="17" />
+        <line x1="10" x2="8" y1="9" y2="9" />
+    </Svg>
+);
+
+export const Award = (props) => (
+    <Svg {...props}>
+        <circle cx="12" cy="8" r="6" />
+        <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11" />
+    </Svg>
+);
+
+export const Sparkles = (props) => (
+    <Svg {...props}>
+        <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
+        <path d="M5 3v4" />
+        <path d="M19 17v4" />
+        <path d="M3 5h4" />
+        <path d="M17 19h4" />
+    </Svg>
+);
+
+export const Crown = (props) => (
+    <Svg {...props}>
+        <path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14" />
+    </Svg>
+);
+
+export const Receipt = (props) => (
+    <Svg {...props}>
+        <path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1-2-1Z" />
+        <path d="M16 8h-8" />
+        <path d="M16 12h-8" />
+        <path d="M14 16h-6" />
+    </Svg>
+);
+
+export const BrandWhatsapp = (props) => (
+    <Svg {...props}>
+        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+    </Svg>
+);
+
+export const UtensilsCrossed = (props) => (
+    <Svg {...props}>
+        <path d="m16 2-2.3 2.3a3 3 0 0 0 0 4.2l1.8 1.8a3 3 0 0 0 4.2 0L22 8Z" />
+        <path d="M15 15 3.3 3.3a4.2 4.2 0 0 0 0 6l7.3 7.3c.7.7 2 .7 2.8 0L15 15Zm0 0 7 7" />
+        <path d="m2.1 21.8 6.4-6.3" />
+        <path d="m19 5-7 7" />
+    </Svg>
+);
+
+export const Paperclip = (props) => (
+    <Svg {...props}>
+        <path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48" />
+    </Svg>
+);
+
+export const Upload = (props) => (
+    <Svg {...props}>
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+        <polyline points="17 8 12 3 7 8" />
+        <line x1="12" x2="12" y1="3" y2="15" />
+    </Svg>
+);
+
+export const Mail = (props) => (
+    <Svg {...props}>
+        <rect width="20" height="16" x="2" y="4" rx="2" />
+        <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+    </Svg>
+);
+
+export const Phone = (props) => (
+    <Svg {...props}>
+        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+    </Svg>
+);
+
+export const Flame = (props) => (
+    <Svg {...props}>
+        <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />
+    </Svg>
+);
+
+export const ThumbsUp = (props) => (
+    <Svg {...props}>
+        <path d="M7 10v12" />
+        <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z" />
+    </Svg>
+);
+
+export const MessageSquareReply = (props) => (
+    <Svg {...props}>
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+        <path d="m10 7-3 3 3 3" />
+        <path d="M17 13v-1a2 2 0 0 0-2-2H7" />
+    </Svg>
+);
+
+export const Store = (props) => (
+    <Svg {...props}>
+        <path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7" />
+        <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
+        <path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4" />
+        <path d="M2 7h20" />
+        <path d="M22 7v3a2 2 0 0 1-2 2a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 16 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 12 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 8 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 4 12a2 2 0 0 1-2-2V7" />
+    </Svg>
+);
+
+export const Navigation = (props) => (
+    <Svg {...props}>
+        <polygon points="3 11 22 2 13 21 11 13 3 11" />
+    </Svg>
+);
+
+export const Crosshair = (props) => (
+    <Svg {...props}>
+        <circle cx="12" cy="12" r="10" />
+        <line x1="22" x2="18" y1="12" y2="12" />
+        <line x1="6" x2="2" y1="12" y2="12" />
+        <line x1="12" x2="12" y1="6" y2="2" />
+        <line x1="12" x2="12" y1="22" y2="18" />
     </Svg>
 );

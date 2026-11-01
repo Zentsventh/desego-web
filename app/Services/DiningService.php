@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -19,15 +20,38 @@ class DiningService
 {
     public function prepare(): void
     {
-        for ($number = 1; $number <= config('dining.table_count'); $number++) {
-            DB::table('restaurant_tables')->insertOrIgnore(['table_number' => $number, 'label' => sprintf('Mesa %02d', $number), 'capacity' => 4, 'zone' => 'Salón principal', 'operational_status' => 'available', 'is_active' => true, 'created_at' => now(), 'updated_at' => now()]);
-            DB::table('restaurant_tables')->where('table_number', $number)->whereNull('dining_qr_token')->update(['dining_qr_token' => Str::random(32)]);
+        $limit = (int) config('dining.table_count', 12);
+        for ($number = 1; $number <= $limit; $number++) {
+            $capacity = $number <= 4 ? 2 : 4;
+            DB::table('restaurant_tables')->insertOrIgnore([
+                'table_number' => $number,
+                'label' => sprintf('Mesa %02d', $number),
+                'capacity' => $capacity,
+                'zone' => 'Salón principal',
+                'operational_status' => 'available',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+            DB::table('restaurant_tables')->where('table_number', $number)->update([
+                'capacity' => $capacity,
+                'is_active' => true,
+                'updated_at' => now(),
+            ]);
+            DB::table('restaurant_tables')->where('table_number', $number)->whereNull('dining_qr_token')->update([
+                'dining_qr_token' => Str::random(32),
+            ]);
+        }
+
+        $missingTokens = DB::table('restaurant_tables')->whereNull('dining_qr_token')->get(['id']);
+        foreach ($missingTokens as $t) {
+            DB::table('restaurant_tables')->where('id', $t->id)->update(['dining_qr_token' => Str::random(32)]);
         }
     }
 
     public function table(string $token): object
     {
-        return DB::table('restaurant_tables')->where('dining_qr_token', $token)->where('is_active', true)->where('table_number', '<=', config('dining.table_count'))->first() ?? abort(404, 'El código de esta mesa no está disponible.');
+        return DB::table('restaurant_tables')->where('dining_qr_token', $token)->where('is_active', true)->first() ?? abort(404, 'El código de esta mesa no está disponible.');
     }
 
     public function preview(string $token): array
@@ -59,7 +83,7 @@ class DiningService
                 }
             } else {
                 abort_unless($table->operational_status === 'available', 409, 'El personal debe liberar esta mesa antes de abrir una visita.');
-                $reserved = DB::table('reservations')->where('table_id', $table->id)->whereIn('status', ['Pendiente', 'Confirmada', 'Sentada'])->whereBetween('reservation_at', [now()->subMinutes(120), now()->addMinutes(30)])->exists();
+                $reserved = app(ReservationAvailability::class)->overlaps((int) $table->id, CarbonImmutable::now('UTC'), 30);
                 abort_if($reserved, 409, 'Esta mesa está reservada. El personal te ayudará a ocuparla.');
                 $id = (string) Str::uuid();
                 $code = (string) random_int(100000, 999999);
@@ -100,8 +124,50 @@ class DiningService
             $order->is_mine = $member && $order->dining_member_id === $member->id;
         }
         $due = $orders->where('status', '<>', 'Cancelado')->where('payment_status', 'Pendiente');
+        $rawBalance = round($due->sum('total'), 2);
 
-        return ['visit' => ['id' => $visit->id, 'status' => $visit->status, 'started_at' => $visit->created_at, 'join_code' => $visit->status === 'open' ? Crypt::decryptString($visit->join_code_encrypted) : null], 'table' => ['id' => $table->id, 'number' => $table->table_number, 'label' => $table->label], 'orders' => $orders, 'balance' => round($due->sum('total'), 2), 'my_balance' => round($due->where('dining_member_id', $member?->id)->sum('total'), 2), 'requests' => DB::table('dining_requests')->where('dining_session_id', $visit->id)->orderByDesc('id')->get(['id', 'kind', 'status', 'notes', 'created_at']), 'direct_payment' => config('dining.direct_payment'), 'online_payment_available' => filled(config('dining.niubiz.merchant_id')) && filled(config('dining.niubiz.password')), 'niubiz_sandbox' => config('dining.niubiz.environment') !== 'production'];
+        $reservation = DB::table('reservations')
+            ->where(function ($q) use ($visit, $table): void {
+                $q->where('dining_session_id', $visit->id);
+                if ($table) {
+                    $q->orWhere(function ($sub) use ($table, $visit): void {
+                        $windowStart = CarbonImmutable::parse($visit->created_at)->subHours(3);
+                        $windowEnd = CarbonImmutable::now('UTC')->addHours(4);
+
+                        $sub->where('table_id', $table->id)
+                            ->whereIn('status', ['Confirmada', 'CONFIRMED', 'CHECKED_IN', 'IN_SERVICE', 'Sentada'])
+                            ->whereBetween('reservation_at', [$windowStart, $windowEnd]);
+                    });
+                }
+            })
+            ->where('payment_status', 'PAID')
+            ->orderByDesc('id')
+            ->first();
+
+        $advanceCredit = 0.0;
+        $unappliedCredit = 0.0;
+        if ($reservation) {
+            $advanceCredit = (float) $reservation->advance_amount;
+            $unappliedCredit = max(0.0, round($advanceCredit - (float) $reservation->applied_credit_amount, 2));
+        }
+
+        $netBalance = max(0.0, round($rawBalance - $unappliedCredit, 2));
+
+        return [
+            'visit' => ['id' => $visit->id, 'status' => $visit->status, 'started_at' => $visit->created_at, 'join_code' => $visit->status === 'open' ? Crypt::decryptString($visit->join_code_encrypted) : null],
+            'table' => ['id' => $table->id, 'number' => $table->table_number, 'label' => $table->label],
+            'orders' => $orders,
+            'balance' => $netBalance,
+            'subtotal_balance' => $rawBalance,
+            'advance_credit' => $advanceCredit,
+            'unapplied_credit' => $unappliedCredit,
+            'reservation' => $reservation ? ['id' => $reservation->id, 'code' => $reservation->reservation_code, 'customer_name' => $reservation->customer_name] : null,
+            'my_balance' => round($due->where('dining_member_id', $member?->id)->sum('total'), 2),
+            'requests' => DB::table('dining_requests')->where('dining_session_id', $visit->id)->orderByDesc('id')->get(['id', 'kind', 'status', 'notes', 'created_at']),
+            'direct_payment' => config('dining.direct_payment'),
+            'online_payment_available' => filled(config('dining.niubiz.merchant_id')) && filled(config('dining.niubiz.password')),
+            'niubiz_sandbox' => config('dining.niubiz.environment') !== 'production',
+        ];
     }
 
     public function order(string $token, array $input): array
@@ -115,20 +181,30 @@ class DiningService
             if ($existing) {
                 abort_unless($existing->dining_member_id === $member->id, 403);
 
-                return ['ok' => true, 'order_id' => $existing->id, ...$this->snapshot($visit, $member)];
+                return [
+                    'ok' => true,
+                    'order_id' => $existing->id,
+                    'inventory_warning' => str_starts_with((string) $existing->notes, '[INVENTARIO SIN RECETA]')
+                        ? 'Este pedido ya fue recibido. Cocina debe verificar la receta y el inventario.'
+                        : null,
+                    ...$this->snapshot($visit, $member),
+                ];
             }
             abort_unless($visit->status === 'open', 409, 'La cuenta está cerrándose. Pide al mesero que la reabra antes de agregar más platos.');
             $actor = DB::table('users')->join('roles', 'roles.id', '=', 'users.role_id')->where('roles.code', 'admin')->where('users.status', 'active')->value('users.id');
             abort_unless($actor, 503, 'El restaurante aún no recibe pedidos.');
             $lines = [];
             $requirements = [];
+            $untrackedProducts = [];
             $totalCents = 0;
             $items = collect($data['items'])->sortBy('product_id');
             foreach ($items as $item) {
                 $product = DB::table('products')->join('categories', 'categories.id', '=', 'products.category_id')->where('products.id', $item['product_id'])->where('products.status', 'available')->where('categories.status', 'active')->select('products.*')->lockForUpdate()->first();
                 abort_unless($product, 409, 'Un plato dejó de estar disponible. Actualiza la carta.');
                 $recipe = DB::table('product_ingredients')->where('product_id', $product->id)->orderBy('ingredient_id')->lockForUpdate()->get();
-                abort_if($recipe->isEmpty(), 409, 'El restaurante debe completar la receta de este plato.');
+                if ($recipe->isEmpty()) {
+                    $untrackedProducts[] = ['id' => (int) $product->id, 'name' => (string) $product->name];
+                }
                 foreach ($recipe as $ingredient) {
                     $requirements[$ingredient->ingredient_id] = round(($requirements[$ingredient->ingredient_id] ?? 0) + (float) $ingredient->quantity * $item['quantity'], 3);
                 }
@@ -142,7 +218,14 @@ class DiningService
                 abort_unless($ingredient && $ingredient->status === 'active' && (float) $ingredient->stock_quantity + .0001 >= $quantity, 409, 'No hay ingredientes suficientes para este pedido.');
             }
             $table = DB::table('restaurant_tables')->where('id', $visit->table_id)->first();
-            $orderId = DB::table('orders')->insertGetId(['customer_name' => $member->name, 'order_type' => 'Mesa', 'order_channel' => 'web', 'web_checkout_key' => $data['checkout_key'], 'table_label' => $table->label, 'dining_session_id' => $visit->id, 'dining_member_id' => $member->id, 'notes' => $data['notes'] ?? null, 'status' => 'Pendiente', 'payment_status' => 'Pendiente', 'subtotal' => $totalCents / 100, 'total' => $totalCents / 100, 'created_by' => $actor, 'created_at' => now(), 'updated_at' => now()]);
+            $inventoryWarning = null;
+            $orderNotes = trim((string) ($data['notes'] ?? ''));
+            if ($untrackedProducts !== []) {
+                $names = implode(', ', array_column($untrackedProducts, 'name'));
+                $inventoryWarning = 'Pedido recibido; cocina debe verificar la receta y el inventario de: '.$names.'.';
+                $orderNotes = trim('[INVENTARIO SIN RECETA] '.$names.($orderNotes !== '' ? ' | '.$orderNotes : ''));
+            }
+            $orderId = DB::table('orders')->insertGetId(['customer_name' => $member->name, 'order_type' => 'Mesa', 'order_channel' => 'web', 'web_checkout_key' => $data['checkout_key'], 'table_label' => $table->label, 'dining_session_id' => $visit->id, 'dining_member_id' => $member->id, 'notes' => $orderNotes !== '' ? mb_substr($orderNotes, 0, 500) : null, 'status' => 'Pendiente', 'payment_status' => 'Pendiente', 'subtotal' => $totalCents / 100, 'total' => $totalCents / 100, 'created_by' => $actor, 'created_at' => now(), 'updated_at' => now()]);
             $number = 'M-'.str_pad((string) $orderId, 8, '0', STR_PAD_LEFT);
             DB::table('orders')->where('id', $orderId)->update(['order_number' => $number]);
             foreach ($lines as $line) {
@@ -157,9 +240,13 @@ class DiningService
                 DB::table('inventory_movements')->insert(['ingredient_id' => $id, 'user_id' => $actor, 'movement_type' => 'sale', 'quantity_delta' => -$quantity, 'previous_quantity' => $ingredient->stock_quantity, 'new_quantity' => $after, 'unit_cost' => $cost, 'reference' => $number, 'notes' => 'Pedido QR de '.$table->label, 'created_at' => now()]);
             }
             DB::table('dining_sessions')->where('id', $visit->id)->update(['updated_at' => now()]);
-            audit_log(desego_db(), null, 'dining.order_created', ['order_id' => $orderId, 'session_id' => $visit->id]);
+            audit_log(desego_db(), null, 'dining.order_created', [
+                'order_id' => $orderId,
+                'session_id' => $visit->id,
+                'inventory_recipe_missing_products' => array_column($untrackedProducts, 'id'),
+            ]);
 
-            return ['ok' => true, 'order_id' => $orderId, ...$this->snapshot($visit, $member)];
+            return ['ok' => true, 'order_id' => $orderId, 'inventory_warning' => $inventoryWarning, ...$this->snapshot($visit, $member)];
         }, 3);
     }
 
@@ -206,7 +293,7 @@ class DiningService
     public function floor(): array
     {
         $user = $this->authorizeStaff(['reservations.view', 'tables.view', 'orders.view', 'kitchen.view']);
-        $tables = DB::table('restaurant_tables')->where('table_number', '<=', config('dining.table_count'))->where('is_active', true)->orderBy('table_number')->get();
+        $tables = DB::table('restaurant_tables')->where('is_active', true)->orderBy('table_number')->get();
         foreach ($tables as $table) {
             $visit = DB::table('dining_sessions')->where('active_table_id', $table->id)->first();
             $table->visit = $visit ? $this->snapshot($visit) : null;
@@ -260,10 +347,118 @@ class DiningService
                     $orders = DB::table('orders')->where('dining_session_id', $visit->id)->where('status', '<>', 'Cancelado')->where('payment_status', 'Pendiente')->lockForUpdate()->get();
                     abort_if($orders->isEmpty(), 409, 'No hay consumo pendiente por cobrar.');
                     $method = $data['method'] ?? 'Efectivo';
+
+                    // Verificar si existe reserva vinculada con anticipo pagado no aplicado
+                    $table = DB::table('restaurant_tables')->where('id', $visit->table_id)->first();
+                    $reservation = DB::table('reservations')
+                        ->where(function ($q) use ($visit, $table): void {
+                            $q->where('dining_session_id', $visit->id);
+                            if ($table) {
+                                $q->orWhere(function ($sub) use ($table, $visit): void {
+                                    $windowStart = CarbonImmutable::parse($visit->created_at)->subHours(3);
+                                    $windowEnd = CarbonImmutable::now('UTC')->addHours(4);
+
+                                    $sub->where('table_id', $table->id)
+                                        ->whereIn('status', ['Confirmada', 'CONFIRMED', 'CHECKED_IN', 'IN_SERVICE', 'Sentada'])
+                                        ->whereBetween('reservation_at', [$windowStart, $windowEnd]);
+                                });
+                            }
+                        })
+                        ->where('payment_status', 'PAID')
+                        ->where('applied_credit_amount', '<=', 0)
+                        ->lockForUpdate()
+                        ->first();
+
+                    $remainingCredit = $reservation ? (float) $reservation->advance_amount : 0.0;
+                    $totalCreditApplied = 0.0;
+
                     foreach ($orders as $order) {
-                        DB::table('payments')->insert(['order_id' => $order->id, 'cash_session_id' => $cash->id, 'user_id' => $actor['id'], 'payment_type' => 'payment', 'method' => $method, 'amount' => $order->total, 'notes' => 'Cobro verificado de mesa QR ('.$method.')', 'created_at' => now()]);
-                        DB::table('orders')->where('id', $order->id)->update(['payment_status' => 'Pagado', 'payment_method' => $method, 'cash_session_id' => $cash->id, 'paid_at' => now(), 'updated_at' => now()]);
+                        $orderTotal = (float) $order->total;
+                        $creditForOrder = min($remainingCredit, $orderTotal);
+
+                        if ($creditForOrder > 0) {
+                            $remainingCredit -= $creditForOrder;
+                            $totalCreditApplied += $creditForOrder;
+                            $paidByClient = round($orderTotal - $creditForOrder, 2);
+
+                            // Registrar el anticipo aplicado en payments
+                            DB::table('payments')->insert([
+                                'order_id' => $order->id,
+                                'cash_session_id' => $cash->id,
+                                'user_id' => $actor['id'],
+                                'payment_type' => 'payment',
+                                'method' => 'Transferencia',
+                                'amount' => $creditForOrder,
+                                'notes' => "Anticipo de reserva aplicado ({$reservation->reservation_code})",
+                                'created_at' => now(),
+                            ]);
+
+                            // Registrar el saldo pagado por el cliente si fue > 0
+                            if ($paidByClient > 0) {
+                                DB::table('payments')->insert([
+                                    'order_id' => $order->id,
+                                    'cash_session_id' => $cash->id,
+                                    'user_id' => $actor['id'],
+                                    'payment_type' => 'payment',
+                                    'method' => $method,
+                                    'amount' => $paidByClient,
+                                    'notes' => 'Cobro verificado de mesa QR ('.$method.')',
+                                    'created_at' => now(),
+                                ]);
+                            }
+
+                            DB::table('orders')->where('id', $order->id)->update([
+                                'discount' => round((float) $order->discount + $creditForOrder, 2),
+                                'total' => $paidByClient,
+                                'payment_status' => 'Pagado',
+                                'payment_method' => $method,
+                                'cash_session_id' => $cash->id,
+                                'paid_at' => now(),
+                                'updated_at' => now(),
+                            ]);
+                        } else {
+                            DB::table('payments')->insert([
+                                'order_id' => $order->id,
+                                'cash_session_id' => $cash->id,
+                                'user_id' => $actor['id'],
+                                'payment_type' => 'payment',
+                                'method' => $method,
+                                'amount' => $order->total,
+                                'notes' => 'Cobro verificado de mesa QR ('.$method.')',
+                                'created_at' => now(),
+                            ]);
+                            DB::table('orders')->where('id', $order->id)->update([
+                                'payment_status' => 'Pagado',
+                                'payment_method' => $method,
+                                'cash_session_id' => $cash->id,
+                                'paid_at' => now(),
+                                'updated_at' => now(),
+                            ]);
+                        }
+
                         loyalty_award_order_points(desego_db(), $order->id, $actor['id']);
+                    }
+
+                    if ($reservation && $totalCreditApplied > 0) {
+                        DB::table('reservations')->where('id', $reservation->id)->update([
+                            'applied_credit_amount' => $totalCreditApplied,
+                            'order_id' => $orders->first()->id,
+                            'status' => 'COMPLETED',
+                            'updated_at' => now(),
+                        ]);
+
+                        DB::table('reservation_audit_logs')->insert([
+                            'reservation_id' => $reservation->id,
+                            'user_id' => $actor['id'],
+                            'action' => 'credit_applied_at_checkout',
+                            'details' => json_encode([
+                                'applied_credit' => $totalCreditApplied,
+                                'remaining_unapplied' => $remainingCredit,
+                                'session_id' => $visit->id,
+                            ]),
+                            'ip_address' => request()->ip(),
+                            'created_at' => now(),
+                        ]);
                     }
                     DB::table('dining_requests')->where('dining_session_id', $visit->id)->where('kind', 'bill')->whereIn('status', ['pending', 'acknowledged'])->update(['status' => 'resolved', 'handled_by' => $actor['id'], 'handled_at' => now(), 'updated_at' => now()]);
                     DB::table('dining_sessions')->where('id', $visit->id)->update(['status' => 'paid', 'updated_at' => now()]);

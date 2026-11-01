@@ -24,6 +24,9 @@ class MobileController extends Controller
     {
         $legacy->call('auth', [], ['action' => 'session']);
         $user = current_user();
+        if (($user['role_code'] ?? null) !== 'customer') {
+            $user = null;
+        }
 
         return response()->json(['ok' => true, 'authenticated' => $user !== null, 'user' => $user, 'csrfToken' => session()->token()]);
     }
@@ -35,7 +38,14 @@ class MobileController extends Controller
 
     public function login(Request $request, RestaurantPortal $portal): JsonResponse
     {
-        return response()->json($portal->login($request->all()));
+        $result = $portal->login($request->all());
+        if (($result['user']['role_code'] ?? null) !== 'customer') {
+            $portal->logout();
+
+            return response()->json(['ok' => false, 'message' => 'La aplicación está disponible para clientes. El equipo debe ingresar desde el panel web.'], 403);
+        }
+
+        return response()->json($result);
     }
 
     public function register(Request $request, RestaurantPortal $portal): JsonResponse
@@ -93,11 +103,8 @@ class MobileController extends Controller
         return response()->json($portal->cancelReservation($id));
     }
 
-    public function dashboard(RestaurantPortal $portal): JsonResponse
+    public function dashboard(): JsonResponse
     {
-        $user = current_user();
-        abort_unless($user && in_array('dashboard.view', $user['permissions'], true), 403);
-
-        return response()->json(['ok' => true, ...$portal->dashboard()]);
+        return response()->json(['ok' => false, 'message' => 'La administración se realiza desde el panel web.'], 403);
     }
 }

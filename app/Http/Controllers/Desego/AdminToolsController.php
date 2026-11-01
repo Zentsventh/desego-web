@@ -25,9 +25,11 @@ use function App\Support\Desego\desego_header;
 use function App\Support\Desego\desego_system_setting;
 use function App\Support\Desego\json_body;
 use function App\Support\Desego\json_response;
+use function App\Support\Desego\require_any_permission;
 use function App\Support\Desego\require_csrf;
 use function App\Support\Desego\require_method;
 use function App\Support\Desego\require_permission;
+use function App\Support\Desego\text_length;
 
 class AdminToolsController extends Controller
 {
@@ -191,6 +193,72 @@ class AdminToolsController extends Controller
 
                     return response()->download($verified['path'], basename((string) $row['file_name']));
                 }
+                if ($view === 'settings') {
+                    require_any_permission(['settings.manage', 'dashboard.view']);
+                    $settingsRows = $pdo->query('SELECT setting_key, setting_value FROM system_settings')->fetchAll();
+                    $settingsMap = [];
+                    foreach ($settingsRows as $sr) {
+                        $settingsMap[(string) $sr['setting_key']] = (string) $sr['setting_value'];
+                    }
+                    $paymentMethods = json_decode($settingsMap['restaurant_payment_methods'] ?? '', true);
+                    if (! is_array($paymentMethods) || ! $paymentMethods) {
+                        $paymentMethods = ['Efectivo', 'Yape/Plin', 'Tarjeta al recibir'];
+                    }
+                    $hours = [];
+                    try {
+                        $hours = $pdo->query('SELECT day_of_week, day_name, open_time, close_time, is_closed FROM business_hours ORDER BY day_of_week')->fetchAll();
+                        foreach ($hours as &$h) {
+                            $h['day_of_week'] = (int) $h['day_of_week'];
+                            $h['open_time'] = substr((string) $h['open_time'], 0, 5);
+                            $h['close_time'] = substr((string) $h['close_time'], 0, 5);
+                            $h['is_closed'] = (bool) $h['is_closed'];
+                        }
+                        unset($h);
+                    } catch (Throwable) {
+                    }
+                    $resConfig = null;
+                    try {
+                        $resConfig = $pdo->query('SELECT advance_amount, tolerance_minutes, cancellation_deadline_hours, reservations_enabled FROM reservation_configurations ORDER BY id LIMIT 1')->fetch() ?: null;
+                        if ($resConfig) {
+                            $resConfig['advance_amount'] = (float) $resConfig['advance_amount'];
+                            $resConfig['tolerance_minutes'] = (int) $resConfig['tolerance_minutes'];
+                            $resConfig['cancellation_deadline_hours'] = (int) $resConfig['cancellation_deadline_hours'];
+                            $resConfig['reservations_enabled'] = (bool) $resConfig['reservations_enabled'];
+                        }
+                    } catch (Throwable) {
+                    }
+                    $branch = $pdo->query("SELECT id, name, address, district, phone, email, opening_time, closing_time FROM branches WHERE status = 'active' ORDER BY is_main DESC, id ASC LIMIT 1")->fetch() ?: [];
+                    json_response([
+                        'ok' => true,
+                        'commercial' => [
+                            'restaurant_name' => $settingsMap['restaurant_name'] ?? 'DeSego Cevichería',
+                            'restaurant_specialty' => $settingsMap['restaurant_specialty'] ?? 'Pescados, mariscos y comida peruana',
+                            'restaurant_address' => $settingsMap['restaurant_address'] ?? ($branch['address'] ?? 'UCV 19, Lote 13, Zona A, Huaycán, Ate'),
+                            'restaurant_district' => $settingsMap['restaurant_district'] ?? ($branch['district'] ?? 'Ate'),
+                            'restaurant_postal_code' => $settingsMap['restaurant_postal_code'] ?? '15479',
+                            'restaurant_latitude' => (float) ($settingsMap['restaurant_latitude'] ?? -12.0168500),
+                            'restaurant_longitude' => (float) ($settingsMap['restaurant_longitude'] ?? -76.8211200),
+                            'restaurant_whatsapp' => $settingsMap['restaurant_whatsapp'] ?? '+51 922 119 238',
+                            'restaurant_whatsapp_url' => $settingsMap['restaurant_whatsapp_url'] ?? 'https://wa.me/51922119238',
+                            'restaurant_facebook' => $settingsMap['restaurant_facebook'] ?? 'https://facebook.com/desegocevicheria',
+                            'restaurant_instagram' => $settingsMap['restaurant_instagram'] ?? 'https://instagram.com/desegocevicheria',
+                            'restaurant_tiktok' => $settingsMap['restaurant_tiktok'] ?? 'https://www.tiktok.com/@desegocevicheria/',
+                            'restaurant_email' => $settingsMap['restaurant_email'] ?? '',
+                            'delivery_enabled' => ($settingsMap['delivery_enabled'] ?? '1') === '1',
+                            'pickup_enabled' => ($settingsMap['pickup_enabled'] ?? '1') === '1',
+                            'dine_in_enabled' => ($settingsMap['dine_in_enabled'] ?? '1') === '1',
+                            'reservations_enabled' => ($settingsMap['reservations_enabled'] ?? '1') === '1',
+                            'payment_methods' => array_values($paymentMethods),
+                        ],
+                        'business_hours' => $hours,
+                        'reservation_config' => $resConfig ?: [
+                            'advance_amount' => 10.00,
+                            'tolerance_minutes' => 15,
+                            'cancellation_deadline_hours' => 3,
+                            'reservations_enabled' => true,
+                        ],
+                    ]);
+                }
                 json_response(['ok' => false, 'message' => 'Vista administrativa no válida.'], 404);
             }
             require_method('POST');
@@ -292,6 +360,153 @@ class AdminToolsController extends Controller
                 }
                 audit_log($pdo, (int) $actor['id'], 'analytics.preferences_updated', ['metrics' => $metrics]);
                 json_response(['ok' => true, 'message' => 'Preferencias de indicadores guardadas.']);
+            }
+            if ($action === 'update_commercial_settings') {
+                $actor = require_permission('settings.manage');
+                $name = trim((string) ($body['restaurant_name'] ?? 'DeSego Cevichería'));
+                $specialty = trim((string) ($body['restaurant_specialty'] ?? 'Pescados, mariscos y comida peruana'));
+                $address = trim((string) ($body['restaurant_address'] ?? ''));
+                $district = trim((string) ($body['restaurant_district'] ?? 'Ate'));
+                $postalCode = trim((string) ($body['restaurant_postal_code'] ?? '15479'));
+                $lat = filter_var($body['restaurant_latitude'] ?? -12.0168500, FILTER_VALIDATE_FLOAT);
+                $lng = filter_var($body['restaurant_longitude'] ?? -76.8211200, FILTER_VALIDATE_FLOAT);
+                $whatsapp = trim((string) ($body['restaurant_whatsapp'] ?? '+51 922 119 238'));
+                $whatsappDigits = preg_replace('/\D+/', '', $whatsapp) ?: '51922119238';
+                $whatsappUrl = trim((string) ($body['restaurant_whatsapp_url'] ?? '')) ?: ('https://wa.me/'.$whatsappDigits);
+                $facebook = trim((string) ($body['restaurant_facebook'] ?? ''));
+                $instagram = trim((string) ($body['restaurant_instagram'] ?? ''));
+                $tiktok = trim((string) ($body['restaurant_tiktok'] ?? ''));
+                $email = trim((string) ($body['restaurant_email'] ?? ''));
+                $paymentMethods = $body['payment_methods'] ?? ['Efectivo', 'Yape/Plin', 'Tarjeta al recibir'];
+                if (is_string($paymentMethods)) {
+                    $paymentMethods = array_filter(array_map('trim', explode(',', $paymentMethods)));
+                }
+                if (! is_array($paymentMethods) || ! $paymentMethods) {
+                    throw new AdminToolsProblem('Debes habilitar al menos un método de pago.', 422);
+                }
+                $cleanMethods = array_values(array_unique(array_filter(array_map(static fn ($m) => mb_substr(trim((string) $m), 0, 50), $paymentMethods))));
+                if (! $cleanMethods || text_length($name) < 2 || text_length($address) < 5 || $lat === false || $lng === false) {
+                    throw new AdminToolsProblem('Revisa el nombre comercial, la dirección, las coordenadas y los métodos de pago.', 422);
+                }
+                if ($email !== '' && ! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                    throw new AdminToolsProblem('El correo comercial ingresado no tiene un formato válido.', 422);
+                }
+                $pairs = [
+                    'restaurant_name' => $name,
+                    'restaurant_specialty' => $specialty,
+                    'restaurant_address' => $address,
+                    'restaurant_district' => $district,
+                    'restaurant_postal_code' => $postalCode,
+                    'restaurant_latitude' => number_format((float) $lat, 7, '.', ''),
+                    'restaurant_longitude' => number_format((float) $lng, 7, '.', ''),
+                    'restaurant_whatsapp' => $whatsapp,
+                    'restaurant_whatsapp_url' => $whatsappUrl,
+                    'restaurant_facebook' => $facebook,
+                    'restaurant_instagram' => $instagram,
+                    'restaurant_tiktok' => $tiktok,
+                    'restaurant_email' => $email,
+                    'delivery_enabled' => ! empty($body['delivery_enabled']) ? '1' : '0',
+                    'pickup_enabled' => ! empty($body['pickup_enabled']) ? '1' : '0',
+                    'dine_in_enabled' => ! empty($body['dine_in_enabled']) ? '1' : '0',
+                    'reservations_enabled' => ! empty($body['reservations_enabled']) ? '1' : '0',
+                    'restaurant_payment_methods' => json_encode($cleanMethods, JSON_UNESCAPED_UNICODE),
+                ];
+                $stmt = $pdo->prepare('INSERT INTO system_settings (setting_key,setting_value,updated_by) VALUES (:key,:value,:user_id) ON DUPLICATE KEY UPDATE setting_value=VALUES(setting_value),updated_by=VALUES(updated_by),updated_at=UTC_TIMESTAMP()');
+                foreach ($pairs as $key => $val) {
+                    $stmt->execute(['key' => $key, 'value' => $val, 'user_id' => (int) $actor['id']]);
+                }
+                $pdo->prepare('UPDATE branches SET name=:name, address=:address, district=:district, phone=:phone, email=:email, updated_at=NOW() WHERE is_main = 1')
+                    ->execute([
+                        'name' => $name.' - Sede Huaycán',
+                        'address' => $address,
+                        'district' => $district,
+                        'phone' => $whatsapp,
+                        'email' => $email !== '' ? $email : null,
+                    ]);
+                audit_log($pdo, (int) $actor['id'], 'settings.commercial_updated', ['restaurant_name' => $name]);
+                json_response(['ok' => true, 'message' => 'Datos comerciales, redes sociales y modalidades actualizados.']);
+            }
+            if ($action === 'update_business_hours') {
+                $actor = require_permission('settings.manage');
+                $hoursInput = $body['hours'] ?? null;
+                if (! is_array($hoursInput) || count($hoursInput) < 1) {
+                    throw new AdminToolsProblem('Envía la programación semanal de horarios.', 422);
+                }
+                $dayNames = [1 => 'Lunes', 2 => 'Martes', 3 => 'Miércoles', 4 => 'Jueves', 5 => 'Viernes', 6 => 'Sábado', 7 => 'Domingo'];
+                $pdo->beginTransaction();
+                try {
+                    $upsert = $pdo->prepare(
+                        'INSERT INTO business_hours (day_of_week, day_name, open_time, close_time, is_closed, created_at, updated_at)
+                         VALUES (:dow, :name, :open_t, :close_t, :closed, NOW(), NOW())
+                         ON DUPLICATE KEY UPDATE day_name=VALUES(day_name), open_time=VALUES(open_time), close_time=VALUES(close_time), is_closed=VALUES(is_closed), updated_at=NOW()'
+                    );
+                    $firstOpen = null;
+                    $firstClose = null;
+                    foreach ($hoursInput as $item) {
+                        if (! is_array($item)) {
+                            continue;
+                        }
+                        $dow = filter_var($item['day_of_week'] ?? null, FILTER_VALIDATE_INT);
+                        if (! $dow || ! isset($dayNames[$dow])) {
+                            continue;
+                        }
+                        $open = substr(trim((string) ($item['open_time'] ?? '09:00')), 0, 5);
+                        $close = substr(trim((string) ($item['close_time'] ?? '17:00')), 0, 5);
+                        $closed = ! empty($item['is_closed']) ? 1 : 0;
+                        if (! preg_match('/^\d{2}:\d{2}$/', $open) || ! preg_match('/^\d{2}:\d{2}$/', $close)) {
+                            throw new AdminToolsProblem('Formato de hora inválido en '.$dayNames[$dow].' (usa HH:MM).', 422);
+                        }
+                        if (! $closed && $open >= $close) {
+                            throw new AdminToolsProblem('La hora de apertura debe ser menor que la de cierre en '.$dayNames[$dow].'.', 422);
+                        }
+                        $upsert->execute([
+                            'dow' => $dow,
+                            'name' => $dayNames[$dow],
+                            'open_t' => $open.':00',
+                            'close_t' => $close.':00',
+                            'closed' => $closed,
+                        ]);
+                        if (! $closed && $firstOpen === null) {
+                            $firstOpen = $open.':00';
+                            $firstClose = $close.':00';
+                        }
+                    }
+                    if ($firstOpen && $firstClose) {
+                        $pdo->prepare('UPDATE branches SET opening_time=:open_t, closing_time=:close_t, updated_at=NOW() WHERE is_main = 1')
+                            ->execute(['open_t' => $firstOpen, 'close_t' => $firstClose]);
+                    }
+                    $pdo->commit();
+                } catch (Throwable $e) {
+                    if ($e instanceof HttpResponseException) {
+                        throw $e;
+                    }
+                    if ($pdo->inTransaction()) {
+                        $pdo->rollBack();
+                    }
+                    throw $e;
+                }
+                audit_log($pdo, (int) $actor['id'], 'settings.business_hours_updated', []);
+                json_response(['ok' => true, 'message' => 'Horarios de atención actualizados correctamente.']);
+            }
+            if ($action === 'update_reservation_settings') {
+                $actor = require_permission('settings.manage');
+                $advance = filter_var($body['advance_amount'] ?? 0, FILTER_VALIDATE_FLOAT);
+                $tolerance = filter_var($body['tolerance_minutes'] ?? 15, FILTER_VALIDATE_INT);
+                $deadline = filter_var($body['cancellation_deadline_hours'] ?? 3, FILTER_VALIDATE_INT);
+                $enabled = ! empty($body['reservations_enabled']) ? 1 : 0;
+                if ($advance === false || $advance < 0 || $advance > 500 || $tolerance === false || $tolerance < 5 || $tolerance > 120 || $deadline === false || $deadline < 0 || $deadline > 72) {
+                    throw new AdminToolsProblem('Revisa el monto de anticipo (0–500), tolerancia (5–120 min) y plazo de cancelación (0–72 h).', 422);
+                }
+                $existsId = $pdo->query('SELECT id FROM reservation_configurations ORDER BY id LIMIT 1')->fetchColumn();
+                if ($existsId) {
+                    $pdo->prepare('UPDATE reservation_configurations SET advance_amount=:adv, tolerance_minutes=:tol, cancellation_deadline_hours=:dead, reservations_enabled=:en, updated_at=NOW() WHERE id=:id')
+                        ->execute(['adv' => number_format((float) $advance, 2, '.', ''), 'tol' => (int) $tolerance, 'dead' => (int) $deadline, 'en' => $enabled, 'id' => (int) $existsId]);
+                } else {
+                    $pdo->prepare('INSERT INTO reservation_configurations (advance_amount, tolerance_minutes, cancellation_deadline_hours, reservations_enabled, created_at, updated_at) VALUES (:adv, :tol, :dead, :en, NOW(), NOW())')
+                        ->execute(['adv' => number_format((float) $advance, 2, '.', ''), 'tol' => (int) $tolerance, 'dead' => (int) $deadline, 'en' => $enabled]);
+                }
+                audit_log($pdo, (int) $actor['id'], 'settings.reservations_updated', ['advance_amount' => $advance, 'reservations_enabled' => $enabled]);
+                json_response(['ok' => true, 'message' => 'Políticas de reservas actualizadas.']);
             }
             json_response(['ok' => false, 'message' => 'Acción administrativa no válida.'], 404);
         } catch (AdminToolsProblem $error) {

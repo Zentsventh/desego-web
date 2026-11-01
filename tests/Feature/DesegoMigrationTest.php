@@ -39,11 +39,14 @@ class DesegoMigrationTest extends TestCase
             foreach (app(SqlDump::class)->parse(file_get_contents(database_path('desego/schema.sql')))['schema'] as $statement) {
                 $pdo->exec($statement);
             }
+            config(['database.connections.reference' => array_merge($config, ['database' => $reference])]);
+            $this->artisan('migrate', ['--database' => 'reference', '--force' => true])->assertExitCode(0);
             $this->assertSame($this->schemaDefinition($pdo), $this->schemaDefinition(DB::connection()->getPdo()));
             $this->assertTrue(LegacyDesegoMigration::nativeBaselinePrecedesLegacy());
             $this->assertFalse(LegacyDesegoMigration::skipNativeMigration(LegacyDesegoMigration::NATIVE_MIGRATIONS[0]));
         } finally {
             $pdo = null;
+            DB::purge('reference');
             self::$server->exec('DROP DATABASE `'.$reference.'`');
         }
     }
@@ -90,8 +93,8 @@ class DesegoMigrationTest extends TestCase
     {
         $report = VerifyDesego::inspect(DB::connection()->getPdo(), $this->tables);
         $this->assertCount(61, $report['tables']);
-        $this->assertSame(443, array_sum(array_column($report['tables'], 'rows')));
-        $this->assertSame(122, $report['foreign_keys']);
+        $this->assertSame(431, array_sum(array_column($report['tables'], 'rows')));
+        $this->assertSame(124, $report['foreign_keys']);
         $this->assertSame([], $report['orphans']);
         $this->assertDatabaseHas('allergens', ['name' => 'Crustáceos']);
         $this->assertDatabaseHas('products', ['id' => 1]);
@@ -257,9 +260,9 @@ class DesegoMigrationTest extends TestCase
     {
         $report = app(DatabaseIntegrityAudit::class)->inspect(DB::connection()->getPdo());
         $this->assertTrue($report['healthy'], json_encode($report['issues']));
-        $this->assertSame(68, $report['summary']['tables']);
-        $this->assertSame(68, $report['summary']['primary_keys']);
-        $this->assertSame(123, $report['summary']['foreign_keys']);
+        $this->assertSame(76, $report['summary']['tables']);
+        $this->assertSame(76, $report['summary']['primary_keys']);
+        $this->assertSame(136, $report['summary']['foreign_keys']);
         $this->assertSame(0, $report['summary']['orphan_constraints']);
         $path = tempnam(storage_path('framework'), 'desego-audit-');
         try {
@@ -302,6 +305,7 @@ class DesegoMigrationTest extends TestCase
             'database/migrations/2026_10_25_231826_add_user_foreign_key_to_sessions_table.php',
         ];
         $legacyPaths[] = str_replace('\\', '/', glob(database_path('migrations/*_link_customer_accounts_to_users.php'))[0]);
+        $legacyPaths[] = 'database/migrations/2026_10_29_042303_create_dining_service_tables.php';
         $legacyPaths = array_map(fn ($path) => str_starts_with($path, 'database/') ? base_path($path) : $path, $legacyPaths);
         $this->artisan('migrate', ['--realpath' => true, '--path' => $legacyPaths, '--force' => true])->assertExitCode(0);
         $pdo = DB::connection()->getPdo();

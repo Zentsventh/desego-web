@@ -397,23 +397,27 @@ export default function DiningFloor() {
                                                 {/* Alfombra bajo cada juego de comedor */}
                                                 <span className="dining-table-rug" aria-hidden="true" />
 
-                                                {/* 4 Sillas 3D con asiento y respaldo */}
+                                                {/* Sillas 3D según capacidad (2 o 4 personas) */}
                                                 <span className="dining-chair c1" aria-hidden="true">
                                                     <i className="chair-seat" />
                                                     <i className="chair-back" />
                                                 </span>
-                                                <span className="dining-chair c2" aria-hidden="true">
-                                                    <i className="chair-seat" />
-                                                    <i className="chair-back" />
-                                                </span>
+                                                {Number(item.capacity) > 2 && (
+                                                    <span className="dining-chair c2" aria-hidden="true">
+                                                        <i className="chair-seat" />
+                                                        <i className="chair-back" />
+                                                    </span>
+                                                )}
                                                 <span className="dining-chair c3" aria-hidden="true">
                                                     <i className="chair-seat" />
                                                     <i className="chair-back" />
                                                 </span>
-                                                <span className="dining-chair c4" aria-hidden="true">
-                                                    <i className="chair-seat" />
-                                                    <i className="chair-back" />
-                                                </span>
+                                                {Number(item.capacity) > 2 && (
+                                                    <span className="dining-chair c4" aria-hidden="true">
+                                                        <i className="chair-seat" />
+                                                        <i className="chair-back" />
+                                                    </span>
+                                                )}
 
                                                 {/* Pedestal central y base metálica */}
                                                 <span className="dining-table-base" aria-hidden="true" />
@@ -426,9 +430,13 @@ export default function DiningFloor() {
                                                 <span className="dining-table-top">
                                                     {/* Menaje 3D sobre la mesa (platos, QR, estado) */}
                                                     <span className="table-place-setting s1" aria-hidden="true" />
-                                                    <span className="table-place-setting s2" aria-hidden="true" />
+                                                    {Number(item.capacity) > 2 && (
+                                                        <span className="table-place-setting s2" aria-hidden="true" />
+                                                    )}
                                                     <span className="table-place-setting s3" aria-hidden="true" />
-                                                    <span className="table-place-setting s4" aria-hidden="true" />
+                                                    {Number(item.capacity) > 2 && (
+                                                        <span className="table-place-setting s4" aria-hidden="true" />
+                                                    )}
 
                                                     {/* Stand acrílico del QR en esquina de la mesa */}
                                                     <span className="table-qr-stand" aria-hidden="true" />
@@ -440,6 +448,9 @@ export default function DiningFloor() {
                                                         <strong>
                                                             {String(item.table_number).padStart(2, '0')}
                                                         </strong>
+                                                        <small style={{ fontSize: '9px', fontWeight: 700, color: '#334155', lineHeight: 1 }}>
+                                                            {item.capacity} pers.
+                                                        </small>
                                                         <span className="table-status-pill">
                                                             {labels[state] || state}
                                                         </span>
@@ -467,7 +478,7 @@ export default function DiningFloor() {
                     <aside className="dining-table-detail">
                         {table ? (
                             <>
-                                <span className="dining-eyebrow">{table.zone}</span>
+                                <span className="dining-eyebrow">{table.zone} · {table.capacity} personas</span>
                                 <h3>{table.label}</h3>
                                 <p>{labels[visit?.visit.status || table.operational_status]}</p>
                                 {visit ? (

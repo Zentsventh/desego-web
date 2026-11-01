@@ -14,13 +14,21 @@ export default function Auth({
 }) {
     const { flash } = usePage().props;
     const isLogin = !register && !forgot && !reset;
-    const heading = forgot ? 'Recupera tu cuenta.' : reset ? 'Elige una nueva contraseña.' : register ? 'Un gusto conocerte.' : staff ? 'Todo bajo control.' : 'Qué bueno verte.';
+    const heading = forgot
+        ? 'Recupera tu cuenta.'
+        : reset
+          ? 'Elige una nueva contraseña.'
+          : register
+            ? 'Un gusto conocerte.'
+            : staff
+              ? 'Todo bajo control.'
+              : 'Qué bueno verte.';
     const description = forgot
         ? 'Te enviaremos un enlace para restablecer tu contraseña.'
         : reset
           ? 'Usa al menos 12 caracteres y confirma tu nueva contraseña.'
           : register
-            ? 'Crea tu cuenta para consultar pedidos, guardar tus direcciones y reservar tu próximo encuentro.'
+            ? 'Crea tu cuenta para consultar pedidos, guardar tus direcciones y acumular puntos en cada visita.'
             : staff
               ? 'Ingresa al panel de control de DESEGO.'
               : 'Entra a tu cuenta y sigue disfrutando de tus favoritos.';
@@ -30,8 +38,16 @@ export default function Auth({
           ? 'Guardar nueva contraseña'
           : register
             ? 'Crear mi cuenta'
-            : staff ? 'Ingresar al panel →' : 'Ingresar a mi cuenta →';
-    const action = forgot ? '/recuperar-contrasena' : reset ? '/restablecer-contrasena' : register ? '/registro' : '/ingresar';
+            : staff
+              ? 'Ingresar al panel →'
+              : 'Ingresar a mi cuenta →';
+    const action = forgot
+        ? '/recuperar-contrasena'
+        : reset
+          ? '/restablecer-contrasena'
+          : register
+            ? '/registro'
+            : '/ingresar';
     const form = useForm({
         name: '',
         email: '',
@@ -76,7 +92,41 @@ export default function Auth({
                     </span>
                     <h2>{heading}</h2>
                     <p>{description}</p>
-                    {flash?.success && <p role="status">{flash.success}</p>}
+                    {flash?.success && <p role="status" className="dg-confirmation" style={{ marginBottom: '16px' }}>{flash.success}</p>}
+                    {flash?.error && (
+                        <div
+                            className="dg-error-banner"
+                            style={{
+                                background: '#fdf2f2',
+                                border: '1px solid #f8d7da',
+                                color: '#842029',
+                                padding: '10px 14px',
+                                borderRadius: '4px',
+                                fontSize: '12px',
+                                marginBottom: '16px',
+                            }}
+                        >
+                            {flash.error}
+                        </div>
+                    )}
+
+                    {!staff && !forgot && !reset && (
+                        <div className="dg-google-auth-wrap">
+                            <a href="/auth/google/redirect" className="dg-google-btn">
+                                <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.66v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.15Z" />
+                                    <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.13C3.28 21.36 7.36 24 12 24Z" />
+                                    <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.6H1.25C.45 8.22 0 10.05 0 12s.45 3.78 1.25 5.4l4.03-3.13Z" />
+                                    <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.36 0 3.28 2.64 1.25 6.6l4.03 3.13c.95-2.83 3.6-4.98 6.72-4.98Z" />
+                                </svg>
+                                <span>{register ? 'Crear cuenta con Google' : 'Continuar con Google'}</span>
+                            </a>
+                            <div className="dg-auth-divider">
+                                <span>o con correo electrónico</span>
+                            </div>
+                        </div>
+                    )}
+
                     <form
                         className="dg-form"
                         onSubmit={(e) => {
@@ -114,33 +164,37 @@ export default function Auth({
                                 </label>
                             </>
                         )}
-                        {!reset && <label>
-                            Correo electrónico
-                            <input
-                                type="email"
-                                required
-                                autoComplete="email"
-                                value={form.data.email}
-                                onChange={(e) =>
-                                    form.setData('email', e.target.value)
-                                }
-                            />
-                        </label>}
-                        {!forgot && <label>
-                            Contraseña
-                            <input
-                                type="password"
-                                required
-                                minLength={reset ? 12 : register ? 10 : 1}
-                                autoComplete={
-                                    register || reset ? 'new-password' : 'current-password'
-                                }
-                                value={form.data.password}
-                                onChange={(e) =>
-                                    form.setData('password', e.target.value)
-                                }
-                            />
-                        </label>}
+                        {!reset && (
+                            <label>
+                                Correo electrónico
+                                <input
+                                    type="email"
+                                    required
+                                    autoComplete="email"
+                                    value={form.data.email}
+                                    onChange={(e) =>
+                                        form.setData('email', e.target.value)
+                                    }
+                                />
+                            </label>
+                        )}
+                        {!forgot && (
+                            <label>
+                                Contraseña
+                                <input
+                                    type="password"
+                                    required
+                                    minLength={reset ? 12 : register ? 10 : 1}
+                                    autoComplete={
+                                        register || reset ? 'new-password' : 'current-password'
+                                    }
+                                    value={form.data.password}
+                                    onChange={(e) =>
+                                        form.setData('password', e.target.value)
+                                    }
+                                />
+                            </label>
+                        )}
                         {register || reset ? (
                             <label>
                                 Confirma tu contraseña
@@ -157,17 +211,19 @@ export default function Auth({
                                     }
                                 />
                             </label>
-                        ) : isLogin && (
-                            <label className="dg-check">
-                                <input
-                                    type="checkbox"
-                                    checked={form.data.remember}
-                                    onChange={(e) =>
-                                        form.setData('remember', e.target.checked)
-                                    }
-                                />
-                                <span>Recordar mi sesión</span>
-                            </label>
+                        ) : (
+                            isLogin && (
+                                <label className="dg-check">
+                                    <input
+                                        type="checkbox"
+                                        checked={form.data.remember}
+                                        onChange={(e) =>
+                                            form.setData('remember', e.target.checked)
+                                        }
+                                    />
+                                    <span>Recordar mi sesión</span>
+                                </label>
+                            )
                         )}
                         <button className="dg-button" disabled={form.processing}>
                             {form.processing ? 'Un momento...' : submitLabel}

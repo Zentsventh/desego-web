@@ -46,7 +46,8 @@ class RolesController extends Controller
                     $permission['id'] = (int) $permission['id'];
                 }
                 unset($permission);
-                json_response(['ok' => true, 'roles' => $roles, 'permissions' => $permissions]);
+                $history = $pdo->query("SELECT a.id, a.event_code, a.details, a.created_at, u.name AS actor_name FROM audit_logs a LEFT JOIN users u ON u.id = a.user_id WHERE a.event_code IN ('roles.created', 'roles.updated') ORDER BY a.id DESC LIMIT 50")->fetchAll();
+                json_response(['ok' => true, 'roles' => $roles, 'permissions' => $permissions, 'history' => $history]);
             }
             require_method('POST');
             $body = json_body();
@@ -60,6 +61,13 @@ class RolesController extends Controller
                 json_response(['ok' => false, 'message' => 'La lista de permisos no es válida.'], 422);
             }
             $permissionCodes = array_values(array_unique(array_filter(array_map('strval', $permissionCodes))));
+            if (text_length($description) > 255) {
+                json_response(['ok' => false, 'message' => 'La descripción admite hasta 255 caracteres.'], 422);
+            }
+            $knownPermissions = $pdo->query('SELECT code FROM permissions')->fetchAll(PDO::FETCH_COLUMN);
+            if (array_diff($permissionCodes, $knownPermissions)) {
+                json_response(['ok' => false, 'message' => 'Uno o más permisos seleccionados no existen.'], 422);
+            }
             if ($action === 'create') {
                 if (text_length($name) < 3 || text_length($name) > 80) {
                     json_response(['ok' => false, 'message' => 'El nombre del rol debe tener entre 3 y 80 caracteres.'], 422);
@@ -87,7 +95,7 @@ class RolesController extends Controller
                     }
                     throw $e;
                 }
-                audit_log($pdo, (int) $actor['id'], 'roles.created', ['role_id' => $roleId, 'code' => $code]);
+                audit_log($pdo, (int) $actor['id'], 'roles.created', ['role_id' => $roleId, 'role_name' => $name, 'code' => $code, 'permissions_after' => $permissionCodes]);
                 json_response(['ok' => true, 'message' => 'Rol creado.'], 201);
             }
             if ($action === 'update') {
@@ -106,6 +114,9 @@ class RolesController extends Controller
                 }
                 $pdo->beginTransaction();
                 try {
+                    $previous = $pdo->prepare('SELECT p.code FROM permissions p JOIN role_permissions rp ON rp.permission_id = p.id WHERE rp.role_id = :role ORDER BY p.code');
+                    $previous->execute(['role' => $roleId]);
+                    $previousPermissions = $previous->fetchAll(PDO::FETCH_COLUMN);
                     $update = $pdo->prepare('UPDATE roles SET name = :name, description = :description, updated_at = NOW() WHERE id = :id');
                     $update->execute(['name' => $name, 'description' => $description ?: null, 'id' => $roleId]);
                     $this->assign_role_permissions($pdo, (int) $roleId, $permissionCodes);
@@ -119,7 +130,7 @@ class RolesController extends Controller
                     }
                     throw $e;
                 }
-                audit_log($pdo, (int) $actor['id'], 'roles.updated', ['role_id' => (int) $roleId]);
+                audit_log($pdo, (int) $actor['id'], 'roles.updated', ['role_id' => (int) $roleId, 'role_name' => $name, 'permissions_before' => $previousPermissions, 'permissions_after' => $permissionCodes]);
                 json_response(['ok' => true, 'message' => 'Rol y permisos actualizados.']);
             }
             json_response(['ok' => false, 'message' => 'Acción de roles no válida.'], 404);
@@ -140,7 +151,11 @@ class RolesController extends Controller
         $code = strtolower((string) $ascii);
         $code = preg_replace('/[^a-z0-9]+/', '_', $code) ?? '';
 
-        return trim($code, '_');
+        $code = trim($code, '_');
+
+        return strlen($code) > 40
+            ? rtrim(substr($code, 0, 31), '_').'_'.substr(hash('sha256', $code), 0, 8)
+            : $code;
     }
 
     protected function assign_role_permissions(PDO $pdo, int $roleId, array $permissionCodes): void

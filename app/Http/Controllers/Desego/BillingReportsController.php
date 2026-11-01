@@ -116,13 +116,13 @@ class BillingReportsController extends Controller
                     $invoiceSummary['invoice_count'] = (int) ($invoiceSummary['invoice_count'] ?? 0);
                     $invoiceSummary['invoice_total'] = (float) ($invoiceSummary['invoice_total'] ?? 0);
                     $dailyStmt = $pdo->prepare(
-                        "SELECT DATE(created_at) AS day,
+                        "SELECT DATE(DATE_SUB(created_at, INTERVAL 5 HOUR)) AS day,
                     COALESCE(SUM(CASE WHEN payment_type='payment' THEN amount ELSE -amount END),0) AS net_total,
                     COALESCE(SUM(CASE WHEN payment_type='payment' THEN amount ELSE 0 END),0) AS gross_payments,
                     COALESCE(SUM(CASE WHEN payment_type='refund' THEN amount ELSE 0 END),0) AS gross_refunds,
                     COUNT(*) AS operation_count
                  FROM payments WHERE created_at >= :start_at AND created_at < :end_at
-                 GROUP BY DATE(created_at) ORDER BY day ASC"
+                 GROUP BY DATE(DATE_SUB(created_at, INTERVAL 5 HOUR)) ORDER BY day ASC"
                     );
                     $dailyStmt->execute(['start_at' => $start, 'end_at' => $end]);
                     $daily = $dailyStmt->fetchAll();

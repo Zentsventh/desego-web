@@ -56,7 +56,8 @@ html { min-height: 100%; background: var(--bg-screen-blue); scroll-behavior: smo
 body { min-height: 100vh; margin: 0; color: var(--text-white); background: var(--bg-screen-blue); font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; -webkit-font-smoothing: antialiased; }
 button, input, select { font: inherit; }
 button { -webkit-tap-highlight-color: transparent; }
-button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid rgba(25, 207, 245, .75); outline-offset: 3px; }
+button:focus-visible { outline: 2px solid rgba(25, 207, 245, .75); outline-offset: 2px; }
+input:focus-visible, select:focus-visible, textarea:focus-visible { outline: none; }
 .is-hidden { display: none !important; }
 .app-shell { min-height: 100vh; background: var(--bg-screen-blue); }
 
@@ -1470,12 +1471,16 @@ html, body, .app-shell {
 }
 
 button:focus-visible,
+a:focus-visible {
+  outline: 2px solid #004797;
+  outline-offset: 2px;
+}
+
 input:focus-visible,
 select:focus-visible,
-textarea:focus-visible,
-a:focus-visible {
-  outline: 2px solid #004797 !important;
-  outline-offset: 2px !important;
+textarea:focus-visible {
+  outline: none !important;
+  outline-offset: 0 !important;
 }
 
 /* 1. PANTALLA DE AUTENTICACIÓN ENTERPRISE */

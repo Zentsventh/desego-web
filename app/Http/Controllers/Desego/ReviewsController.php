@@ -45,13 +45,14 @@ class ReviewsController extends Controller
                         throw new ReviewApiProblem('Selecciona un producto válido.');
                     }
                     $product = $this->reviews_product($pdo, (int) $productId);
-                    $stmt = $pdo->prepare("SELECT id, reviewer_name, rating, title, comment, created_at FROM product_reviews WHERE product_id=:id AND status='approved' ORDER BY created_at DESC LIMIT 50");
+                    $stmt = $pdo->prepare("SELECT id, reviewer_name, rating, title, comment, photo_url, admin_reply, replied_at, helpful_count, created_at FROM product_reviews WHERE product_id=:id AND status='approved' ORDER BY created_at DESC LIMIT 50");
                     $stmt->execute(['id' => $productId]);
                     $reviews = $stmt->fetchAll();
                     foreach ($reviews as &$review) {
                         $names = preg_split('/\s+/', trim((string) $review['reviewer_name'])) ?: [];
                         $review['reviewer_display'] = (string) ($names[0] ?? 'Cliente').(count($names) > 1 ? ' '.$this->mb_substr_fallback((string) $names[count($names) - 1], 0, 1).'.' : '');
                         $review['rating'] = (int) $review['rating'];
+                        $review['helpful_count'] = (int) ($review['helpful_count'] ?? 0);
                     }
                     unset($review);
                     $sum = $pdo->prepare("SELECT COUNT(*) AS total, ROUND(AVG(rating),1) AS average FROM product_reviews WHERE product_id=:id AND status='approved'");
@@ -72,7 +73,7 @@ class ReviewsController extends Controller
                         $status = 'pending';
                     }
                     $where = $status === 'all' ? '' : 'WHERE pr.status=:status';
-                    $sql = "SELECT pr.id, pr.order_id, pr.product_id, pr.customer_id, pr.reviewer_name, pr.rating, pr.title, pr.comment, pr.status, pr.created_at, pr.moderated_at, pr.moderator_note, p.name AS product_name, o.order_number, c.phone AS customer_phone, u.name AS moderator_name FROM product_reviews pr INNER JOIN products p ON p.id=pr.product_id INNER JOIN orders o ON o.id=pr.order_id INNER JOIN customers c ON c.id=pr.customer_id LEFT JOIN users u ON u.id=pr.moderated_by $where ORDER BY FIELD(pr.status,'pending','approved','rejected'), pr.created_at DESC LIMIT 300";
+                    $sql = "SELECT pr.id, pr.order_id, pr.product_id, pr.customer_id, pr.reviewer_name, pr.rating, pr.title, pr.comment, pr.photo_url, pr.admin_reply, pr.replied_at, pr.helpful_count, pr.status, pr.created_at, pr.moderated_at, pr.moderator_note, p.name AS product_name, o.order_number, c.phone AS customer_phone, u.name AS moderator_name FROM product_reviews pr INNER JOIN products p ON p.id=pr.product_id INNER JOIN orders o ON o.id=pr.order_id INNER JOIN customers c ON c.id=pr.customer_id LEFT JOIN users u ON u.id=pr.moderated_by $where ORDER BY FIELD(pr.status,'pending','approved','rejected'), pr.created_at DESC LIMIT 300";
                     $stmt = $pdo->prepare($sql);
                     $stmt->execute($status === 'all' ? [] : ['status' => $status]);
                     $reviews = $stmt->fetchAll();
@@ -174,13 +175,42 @@ class ReviewsController extends Controller
                 if (text_length($note) > 500) {
                     throw new ReviewApiProblem('La nota de moderación supera los 500 caracteres.');
                 }
-                $stmt = $pdo->prepare("UPDATE product_reviews SET status=:status,moderated_by=:user,moderated_at=NOW(),moderator_note=:note,updated_at=NOW() WHERE id=:id AND status='pending'");
+                $stmt = $pdo->prepare('UPDATE product_reviews SET status=:status,moderated_by=:user,moderated_at=NOW(),moderator_note=:note,updated_at=NOW() WHERE id=:id');
                 $stmt->execute(['status' => $status, 'user' => (int) $actor['id'], 'note' => $note !== '' ? $note : null, 'id' => $id]);
-                if ($stmt->rowCount() !== 1) {
-                    throw new ReviewApiProblem('La reseña ya fue moderada o no existe.', 409);
+                if ($stmt->rowCount() < 1) {
+                    $chk = $pdo->prepare('SELECT id FROM product_reviews WHERE id=:id');
+                    $chk->execute(['id' => $id]);
+                    if (! $chk->fetch()) {
+                        throw new ReviewApiProblem('La reseña no existe.', 404);
+                    }
                 }
                 audit_log($pdo, (int) $actor['id'], 'product_review.moderated', ['review_id' => (int) $id, 'status' => $status]);
                 json_response(['ok' => true, 'message' => $status === 'approved' ? 'Reseña aprobada.' : 'Reseña rechazada.']);
+            }
+            if ($action === 'review.reply') {
+                $actor = require_permission('reviews.manage');
+                $id = filter_var($body['id'] ?? null, FILTER_VALIDATE_INT);
+                $reply = trim((string) ($body['admin_reply'] ?? ''));
+                if (! $id || $id < 1 || text_length($reply) > 1000) {
+                    throw new ReviewApiProblem('Revisa el identificador de la reseña y la respuesta (máximo 1000 caracteres).');
+                }
+                $pdo->prepare('UPDATE product_reviews SET admin_reply=:reply, replied_at=:replied_at, updated_at=NOW() WHERE id=:id')
+                    ->execute(['reply' => $reply !== '' ? $reply : null, 'replied_at' => $reply !== '' ? gmdate('Y-m-d H:i:s') : null, 'id' => $id]);
+                audit_log($pdo, (int) $actor['id'], 'product_review.replied', ['review_id' => (int) $id]);
+                json_response(['ok' => true, 'message' => $reply !== '' ? 'Respuesta publicada en la reseña.' : 'Respuesta eliminada.']);
+            }
+            if ($action === 'review.helpful') {
+                $id = filter_var($body['id'] ?? null, FILTER_VALIDATE_INT);
+                if (! $id || $id < 1) {
+                    throw new ReviewApiProblem('Reseña no válida.');
+                }
+                $voted = (array) (session()->get('helpful_reviews') ?? []);
+                if (! in_array((int) $id, $voted, true)) {
+                    $pdo->prepare('UPDATE product_reviews SET helpful_count = COALESCE(helpful_count, 0) + 1 WHERE id = :id AND status = \'approved\'')->execute(['id' => $id]);
+                    $voted[] = (int) $id;
+                    session()->put('helpful_reviews', array_slice($voted, -100));
+                }
+                json_response(['ok' => true, 'message' => '¡Gracias por tu valoración!']);
             }
             throw new ReviewApiProblem('Acción de reseñas no válida.', 404);
         } catch (ReviewApiProblem $e) {

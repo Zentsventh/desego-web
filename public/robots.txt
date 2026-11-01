@@ -1,2 +1,8 @@
 User-agent: *
-Disallow:
+Allow: /
+Disallow: /admin
+Disallow: /cuenta
+Disallow: /api/admin
+Disallow: /dining/payments/
+
+Sitemap: /sitemap.xml

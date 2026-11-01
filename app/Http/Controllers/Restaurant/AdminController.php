@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Restaurant;
 
 use App\Http\Controllers\Controller;
+use App\Services\ChatbotConversations;
 use App\Services\RestaurantPortal;
 use App\Support\Desego\LegacyEndpoint;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -29,7 +31,9 @@ class AdminController extends Controller
             'section' => $section,
             'title' => $item['title'],
             'module' => $item['module'],
-            'data' => fn () => $item['module'] ? $legacy->call($item['module'], [], isset($item['view']) ? ['view' => $item['view']] : []) : $portal->dashboard(),
+            'data' => fn () => $section === 'chatbot'
+                ? app(ChatbotConversations::class)->listing(request())
+                : ($item['module'] ? $legacy->call($item['module'], [], isset($item['view']) ? ['view' => $item['view']] : []) : $portal->dashboard()),
             'navigation' => fn () => $this->navigation($portal, $user['permissions']),
             'catalog' => fn () => $needsCatalog ? $portal->catalog() : null,
             'ingredients' => fn () => $needsIngredients ? $legacy->call('catalog', [], ['view' => 'ingredients'])['ingredients'] : [],
@@ -69,6 +73,18 @@ class AdminController extends Controller
         abort_if(in_array($module, ['auth', 'storefront', 'external', 'password-reset'], true), 404);
         $result = $legacy->call($module, $request->all(), [], 'POST');
 
-        return back()->with('success', $result['message'] ?? 'Operacion completada.')->with('result', $result);
+        return back()->with('success', $result['message'] ?? 'Operación completada.')->with('result', $result);
+    }
+
+    public function uploadImage(Request $request, RestaurantPortal $portal): JsonResponse
+    {
+        $user = current_user();
+        abort_unless($user && (in_array('products.manage', $user['permissions'] ?? [], true) || in_array('settings.manage', $user['permissions'] ?? [], true)), 403);
+        $request->validate([
+            'image' => 'required|file|mimes:jpg,jpeg,png,webp|max:4096',
+        ]);
+        $url = $portal->storeUploadedFile($request->file('image'), 'products', ['jpg', 'jpeg', 'png', 'webp'], 4096);
+
+        return response()->json(['ok' => true, 'url' => $url]);
     }
 }

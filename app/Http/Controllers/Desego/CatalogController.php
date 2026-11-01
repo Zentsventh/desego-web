@@ -38,8 +38,8 @@ class CatalogController extends Controller
                         : "SELECT id, slug, name, description, status FROM categories WHERE status = 'active' ORDER BY name";
                     $categories = $pdo->query($categorySql)->fetchAll();
                     $products = $pdo->query(
-                        'SELECT p.id, p.category_id, c.name AS category, c.status AS category_status, p.name, p.description, p.price, p.emoji, p.status, p.created_at, p.updated_at
-                 FROM products p INNER JOIN categories c ON c.id = p.category_id ORDER BY p.name'
+                        'SELECT p.id, p.code, p.category_id, c.name AS category, c.status AS category_status, p.name, p.description, p.price, p.emoji, p.status, p.is_featured, p.is_popular, p.is_new, p.included_items, p.image_url, p.created_at, p.updated_at
+                 FROM products p INNER JOIN categories c ON c.id = p.category_id ORDER BY FIELD(c.slug, \'platos-frescos\', \'platos-calientes\', \'frituras\', \'duos-trios-rondas\', \'bebidas\'), p.code, p.name'
                     )->fetchAll();
                     $recipeRows = $pdo->query(
                         'SELECT pi.product_id, i.id AS ingredient_id, i.name AS ingredient_name, i.unit, pi.quantity,
@@ -51,12 +51,55 @@ class CatalogController extends Controller
                  ORDER BY i.name, a.name'
                     )->fetchAll();
                     $mapped = [];
+                    $galleryByProduct = [];
+                    try {
+                        foreach ($pdo->query('SELECT id, product_id, image_url, alt_text, sort_order FROM product_images ORDER BY sort_order, id')->fetchAll() as $imgRow) {
+                            $galleryByProduct[(int) $imgRow['product_id']][] = [
+                                'id' => (int) $imgRow['id'],
+                                'image_url' => (string) $imgRow['image_url'],
+                                'alt_text' => (string) ($imgRow['alt_text'] ?? ''),
+                                'sort_order' => (int) ($imgRow['sort_order'] ?? 0),
+                            ];
+                        }
+                    } catch (Throwable) {
+                    }
+                    $optionGroupsByProduct = [];
+                    try {
+                        $groups = $pdo->query('SELECT id, product_id, name, is_required, max_selections, sort_order, is_active FROM product_option_groups ORDER BY sort_order, id')->fetchAll();
+                        $optionsByGroup = [];
+                        foreach ($pdo->query('SELECT id, group_id, name, price_delta, is_available, sort_order FROM product_options ORDER BY sort_order, id')->fetchAll() as $optRow) {
+                            $optionsByGroup[(int) $optRow['group_id']][] = [
+                                'id' => (int) $optRow['id'],
+                                'name' => (string) $optRow['name'],
+                                'price_delta' => (float) $optRow['price_delta'],
+                                'is_available' => (bool) $optRow['is_available'],
+                                'sort_order' => (int) ($optRow['sort_order'] ?? 0),
+                            ];
+                        }
+                        foreach ($groups as $grpRow) {
+                            $gid = (int) $grpRow['id'];
+                            $optionGroupsByProduct[(int) $grpRow['product_id']][] = [
+                                'id' => $gid,
+                                'name' => (string) $grpRow['name'],
+                                'is_required' => (bool) $grpRow['is_required'],
+                                'max_selections' => (int) $grpRow['max_selections'],
+                                'is_active' => (bool) $grpRow['is_active'],
+                                'options' => $optionsByGroup[$gid] ?? [],
+                            ];
+                        }
+                    } catch (Throwable) {
+                    }
                     foreach ($products as &$product) {
                         $product['id'] = (int) $product['id'];
                         $product['category_id'] = (int) $product['category_id'];
                         $product['price'] = (float) $product['price'];
+                        $product['is_featured'] = (bool) ($product['is_featured'] ?? false);
+                        $product['is_popular'] = (bool) ($product['is_popular'] ?? false);
+                        $product['is_new'] = (bool) ($product['is_new'] ?? false);
                         $product['ingredients'] = [];
                         $product['allergen_list'] = [];
+                        $product['gallery'] = $galleryByProduct[$product['id']] ?? [];
+                        $product['option_groups'] = $optionGroupsByProduct[$product['id']] ?? [];
                         $mapped[$product['id']] = &$product;
                     }
                     unset($product);
@@ -128,6 +171,15 @@ class CatalogController extends Controller
                     unset($row);
                     json_response(['ok' => true, 'ingredients' => $ingredients, 'allergens' => $allergens]);
                 }
+                if ($view === 'allergens') {
+                    require_any_permission(['allergens.manage', 'ingredients.manage', 'products.manage']);
+                    $allergens = $pdo->query('SELECT id, name, description, status FROM allergens ORDER BY name')->fetchAll();
+                    foreach ($allergens as &$row) {
+                        $row['id'] = (int) $row['id'];
+                    }
+                    unset($row);
+                    json_response(['ok' => true, 'allergens' => $allergens]);
+                }
                 json_response(['ok' => false, 'message' => 'Vista de catálogo no válida.'], 404);
             }
             require_method('POST');
@@ -196,14 +248,52 @@ class CatalogController extends Controller
             if (str_starts_with($action, 'product.')) {
                 $actor = require_permission('products.manage');
                 if ($action === 'product.create' || $action === 'product.update') {
-                    $name = trim((string) ($body['name'] ?? ''));
-                    $description = trim((string) ($body['description'] ?? ''));
-                    $price = filter_var($body['price'] ?? null, FILTER_VALIDATE_FLOAT);
-                    $categoryId = filter_var($body['category_id'] ?? null, FILTER_VALIDATE_INT);
-                    $emoji = trim((string) ($body['emoji'] ?? '🍽️'));
-                    $status = (string) ($body['status'] ?? 'available');
+                    $existingProduct = null;
+                    $id = null;
+                    if ($action === 'product.update') {
+                        $id = filter_var($body['id'] ?? null, FILTER_VALIDATE_INT);
+                        if (! $id) {
+                            json_response(['ok' => false, 'message' => 'Producto no válido.'], 422);
+                        }
+                        $existingStmt = $pdo->prepare('SELECT * FROM products WHERE id = :id LIMIT 1');
+                        $existingStmt->execute(['id' => $id]);
+                        $existingProduct = $existingStmt->fetch();
+                        if (! $existingProduct) {
+                            json_response(['ok' => false, 'message' => 'Producto no encontrado.'], 404);
+                        }
+                    }
+
+                    $code = array_key_exists('code', $body)
+                        ? (trim((string) $body['code']) ?: null)
+                        : ($existingProduct['code'] ?? null);
+                    $name = trim((string) ($body['name'] ?? ($existingProduct['name'] ?? '')));
+                    $includedItems = array_key_exists('included_items', $body)
+                        ? (trim((string) $body['included_items']) ?: null)
+                        : ($existingProduct['included_items'] ?? null);
+                    $imageUrl = array_key_exists('image_url', $body)
+                        ? (trim((string) $body['image_url']) ?: null)
+                        : ($existingProduct['image_url'] ?? null);
+                    $isFeatured = array_key_exists('is_featured', $body)
+                        ? (! empty($body['is_featured']) ? 1 : 0)
+                        : (int) ($existingProduct['is_featured'] ?? 0);
+                    $isPopular = array_key_exists('is_popular', $body)
+                        ? (! empty($body['is_popular']) ? 1 : 0)
+                        : (int) ($existingProduct['is_popular'] ?? 0);
+                    $isNew = array_key_exists('is_new', $body)
+                        ? (! empty($body['is_new']) ? 1 : 0)
+                        : (int) ($existingProduct['is_new'] ?? 0);
+                    $description = array_key_exists('description', $body)
+                        ? trim((string) $body['description'])
+                        : trim((string) ($existingProduct['description'] ?? ''));
+                    $price = filter_var($body['price'] ?? ($existingProduct['price'] ?? null), FILTER_VALIDATE_FLOAT);
+                    $categoryId = filter_var($body['category_id'] ?? ($existingProduct['category_id'] ?? null), FILTER_VALIDATE_INT);
+                    $emoji = trim((string) ($body['emoji'] ?? ($existingProduct['emoji'] ?? '🍽️')));
+                    $status = (string) ($body['status'] ?? ($existingProduct['status'] ?? 'available'));
                     if (text_length($name) < 2 || text_length($name) > 100 || text_length($description) > 500 || ! is_numeric($price) || (float) $price < 0 || (float) $price > 99999999 || ! $categoryId || ! in_array($status, ['available', 'unavailable'], true)) {
                         json_response(['ok' => false, 'message' => 'Revisa el nombre, categoría, precio y estado del producto.'], 422);
+                    }
+                    if ($code !== null && text_length($code) > 32) {
+                        json_response(['ok' => false, 'message' => 'El código del plato no debe superar los 32 caracteres.'], 422);
                     }
                     $cat = $pdo->prepare("SELECT id FROM categories WHERE id = :id AND status = 'active'");
                     $cat->execute(['id' => $categoryId]);
@@ -219,27 +309,22 @@ class CatalogController extends Controller
                     try {
                         if ($action === 'product.create') {
                             $slug = $this->unique_slug($pdo, 'products', $this->catalog_slug($name));
-                            $stmt = $pdo->prepare('INSERT INTO products (category_id, slug, name, description, price, emoji, status) VALUES (:category_id, :slug, :name, :description, :price, :emoji, :status)');
-                            $stmt->execute(['category_id' => $categoryId, 'slug' => $slug, 'name' => $name, 'description' => $description ?: null, 'price' => number_format((float) $price, 2, '.', ''), 'emoji' => $emoji, 'status' => $status]);
+                            $stmt = $pdo->prepare('INSERT INTO products (code, category_id, slug, name, description, price, emoji, status, included_items, image_url, is_featured, is_popular, is_new) VALUES (:code, :category_id, :slug, :name, :description, :price, :emoji, :status, :included_items, :image_url, :is_featured, :is_popular, :is_new)');
+                            $stmt->execute(['code' => $code, 'category_id' => $categoryId, 'slug' => $slug, 'name' => $name, 'description' => $description ?: null, 'price' => number_format((float) $price, 2, '.', ''), 'emoji' => $emoji, 'status' => $status, 'included_items' => $includedItems, 'image_url' => $imageUrl, 'is_featured' => $isFeatured, 'is_popular' => $isPopular, 'is_new' => $isNew]);
                             $id = (int) $pdo->lastInsertId();
                         } else {
-                            $id = filter_var($body['id'] ?? null, FILTER_VALIDATE_INT);
-                            if (! $id) {
-                                $pdo->rollBack();
-                                json_response(['ok' => false, 'message' => 'Producto no válido.'], 422);
-                            }
-                            $stmt = $pdo->prepare('UPDATE products SET category_id = :category_id, name = :name, description = :description, price = :price, emoji = :emoji, status = :status, updated_at = NOW() WHERE id = :id');
-                            $stmt->execute(['category_id' => $categoryId, 'name' => $name, 'description' => $description ?: null, 'price' => number_format((float) $price, 2, '.', ''), 'emoji' => $emoji, 'status' => $status, 'id' => $id]);
-                            if (! $stmt->rowCount()) {
-                                $exists = $pdo->prepare('SELECT id FROM products WHERE id = :id');
-                                $exists->execute(['id' => $id]);
-                                if (! $exists->fetch()) {
-                                    $pdo->rollBack();
-                                    json_response(['ok' => false, 'message' => 'Producto no encontrado.'], 404);
-                                }
-                            }
+                            $stmt = $pdo->prepare('UPDATE products SET code = :code, category_id = :category_id, name = :name, description = :description, price = :price, emoji = :emoji, status = :status, included_items = :included_items, image_url = :image_url, is_featured = :is_featured, is_popular = :is_popular, is_new = :is_new, updated_at = NOW() WHERE id = :id');
+                            $stmt->execute(['code' => $code, 'category_id' => $categoryId, 'name' => $name, 'description' => $description ?: null, 'price' => number_format((float) $price, 2, '.', ''), 'emoji' => $emoji, 'status' => $status, 'included_items' => $includedItems, 'image_url' => $imageUrl, 'is_featured' => $isFeatured, 'is_popular' => $isPopular, 'is_new' => $isNew, 'id' => $id]);
                         }
-                        $this->replace_product_ingredients($pdo, (int) $id, $body['ingredients'] ?? []);
+                        if ($action === 'product.create' || array_key_exists('ingredients', $body)) {
+                            $this->replace_product_ingredients($pdo, (int) $id, $body['ingredients'] ?? []);
+                        }
+                        if (array_key_exists('gallery', $body)) {
+                            $this->replace_product_gallery($pdo, (int) $id, $body['gallery']);
+                        }
+                        if (array_key_exists('option_groups', $body)) {
+                            $this->replace_product_option_groups($pdo, (int) $id, $body['option_groups']);
+                        }
                         $pdo->commit();
                         audit_log($pdo, (int) $actor['id'], $action === 'product.create' ? 'products.created' : 'products.updated', ['product_id' => (int) $id, 'name' => $name]);
                         json_response(['ok' => true, 'message' => $action === 'product.create' ? 'Producto creado.' : 'Producto actualizado.'], $action === 'product.create' ? 201 : 200);
@@ -251,7 +336,7 @@ class CatalogController extends Controller
                             $pdo->rollBack();
                         }
                         if ($e instanceof PDOException && (string) $e->getCode() === '23000') {
-                            json_response(['ok' => false, 'message' => 'Ya existe un producto con esos datos.'], 409);
+                            json_response(['ok' => false, 'message' => 'Ya existe un producto con esos datos o código comercial.'], 409);
                         }
                         throw $e;
                     }
@@ -525,6 +610,89 @@ class CatalogController extends Controller
             $insert = $pdo->prepare('INSERT INTO product_ingredients (product_id, ingredient_id, quantity) VALUES (:product_id, :ingredient_id, :quantity)');
             foreach ($rows as $ingredientId => $quantity) {
                 $insert->execute(['product_id' => $productId, 'ingredient_id' => $ingredientId, 'quantity' => $quantity]);
+            }
+        }
+    }
+
+    protected function replace_product_gallery(PDO $pdo, int $productId, mixed $gallery): void
+    {
+        if (! is_array($gallery)) {
+            return;
+        }
+        $pdo->prepare('DELETE FROM product_images WHERE product_id = :id')->execute(['id' => $productId]);
+        $insert = $pdo->prepare('INSERT INTO product_images (product_id, image_url, alt_text, sort_order, created_at, updated_at) VALUES (:pid, :url, :alt, :sort, NOW(), NOW())');
+        $sort = 1;
+        foreach (array_slice($gallery, 0, 12) as $item) {
+            $url = is_array($item) ? trim((string) ($item['image_url'] ?? '')) : trim((string) $item);
+            $alt = is_array($item) ? trim((string) ($item['alt_text'] ?? '')) : '';
+            if ($url === '' || text_length($url) > 500) {
+                continue;
+            }
+            $insert->execute([
+                'pid' => $productId,
+                'url' => $url,
+                'alt' => $alt !== '' ? mb_substr($alt, 0, 160) : null,
+                'sort' => $sort++,
+            ]);
+        }
+    }
+
+    protected function replace_product_option_groups(PDO $pdo, int $productId, mixed $groups): void
+    {
+        if (! is_array($groups)) {
+            return;
+        }
+        $pdo->prepare('DELETE FROM product_option_groups WHERE product_id = :id')->execute(['id' => $productId]);
+        $groupInsert = $pdo->prepare('INSERT INTO product_option_groups (product_id, name, is_required, max_selections, sort_order, is_active, created_at, updated_at) VALUES (:pid, :name, :req, :max, :sort, :active, NOW(), NOW())');
+        $optionInsert = $pdo->prepare('INSERT INTO product_options (group_id, name, price_delta, is_available, sort_order, created_at, updated_at) VALUES (:gid, :name, :delta, :avail, :sort, NOW(), NOW())');
+        $groupSort = 1;
+        foreach (array_slice($groups, 0, 10) as $group) {
+            if (! is_array($group)) {
+                continue;
+            }
+            $groupName = trim((string) ($group['name'] ?? ''));
+            if ($groupName === '' || text_length($groupName) > 80) {
+                continue;
+            }
+            $options = is_array($group['options'] ?? null) ? $group['options'] : [];
+            $validOptions = [];
+            foreach (array_slice($options, 0, 20) as $opt) {
+                if (! is_array($opt)) {
+                    continue;
+                }
+                $optName = trim((string) ($opt['name'] ?? ''));
+                $delta = filter_var($opt['price_delta'] ?? 0, FILTER_VALIDATE_FLOAT);
+                if ($optName === '' || text_length($optName) > 80 || $delta === false || $delta < 0 || $delta > 9999) {
+                    continue;
+                }
+                $validOptions[] = [
+                    'name' => $optName,
+                    'price_delta' => round((float) $delta, 2),
+                    'is_available' => array_key_exists('is_available', $opt) ? (! empty($opt['is_available']) ? 1 : 0) : 1,
+                ];
+            }
+            if (! $validOptions) {
+                continue;
+            }
+            $maxSel = max(1, min(10, (int) ($group['max_selections'] ?? 1)));
+            $groupInsert->execute([
+                'pid' => $productId,
+                'name' => $groupName,
+                'req' => ! empty($group['is_required']) ? 1 : 0,
+                'max' => $maxSel,
+                'sort' => $groupSort++,
+                'active' => array_key_exists('is_active', $group) ? (! empty($group['is_active']) ? 1 : 0) : 1,
+            ]);
+            $gid = (int) $pdo->lastInsertId();
+            $optSort = 1;
+            foreach ($validOptions as $validOpt) {
+                $optionInsert->execute([
+                    'gid' => $gid,
+                    'name' => $validOpt['name'],
+                    'delta' => number_format($validOpt['price_delta'], 2, '.', ''),
+                    'avail' => $validOpt['is_available'],
+                    'sort' => $optSort++,
+                ]);
             }
         }
     }

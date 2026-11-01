@@ -129,7 +129,10 @@ export default function Table({ tablePreview, qrToken, catalog }) {
             setCart({});
             setNotes('');
             checkoutKey.current = crypto.randomUUID();
-            setNotice('Pedido recibido. Tu cocina ya tiene el antojo.');
+            setNotice(
+                result.inventory_warning ||
+                    'Pedido recibido. Tu cocina ya tiene el antojo.'
+            );
         });
     }
 
@@ -156,6 +159,8 @@ export default function Table({ tablePreview, qrToken, catalog }) {
     }
 
     const directPayment = state?.direct_payment;
+    const showInlineOrderError =
+        Boolean(error) && count > 0 && state?.visit?.status === 'open';
 
     return (
         <main className="dining-client">
@@ -167,7 +172,7 @@ export default function Table({ tablePreview, qrToken, catalog }) {
                 <strong>{tablePreview.table.label}</strong>
             </header>
 
-            {error && (
+            {error && !showInlineOrderError && (
                 <p className="dining-error" role="alert">
                     {error}
                 </p>
@@ -465,6 +470,11 @@ export default function Table({ tablePreview, qrToken, catalog }) {
 
                     {count > 0 && state.visit.status === 'open' && (
                         <div className="dining-order-dock">
+                            {showInlineOrderError && (
+                                <p className="dining-error" role="alert">
+                                    {error}
+                                </p>
+                            )}
                             <label>
                                 ¿Alguna indicación?
                                 <input
@@ -475,7 +485,7 @@ export default function Table({ tablePreview, qrToken, catalog }) {
                                     placeholder="Picante, preferencias o alergias"
                                 />
                             </label>
-                            <button disabled={busy} onClick={order}>
+                            <button type="button" disabled={busy} onClick={order}>
                                 {busy
                                     ? 'Enviando…'
                                     : `Pedir ${count} ${count === 1 ? 'plato' : 'platos'}`}

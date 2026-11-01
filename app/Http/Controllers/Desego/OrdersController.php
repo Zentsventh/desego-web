@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Desego;
 
 use App\Exceptions\Desego\OrderApiProblem;
 use App\Http\Controllers\Controller;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use PDO;
 use Symfony\Component\HttpFoundation\Response;
@@ -57,11 +58,11 @@ class OrdersController extends Controller
                 $user = require_permission('orders.view');
                 $ordersSql = "SELECT o.id, o.order_number, o.customer_name, o.order_type, o.table_label, o.notes,
                     o.status, o.payment_status, o.payment_method, o.payment_preference, o.promotion_id, o.promotion_code, o.subtotal, o.discount, o.total,
-                    o.created_at, o.paid_at, o.created_by, u.name AS created_by_name,
+                    o.created_at, o.paid_at, o.created_by, COALESCE(u.name, 'Tienda Web') AS created_by_name,
                     (SELECT COUNT(*) FROM order_items oi WHERE oi.order_id = o.id) AS item_count,
                     (SELECT GROUP_CONCAT(CONCAT(oi.quantity, ' × ', oi.product_name) ORDER BY oi.id SEPARATOR ', ')
                      FROM order_items oi WHERE oi.order_id = o.id) AS item_summary
-             FROM orders o INNER JOIN users u ON u.id = o.created_by";
+             FROM orders o LEFT JOIN users u ON u.id = o.created_by";
                 if (($user['role_code'] ?? '') === 'delivery') {
                     $ordersSql .= ' INNER JOIN order_delivery_details courier_scope ON courier_scope.order_id = o.id AND courier_scope.courier_user_id = :courier_id';
                     $ordersSql .= ' ORDER BY o.id DESC LIMIT 150';
@@ -560,16 +561,28 @@ class OrdersController extends Controller
 
     protected function order_load_stats(PDO $pdo): array
     {
-        $sales = $pdo->query(
+        $startUtc = CarbonImmutable::now('America/Lima')->startOfDay()->setTimezone('UTC')->format('Y-m-d H:i:s');
+        $endUtc = CarbonImmutable::now('America/Lima')->endOfDay()->setTimezone('UTC')->format('Y-m-d H:i:s');
+
+        $salesStmt = $pdo->prepare(
             "SELECT COALESCE(SUM(CASE WHEN payment_type = 'payment' THEN amount ELSE -amount END),0)
-         FROM payments WHERE created_at >= CURDATE() AND created_at < DATE_ADD(CURDATE(), INTERVAL 1 DAY)"
-        )->fetchColumn();
-        $orders = $pdo->query('SELECT COUNT(*) FROM orders WHERE created_at >= CURDATE() AND created_at < DATE_ADD(CURDATE(), INTERVAL 1 DAY)')->fetchColumn();
+             FROM payments WHERE created_at >= :start AND created_at <= :end"
+        );
+        $salesStmt->execute(['start' => $startUtc, 'end' => $endUtc]);
+        $sales = $salesStmt->fetchColumn();
+
+        $ordersStmt = $pdo->prepare('SELECT COUNT(*) FROM orders WHERE created_at >= :start AND created_at <= :end');
+        $ordersStmt->execute(['start' => $startUtc, 'end' => $endUtc]);
+        $orders = $ordersStmt->fetchColumn();
+
         $pending = $pdo->query("SELECT COUNT(*) FROM orders WHERE status = 'Pendiente' AND cancelled_at IS NULL")->fetchColumn();
-        $average = $pdo->query(
+
+        $avgStmt = $pdo->prepare(
             "SELECT COALESCE(AVG(total),0) FROM orders WHERE payment_status = 'Pagado'
-         AND created_at >= CURDATE() AND created_at < DATE_ADD(CURDATE(), INTERVAL 1 DAY)"
-        )->fetchColumn();
+             AND created_at >= :start AND created_at <= :end"
+        );
+        $avgStmt->execute(['start' => $startUtc, 'end' => $endUtc]);
+        $average = $avgStmt->fetchColumn();
 
         return ['sales_today' => (float) $sales, 'orders_today' => (int) $orders, 'pending_orders' => (int) $pending, 'average_ticket' => (float) $average];
     }

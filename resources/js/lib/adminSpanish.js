@@ -42,6 +42,17 @@ const states = {
     configured: 'Configurado',
     needs_configuration: 'Requiere configuración',
     SIN_DOCUMENTO: 'Sin documento',
+    CONFIRMED: 'Confirmada',
+    CHECKED_IN: 'En recepción',
+    IN_SERVICE: 'En mesa / Servicio',
+    NO_SHOW: 'No asistió',
+    COMPLETED: 'Completada',
+    CANCELLED: 'Cancelada',
+    PENDING_PAYMENT: 'Pendiente de anticipo',
+    PAID: 'Pagado',
+    RETAINED: 'Retenido por inasistencia',
+    REFUNDED: 'Reembolsado',
+    EXPIRED: 'Expirado',
 };
 
 const codedFields = {
@@ -256,6 +267,19 @@ export function adminText(value, field = '', section = '') {
             'delivery_status',
         ].includes(field)
     ) {
+        if (section === 'soporte') {
+            const supportMap = {
+                open: 'Pendiente',
+                in_progress: 'En atención',
+                waiting_user: 'Esperando cliente',
+                resolved: 'Resuelto',
+                closed: 'Resuelto',
+            };
+            const lower = String(value).toLowerCase();
+            if (supportMap[value] || supportMap[lower]) {
+                return supportMap[value] ?? supportMap[lower];
+            }
+        }
         return states[value] ?? states[String(value).toLowerCase()] ?? String(value);
     }
     if (field === 'event_code') {
@@ -267,6 +291,8 @@ export function adminText(value, field = '', section = '') {
             {
                 technical: 'Problema técnico',
                 orders: 'Pedidos y ventas',
+                reservations: 'Reservas',
+                loyalty: 'Puntos y Club DeSego',
                 inventory: 'Inventario',
                 billing: 'Pagos y comprobantes',
                 access: 'Acceso y permisos',
@@ -291,4 +317,11 @@ export function adminModuleTitle(item) {
             auditoria: 'Auditoría',
         }[item.key] ?? item.title
     );
+}
+
+export function adminDateTime(value) {
+    if (!value) { return '—'; }
+    const text = String(value);
+    const instant = new Date(text.replace(' ', 'T') + (/(Z|[+-]\d{2}:\d{2})$/.test(text) ? '' : 'Z'));
+    return Number.isNaN(instant.getTime()) ? text : new Intl.DateTimeFormat('es-PE', { timeZone: 'America/Lima', dateStyle: 'medium', timeStyle: 'short' }).format(instant);
 }

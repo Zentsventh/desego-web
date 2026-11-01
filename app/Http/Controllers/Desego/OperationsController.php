@@ -76,10 +76,30 @@ class OperationsController extends Controller
                         }
                         unset($courier);
                     }
+                    $zones = [];
+                    try {
+                        $zones = $pdo->query('SELECT id, name, district, zone_sector, center_latitude, center_longitude, radius_km, delivery_fee, fee_confirmed, polygon_coordinates, min_order_amount, estimated_minutes_min, estimated_minutes_max, is_active FROM delivery_zones ORDER BY id')->fetchAll();
+                        foreach ($zones as &$z) {
+                            $z['id'] = (int) $z['id'];
+                            $z['center_latitude'] = $z['center_latitude'] !== null ? (float) $z['center_latitude'] : null;
+                            $z['center_longitude'] = $z['center_longitude'] !== null ? (float) $z['center_longitude'] : null;
+                            $z['radius_km'] = $z['radius_km'] !== null ? (float) $z['radius_km'] : null;
+                            $z['delivery_fee'] = (float) $z['delivery_fee'];
+                            $z['fee_confirmed'] = (bool) ($z['fee_confirmed'] ?? false);
+                            $z['min_order_amount'] = (float) $z['min_order_amount'];
+                            $z['estimated_minutes_min'] = (int) $z['estimated_minutes_min'];
+                            $z['estimated_minutes_max'] = (int) $z['estimated_minutes_max'];
+                            $z['is_active'] = (bool) $z['is_active'];
+                            $z['polygon_coordinates'] = ! empty($z['polygon_coordinates']) ? (json_decode((string) $z['polygon_coordinates'], true) ?: null) : null;
+                        }
+                        unset($z);
+                    } catch (Throwable) {
+                    }
                     json_response([
                         'ok' => true,
                         'orders' => $orders,
                         'couriers' => $couriers,
+                        'delivery_zones' => $zones,
                         'permissions' => [
                             'can_manage' => in_array('delivery.manage', $actor['permissions'] ?? [], true),
                             'can_update' => in_array('delivery.update', $actor['permissions'] ?? [], true) || in_array('delivery.manage', $actor['permissions'] ?? [], true),
@@ -242,6 +262,87 @@ class OperationsController extends Controller
                     }
                     throw $e;
                 }
+            }
+            if (in_array($action, ['zone.create', 'zone.update', 'zone.toggle', 'zone.delete'], true)) {
+                $actor = require_permission('delivery.manage');
+                if ($action === 'zone.toggle') {
+                    $id = filter_var($body['id'] ?? null, FILTER_VALIDATE_INT);
+                    if (! $id) {
+                        throw new OperationsProblem('Zona no válida.', 422);
+                    }
+                    $active = ! empty($body['is_active']) ? 1 : 0;
+                    $pdo->prepare('UPDATE delivery_zones SET is_active = :active, updated_at = NOW() WHERE id = :id')->execute(['active' => $active, 'id' => $id]);
+                    audit_log($pdo, (int) $actor['id'], 'delivery_zones.toggled', ['zone_id' => (int) $id, 'is_active' => $active]);
+                    json_response(['ok' => true, 'message' => $active ? 'Zona de cobertura activada.' : 'Zona de cobertura desactivada.']);
+                }
+                if ($action === 'zone.delete') {
+                    $id = filter_var($body['id'] ?? null, FILTER_VALIDATE_INT);
+                    if (! $id) {
+                        throw new OperationsProblem('Zona no válida.', 422);
+                    }
+                    $pdo->prepare('DELETE FROM delivery_zones WHERE id = :id')->execute(['id' => $id]);
+                    audit_log($pdo, (int) $actor['id'], 'delivery_zones.deleted', ['zone_id' => (int) $id]);
+                    json_response(['ok' => true, 'message' => 'Zona de cobertura eliminada.']);
+                }
+                $name = trim((string) ($body['name'] ?? ''));
+                $district = trim((string) ($body['district'] ?? 'Ate'));
+                $sector = trim((string) ($body['zone_sector'] ?? ''));
+                $lat = ($body['center_latitude'] ?? '') === '' || ($body['center_latitude'] ?? null) === null ? null : filter_var($body['center_latitude'], FILTER_VALIDATE_FLOAT);
+                $lng = ($body['center_longitude'] ?? '') === '' || ($body['center_longitude'] ?? null) === null ? null : filter_var($body['center_longitude'], FILTER_VALIDATE_FLOAT);
+                $radius = ($body['radius_km'] ?? '') === '' || ($body['radius_km'] ?? null) === null ? null : filter_var($body['radius_km'], FILTER_VALIDATE_FLOAT);
+                $fee = filter_var($body['delivery_fee'] ?? 0, FILTER_VALIDATE_FLOAT);
+                $feeConfirmed = ! empty($body['fee_confirmed']) ? 1 : 0;
+                $minOrder = filter_var($body['min_order_amount'] ?? 0, FILTER_VALIDATE_FLOAT);
+                $etaMin = filter_var($body['estimated_minutes_min'] ?? 25, FILTER_VALIDATE_INT);
+                $etaMax = filter_var($body['estimated_minutes_max'] ?? 45, FILTER_VALIDATE_INT);
+                $isActive = array_key_exists('is_active', $body) ? (! empty($body['is_active']) ? 1 : 0) : 1;
+                $polygonRaw = $body['polygon_coordinates'] ?? null;
+                $polygonJson = null;
+                if (is_array($polygonRaw) && count($polygonRaw) >= 3) {
+                    $polygonJson = json_encode($polygonRaw);
+                } elseif (is_string($polygonRaw) && trim($polygonRaw) !== '') {
+                    $decoded = json_decode($polygonRaw, true);
+                    if (is_array($decoded) && count($decoded) >= 3) {
+                        $polygonJson = json_encode($decoded);
+                    }
+                }
+                if (text_length($name) < 2 || text_length($name) > 100 || text_length($district) < 2 || text_length($district) > 80 || text_length($sector) > 80
+                    || $fee === false || $fee < 0 || $fee > 500 || $minOrder === false || $minOrder < 0
+                    || $etaMin === false || $etaMin < 5 || $etaMax === false || $etaMax < $etaMin || $etaMax > 240
+                    || ($lat !== null && ($lat === false || $lat < -90 || $lat > 90))
+                    || ($lng !== null && ($lng === false || $lng < -180 || $lng > 180))
+                    || ($radius !== null && ($radius === false || $radius <= 0 || $radius > 100))) {
+                    throw new OperationsProblem('Revisa los datos de la zona de cobertura (nombre, coordenadas, tarifa y tiempos).', 422);
+                }
+                $params = [
+                    'name' => $name,
+                    'district' => $district,
+                    'sector' => $sector !== '' ? $sector : null,
+                    'lat' => $lat !== null ? number_format((float) $lat, 7, '.', '') : null,
+                    'lng' => $lng !== null ? number_format((float) $lng, 7, '.', '') : null,
+                    'radius' => $radius !== null ? number_format((float) $radius, 2, '.', '') : null,
+                    'fee' => number_format((float) $fee, 2, '.', ''),
+                    'fee_confirmed' => $feeConfirmed,
+                    'polygon' => $polygonJson,
+                    'min_order' => number_format((float) $minOrder, 2, '.', ''),
+                    'eta_min' => (int) $etaMin,
+                    'eta_max' => (int) $etaMax,
+                    'active' => $isActive,
+                ];
+                if ($action === 'zone.create') {
+                    $pdo->prepare('INSERT INTO delivery_zones (name, district, zone_sector, center_latitude, center_longitude, radius_km, delivery_fee, fee_confirmed, polygon_coordinates, min_order_amount, estimated_minutes_min, estimated_minutes_max, is_active, created_at, updated_at) VALUES (:name, :district, :sector, :lat, :lng, :radius, :fee, :fee_confirmed, :polygon, :min_order, :eta_min, :eta_max, :active, NOW(), NOW())')->execute($params);
+                    $zoneId = (int) $pdo->lastInsertId();
+                    audit_log($pdo, (int) $actor['id'], 'delivery_zones.created', ['zone_id' => $zoneId, 'name' => $name]);
+                    json_response(['ok' => true, 'id' => $zoneId, 'message' => 'Zona de cobertura registrada.'], 201);
+                }
+                $id = filter_var($body['id'] ?? null, FILTER_VALIDATE_INT);
+                if (! $id) {
+                    throw new OperationsProblem('Zona no válida.', 422);
+                }
+                $params['id'] = (int) $id;
+                $pdo->prepare('UPDATE delivery_zones SET name=:name, district=:district, zone_sector=:sector, center_latitude=:lat, center_longitude=:lng, radius_km=:radius, delivery_fee=:fee, fee_confirmed=:fee_confirmed, polygon_coordinates=:polygon, min_order_amount=:min_order, estimated_minutes_min=:eta_min, estimated_minutes_max=:eta_max, is_active=:active, updated_at=NOW() WHERE id=:id')->execute($params);
+                audit_log($pdo, (int) $actor['id'], 'delivery_zones.updated', ['zone_id' => (int) $id, 'name' => $name]);
+                json_response(['ok' => true, 'message' => 'Zona de cobertura actualizada.']);
             }
             json_response(['ok' => false, 'message' => 'Acción operativa no válida.'], 404);
         } catch (OperationsProblem $e) {

@@ -97,6 +97,7 @@ class MobileApiController extends Controller
 
         $tables = DB::table('restaurant_tables')
             ->where('is_active', 1)
+            ->where('table_number', '<=', (int) config('dining.table_count', 12))
             ->orderBy('table_number')
             ->get(['id', 'table_number', 'label', 'zone', 'capacity', 'operational_status']);
 
@@ -201,6 +202,7 @@ class MobileApiController extends Controller
 
         $tableQuery = DB::table('restaurant_tables')
             ->where('is_active', 1)
+            ->where('table_number', '<=', (int) config('dining.table_count', 12))
             ->where('operational_status', 'available')
             ->where('capacity', '>=', $guestCount);
 
@@ -215,7 +217,7 @@ class MobileApiController extends Controller
         }
 
         if (! $table) {
-            $table = DB::table('restaurant_tables')->where('is_active', 1)->orderBy('capacity', 'desc')->first();
+            $table = DB::table('restaurant_tables')->where('is_active', 1)->where('table_number', '<=', (int) config('dining.table_count', 12))->orderBy('capacity', 'desc')->first();
         }
 
         if (! $table) {

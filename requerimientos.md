@@ -6,9 +6,16 @@
 - **Ámbito:** Sistema web de administración y aplicación móvil.
 - **Origen:** Hoja de cálculo de módulos y requerimientos.
 - **Tipo:** Requerimientos funcionales (RF).
-- **Módulos registrados:** 67
-- **Requerimientos registrados:** 460
-- **Estado de implementación:** No especificado en el archivo original.
+- **Módulos registrados:** 68 (67 originales y 1 ampliación)
+- **Requerimientos registrados:** 481 (460 originales y 21 ampliaciones)
+- **Estado de implementación:** Parcial; revisión técnica de web y panel detallada al final de este documento. La existencia de una pantalla o un controlador no certifica todos los RF del módulo.
+
+### Alcance vigente
+
+- Prioridad: tienda web y panel de administración web.
+- La aplicación móvil se orienta exclusivamente al cliente. Su actualización visual y las funcionalidades nativas se dejan para una etapa posterior.
+- Los módulos móviles de caja (31), toma de pedidos por empleados (32), cocina (34) y administración de usuarios (67) quedan diferidos. Se conservan sus RF originales por trazabilidad.
+- La autenticación y sesión de `/api/mobile` solo admiten clientes; el dashboard administrativo no está disponible desde ese acceso. El personal utiliza el panel web y sus permisos.
 
 ## Índice de categorías
 
@@ -31,6 +38,7 @@
 - [REPORTES](#reportes) — 2 módulos
 - [INTEGRACIONES](#integraciones) — 3 módulos
 - [ADMINISTRACIÓN](#administracion) — 5 módulos
+- [ASISTENCIA VIRTUAL](#asistencia-virtual) — 1 módulo
 
 ## Convenciones
 
@@ -38,7 +46,9 @@
 - **WEB**: funcionalidad definida para la interfaz web.
 - **APP**: funcionalidad definida para la aplicación móvil.
 - **APP - mismo que WEB**: indica relación funcional con la versión web; se conservan los requerimientos específicos de la app.
-- Los códigos se mantienen tal como aparecen en el Excel, sin renumerarlos.
+- Los códigos originales se mantienen tal como aparecen en el Excel, sin renumerarlos.
+- Las ampliaciones continúan desde el módulo 68 y `RF461`.
+- El chatbot amplía la FAQ automática de `RF322`. El chat humano, los tickets y la app nativa conservan sus requerimientos originales y no se consideran implementados por incorporar el asistente web.
 
 ---
 
@@ -96,6 +106,7 @@
 | `RF031` | Historial de cambios de permisos |
 | `RF032` | Duplicar roles existentes |
 | `RF033` | Validar permisos en tiempo real |
+| `RF481` | Crear y gestionar cuentas desde el panel web, asignarles un rol existente, cambiar su estado y aplicar sus permisos en la siguiente solicitud; proteger las cuentas administradoras frente a cambios no autorizados. Ampliación del alcance web. |
 
 ---
 
@@ -312,6 +323,11 @@
 | `RF146` | Reprogramar reserva |
 | `RF147` | Historial de reservas |
 | `RF148` | No-show tracking |
+| `RF482` | Ofrecer únicamente fechas y horarios actuales o futuros según America/Lima, actualizarlos mientras el formulario está abierto y volver a validarlos en el servidor. Aplicar el horario de atención cuando la sede lo tenga configurado. |
+| `RF483` | Seleccionar visualmente una o varias mesas disponibles para un mismo horario, consultar su zona y capacidad y crear una sola reserva con todas las mesas elegidas. |
+| `RF484` | Informar si el grupo ocupará una sola mesa, mesas separadas o mesas que pueden unirse. El personal configura los grupos de unión según la ubicación física real; la vista esquemática no acredita proximidad entre mesas. |
+| `RF485` | Validar la capacidad conjunta y la disponibilidad de todas las mesas al guardar, impedir solapamientos desde web y panel y liberar todas las mesas al cancelar la reserva. |
+| `RF486` | Mostrar las mesas asignadas y la distribución del grupo en la confirmación de la web, el historial del cliente y el listado administrativo de reservas. |
 
 ### 22. Reservas (APP - mismo que WEB)
 
@@ -913,6 +929,62 @@
 
 ---
 
+## ASISTENCIA VIRTUAL
+
+### 68. Asistente virtual y chatbot (WEB adaptable)
+
+**Relación con módulos existentes:** Soporte y Chat (WEB), módulo 48, especialmente `RF322` (FAQ automático); Menú y Productos (WEB), módulo 5; Delivery (WEB), módulo 15; Reservas (WEB), módulo 21; Integraciones (WEB), módulo 61. Este módulo complementa esos flujos y orienta al usuario hacia sus formularios.
+
+| ID | Requerimiento funcional |
+| --- | --- |
+| `RF461` | Abrir y cerrar un asistente flotante desde la tienda, con bienvenida y preguntas sugeridas sobre carta, delivery y reservas. |
+| `RF462` | Responder consultas sobre platos y precios usando el catálogo real consultado en cada mensaje, sin inventar información comercial. |
+| `RF463` | Mostrar la disponibilidad actual de los platos y distinguir expresamente los agotados. |
+| `RF464` | Orientar sobre delivery y recojo, informar la tarifa configurada cuando exista y solicitar confirmar la cobertura con el local. |
+| `RF465` | Explicar cómo solicitar una reserva y ofrecer acceso directo al formulario, sin confirmar mesas ni crear reservas desde el chat. |
+| `RF466` | Informar dirección, distrito, teléfono y horario de la sucursal cuando estén publicados; indicar cuando falten datos. |
+| `RF467` | Remitir consultas de ingredientes, alérgenos e intolerancias al personal, sin garantizar ausencia de alérgenos ni contaminación cruzada. |
+| `RF468` | Conservar hasta 40 mensajes en la pestaña y usar los últimos 10 turnos guardados por el servidor como contexto de una conversación existente, excluyendo errores. El contexto de IA se limita a 1200 caracteres por turno. |
+| `RF469` | Iniciar una nueva conversación, eliminando el historial visible y sustituyendo el historial guardado en la pestaña por la bienvenida. |
+| `RF470` | Integrar Gemini y Groq con instrucciones restringidas al restaurante y sus datos publicados; mantener las credenciales exclusivamente en el servidor y configurar los modelos mediante variables de entorno. |
+| `RF471` | Ejecutar la cadena Gemini principal → Gemini secundaria → Groq principal → Groq secundaria → carta local ante errores, cuota agotada, demora de conexión o respuestas vacías; sin mostrar credenciales ni detalles internos al usuario. |
+| `RF472` | Responder preguntas frecuentes desde el catálogo cuando no haya claves, el proveedor falle, devuelva una respuesta vacía o no pueda conectarse. Las respuestas locales cubren carta, precios, disponibilidad, delivery, reservas, contacto y advertencias sobre alérgenos. |
+| `RF473` | Mostrar mensajes comprensibles ante fallos de red, demora excesiva, sesión expirada, límite de solicitudes o catálogo inaccesible, conservando el texto para reintentar. |
+| `RF474` | Validar mensajes de hasta 600 caracteres e historial de hasta 12 turnos de 1200 caracteres; admitir únicamente roles usuario/asistente, impedir envíos simultáneos y limitar a 20 solicitudes por minuto por cliente. |
+| `RF475` | Proteger los envíos con la sesión y CSRF, renderizar las respuestas como texto y limitar la información compartida con el proveedor al catálogo público y la conversación enviada. |
+| `RF476` | Adaptar el chat a escritorio y móvil, permitir cerrar con Escape y devolver el foco al lanzador, anunciar mensajes de manera accesible y respetar la preferencia de movimiento reducido. |
+| `RF477` | Guardar conversaciones y mensajes del chatbot en la base de datos, con fecha, rol, proveedor/modelo y errores; informar al cliente que se conserva la conversación para seguimiento. |
+| `RF478` | Permitir al personal autorizado buscar y consultar chats desde el panel, con paginación de conversaciones e identificación del cliente cuando está autenticado. |
+| `RF479` | Vincular cada conversación a su sesión propietaria, impedir que otra sesión la continúe y recuperar el contexto guardado en el servidor. Reiniciar el chat inicia otra conversación sin borrar el historial administrativo. |
+| `RF480` | Omitir temporalmente credenciales fallidas mediante un período de espera, respetar `Retry-After` numérico dentro de límites y limitar el tiempo de cada intento para que la cadena termine antes del tiempo máximo del cliente. |
+
+**Criterios de aceptación:** el usuario puede abrir el chat, consultar un precio real, identificar un plato agotado, recibir orientación de delivery y acceder a reservas. Sin credenciales o con el proveedor fuera de servicio, las consultas frecuentes siguen funcionando desde el catálogo. Si el catálogo falla, se informa el problema sin inventar datos. La conversación se conserva al recargar la misma pestaña y puede reiniciarse.
+
+**Validación técnica:** `tests/Feature/ChatbotTest.php` cubre proveedores, cadena de claves, espera tras errores de cuota, contexto guardado, respuestas locales, catálogo actualizado, disponibilidad, aislamiento de sesiones, errores, validación y límite de solicitudes. `tests/Feature/AdminAccessAndChatbotTest.php` cubre acceso al historial, gestión de roles, asignación de usuarios y restricción móvil. Se comprobaron respuestas reales de las cuatro credenciales configuradas sin registrar sus valores. Las pruebas automatizadas simulan los proveedores. El almacenamiento del navegador conserva la vista durante la sesión de la pestaña; los mensajes registrados en la base de datos permanecen disponibles para seguimiento. Las respuestas locales usan la consulta actual y no interpretan todo el historial como un modelo de IA.
+
+## Revisión de web y panel: implementación y brechas
+
+| Área | Resultado de la revisión |
+| --- | --- |
+| Roles y usuarios, RF026–RF033 y RF481 | Gestión separada de usuarios y roles, creación y edición, duplicación, matriz, historial de cambios, asignación y activación/desactivación. Corregido el acceso que exigía el permiso inexistente `roles.view`. El conjunto exacto de roles preestablecidos de RF028 conserva una diferencia: el rol cliente se crea al registrarse y Dueño puede definirse como rol personalizado. |
+| Caja y personal | Corregidos los permisos inexistentes `cash.view` y `staff.view`, y los nombres de acciones enviados por los formularios de caja y personal. No se certifican nómina, desempeño ni ausencias por esta corrección. |
+| Catálogo, ingredientes e inventario | Gestión de categorías, ingredientes y alérgenos accesible desde el panel, con asociación de alérgenos a ingredientes, stock inicial según permisos y activación/desactivación de categorías y alérgenos. Corregidos el listado principal de productos, las acciones de creación/edición y el envío de ajustes al endpoint de inventario. Pendientes de desarrollo o verificación individual: imágenes administrables, subcategorías, variantes, bundles, orden manual y stock independiente por sucursal. |
+| Pedidos, cocina y reparto | Corregidos tipo de pedido, pago pendiente inicial y acciones/identificadores de cocina y reparto. El panel permite asignar repartidor, editar contacto/dirección y hora estimada, y registrar incidencias. La gestión avanzada de modificaciones, prioridades y seguimiento GPS no queda certificada por esos cambios. |
+| Clientes y reservas | Fechas y horas pasadas bloqueadas, selección visual de varias mesas con capacidad conjunta, grupos de unión configurables y asignación visible en confirmación, cuenta y panel. La vista de mesas es esquemática; no representa un plano físico medido. La eliminación de cuentas, validación de email/teléfono y recordatorios automáticos requieren trabajo adicional. |
+| Proveedores, promociones y fidelización | Corregidas las acciones de altas y edición, código de empleado/recompensa, fechas de vigencia y tipo/importe de recompensa. Se corrigió un parámetro SQL sobrante que impedía crear promociones. La vigencia se edita en hora de Perú y se convierte al formato UTC esperado por el servidor. El personal puede vincularse a una cuenta con rol y a una sucursal. Niveles, beneficios por nivel y promociones por producto/sucursal u horario siguen pendientes de validación o ampliación. |
+| Soporte y chatbot | Historial persistente del bot, búsqueda administrativa, permisos de lectura y cadena de IA implementados. La atención humana, adjuntos, SLA y notificaciones externas son funciones distintas y conservan su propia validación pendiente. |
+| App de clientes | Login y sesión separados de administración. Diseño y funciones nativas de cliente diferidos; los RF móviles operativos del personal quedan fuera del alcance vigente. |
+| Pagos y facturación | Hay flujos internos y una integración Niubiz para atención en mesa. No equivale a completar Stripe/MercadoPago/PayPal, pagos parciales, 3D Secure ni emisión electrónica SUNAT. Esas integraciones necesitan implementación y pruebas propias con el proveedor elegido. |
+| Mapas, zonas y repartidores | Faltan o requieren ampliación los polígonos de cobertura, seguimiento GPS, documentos de repartidores, asignación automática y liquidaciones. La tarifa general y los datos de entrega existentes no sustituyen esos RF. |
+| Reseñas, favoritos y búsqueda | Hay controladores y vistas de cliente, pero fotos, respuestas a reseñas, listas compartidas, búsqueda guardada, autocompletado y filtros avanzados requieren revisión funcional específica. |
+| Notificaciones, autenticación e integraciones | Pendientes de integración real: email/SMS y push, verificación de identidad, login social, 2FA, OAuth2 y automatizaciones externas. La configuración local de correo en modo log no acredita entrega de mensajes. |
+| Reportes, analítica, auditoría, backups y sucursales | Existen controladores y comandos, con cobertura parcial. Forecasting, conversión, rentabilidad, exportaciones, auditoría integral y aislamiento de sucursales requieren pruebas por RF. Los backups automáticos y la redundancia deben verificarse también en la configuración del servidor. |
+| SEO | Debe verificarse individualmente sitemap, robots, metadatos, Schema.org, Open Graph y rendimiento; no se declara completado por renderizar la tienda. |
+
+Los RF pendientes de esta tabla siguen siendo trabajo abierto. Esta revisión no declara completados los 486 requerimientos y no cambia su definición original para hacerla coincidir con la implementación actual.
+
+---
+
 ## Notas de trazabilidad
 
-Este archivo documenta los requerimientos según la fuente proporcionada. Las prioridades, responsables, historias de usuario, criterios de aceptación, pruebas y estado de desarrollo deberán definirse durante la planificación del proyecto.
+Este archivo conserva los 67 módulos y 460 RF de la fuente original y añade el módulo 68 con los RF461–RF480 del chatbot web, RF481 al módulo 4 y RF482–RF486 al módulo 21 para las reservas con selección de mesas. Los CSV de `resources/desego/original-docs/` se conservan como copia de los requerimientos originales. Las prioridades y responsables de las brechas indicadas deben definirse durante la planificación del proyecto.

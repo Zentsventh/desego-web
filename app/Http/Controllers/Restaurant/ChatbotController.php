@@ -3,74 +3,113 @@
 namespace App\Http\Controllers\Restaurant;
 
 use App\Http\Controllers\Controller;
-use App\Services\GeminiService;
-use App\Services\RestaurantPortal;
+use App\Services\ChatbotConversations;
+use App\Services\ChatbotService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 
 class ChatbotController extends Controller
 {
-    public function message(Request $request, GeminiService $gemini, RestaurantPortal $portal): JsonResponse
+    public function message(Request $request, ChatbotService $chatbot, ChatbotConversations $conversations): JsonResponse
     {
         $validated = $request->validate([
             'message' => 'required|string|max:600',
-            'history' => 'nullable|array|max:12',
-            'history.*.role' => 'required_with:history|in:user,assistant',
-            'history.*.content' => 'required_with:history|string|max:1200',
+            'conversation_id' => 'nullable|uuid',
         ]);
 
-        $reply = $gemini->reply(
-            $this->systemPrompt($portal),
-            $validated['history'] ?? [],
+        $id = $validated['conversation_id'] ?? null;
+        if ($id !== null) {
+            $conversation = $conversations->findOwned($request, $id);
+            if ($conversation->archived_at !== null) {
+                $id = null;
+            }
+        } else {
+            $id = $conversations->activeConversationId($request);
+        }
+        $history = $id !== null ? $conversations->history($id) : [];
+        $turn = $conversations->receiveCustomerMessage(
+            $request,
+            $id,
             $validated['message'],
+            $chatbot->handoffReasonForMessage($validated['message'], $history),
         );
 
-        if ($reply === null) {
+        if ($turn['status'] !== 'ai') {
             return response()->json([
-                'ok' => false,
-                'reply' => 'Ahora mismo no puedo responder. Intenta de nuevo en unos minutos o escríbenos por reservas.',
-            ], 503);
+                'ok' => true,
+                'reply' => $turn['reply'],
+                'conversation_id' => $turn['id'],
+                'handoff_status' => $turn['status'],
+                'last_message_id' => $conversations->updates($request, $turn['id'], $turn['message_id'])['last_message_id'],
+            ]);
         }
 
-        return response()->json(['ok' => true, 'reply' => $reply]);
+        $history = $conversations->history($turn['id'], $turn['message_id']);
+        $reply = $chatbot->reply($validated['message'], $history);
+        if ($reply === null) {
+            $message = 'Ahora no puedo resolver tu consulta con seguridad. Un asesor la revisará y te responderá por este chat.';
+            $handoff = $conversations->requestHandoff($turn['id'], 'ai_unavailable', $message);
+
+            return response()->json([
+                'ok' => true,
+                'reply' => $message,
+                'conversation_id' => $turn['id'],
+                'handoff_status' => $handoff['status'],
+                'last_message_id' => $handoff['last_message_id'],
+            ]);
+        }
+
+        if ($chatbot->replyNeedsHandoff($reply['reply'])) {
+            $handoff = $conversations->requestHandoff($turn['id'], 'ai_unresolved', $reply['reply']);
+
+            return response()->json([
+                'ok' => true,
+                'reply' => $reply['reply'],
+                'conversation_id' => $turn['id'],
+                'handoff_status' => $handoff['status'],
+                'last_message_id' => $handoff['last_message_id'],
+            ]);
+        }
+
+        $messageId = $conversations->addAssistantReply($turn['id'], $reply);
+        if ($messageId === null) {
+            $updates = $conversations->updates($request, $turn['id']);
+
+            return response()->json([
+                'ok' => true,
+                'reply' => null,
+                'conversation_id' => $turn['id'],
+                'handoff_status' => $updates['status'],
+                'last_message_id' => $updates['last_message_id'],
+            ]);
+        }
+
+        return response()->json([
+            'ok' => true,
+            'reply' => $reply['reply'],
+            'conversation_id' => $turn['id'],
+            'handoff_status' => 'ai',
+            'last_message_id' => $messageId,
+        ]);
     }
 
-    private function systemPrompt(RestaurantPortal $portal): string
+    public function updates(Request $request, string $conversation, ChatbotConversations $conversations): JsonResponse
     {
-        $context = Cache::remember('chatbot.store_context', 300, function () use ($portal): string {
-            try {
-                $catalog = $portal->catalog();
-            } catch (\Throwable) {
-                return 'No hay datos de la carta disponibles por ahora.';
-            }
+        $validated = $request->validate(['after' => 'nullable|integer|min:0']);
+        $updates = $conversations->updates($request, $conversation, $validated['after'] ?? 0);
+        unset($updates['handoff_reason'], $updates['assigned_staff_id']);
 
-            $lines = collect($catalog['products'] ?? [])->map(fn (array $product): string => sprintf(
-                '- %s (%s): S/ %s%s. %s',
-                $product['name'] ?? '',
-                $product['category'] ?? 'Carta',
-                number_format((float) ($product['price'] ?? 0), 2),
-                ($product['can_order'] ?? false) ? '' : ' [agotado]',
-                $product['description'] ?? '',
-            ))->implode("\n");
+        return response()->json([
+            'ok' => true,
+            ...$updates,
+        ]);
+    }
 
-            $branch = $catalog['branch'] ?? null;
-            $branchText = $branch
-                ? sprintf(
-                    'Local: %s, %s. Horario: %s a %s. Teléfono: %s.',
-                    $branch->address ?? '',
-                    $branch->district ?? '',
-                    substr((string) ($branch->opening_time ?? ''), 0, 5),
-                    substr((string) ($branch->closing_time ?? ''), 0, 5),
-                    $branch->phone ?? '',
-                )
-                : '';
+    public function markRead(Request $request, string $conversation, ChatbotConversations $conversations): JsonResponse
+    {
+        $validated = $request->validate(['message_id' => 'required|integer|min:1']);
+        $conversations->markReadByCustomer($request, $conversation, $validated['message_id']);
 
-            return "CARTA ACTUAL:\n{$lines}\n\n{$branchText}\nCosto de delivery: S/ ".number_format((float) ($catalog['delivery_fee'] ?? 5), 2).'.';
-        });
-
-        return 'Eres el asistente virtual de DESEGO, una cevichería peruana. Responde siempre en español, de forma cálida, breve y útil (máximo 4 frases). '
-            .'Ayuda con la carta, precios, ingredientes, alérgenos, delivery, recojo y reservas. Usa SOLO la información de abajo; si no sabes algo, dilo y sugiere llamar al local. '
-            ."No inventes platos ni precios. Para pedir, indica que agreguen los platos al carrito; para reservar, que usen la sección Reservas.\n\n{$context}";
+        return response()->json(['ok' => true]);
     }
 }

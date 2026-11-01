@@ -146,6 +146,7 @@ class PromotionsController extends Controller
             VALUES (:name,:description,:promotion_type,:code,:discount_type,:discount_value,:max_discount,:min_subtotal,:starts_at,:ends_at,:usage_limit,:per_customer_limit,'active',:created_by,:updated_by,NOW(),NOW())");
                 $params['created_by'] = (int) $actor['id'];
                 $params['updated_by'] = (int) $actor['id'];
+                unset($params['user_id']);
                 $stmt->execute($params);
                 $newId = (int) $pdo->lastInsertId();
             } else {

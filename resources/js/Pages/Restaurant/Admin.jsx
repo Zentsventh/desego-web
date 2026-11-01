@@ -1,8 +1,15 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import AdminReservationTables from '../../Components/Restaurant/AdminReservationTables';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import DiningFloor from '../../Components/Restaurant/DiningFloor';
+import AdminRoles from '../../Components/Restaurant/AdminRoles';
+import AdminChatHistory from '../../Components/Restaurant/AdminChatHistory';
+import AdminSettingsPanel from '../../Components/Restaurant/AdminSettingsPanel';
+import AdminReviewsPanel from '../../Components/Restaurant/AdminReviewsPanel';
+import AdminDeliveryZones from '../../Components/Restaurant/AdminDeliveryZones';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import {
     AlertTriangle,
+    Award,
     BarChart3,
     Bell,
     CalendarDays,
@@ -10,10 +17,15 @@ import {
     Clock3,
     ClipboardList,
     ArrowUpRight,
+    Flame,
+    MessageSquare,
+    Paperclip,
     Pencil,
     Plus,
     RefreshCw,
     Search,
+    Trash2,
+    Upload,
     UsersRound,
     X,
 } from 'lucide-react';
@@ -25,6 +37,13 @@ import { adminModuleTitle, adminText } from '../../lib/adminSpanish';
 import '../../../css/restaurant-glass.css';
 
 const COLUMN_LABELS = {
+    ticket_number: 'N.° Ticket',
+    creator_name: 'Cliente',
+    creator_email: 'Correo',
+    subject: 'Asunto',
+    priority: 'Prioridad',
+    attachment_url: 'Adjunto / Evidencia',
+    message_count: 'Mensajes',
     order_number: 'Pedido',
     customer_name: 'Cliente',
     order_type: 'Canal',
@@ -64,6 +83,7 @@ const COLUMN_LABELS = {
     customer_phone: 'Celular',
     email: 'Correo',
     customer_email: 'Correo',
+    seating: 'Distribuci\u00f3n',
     reservation_code: 'Reserva',
     guest_count: 'Personas',
     reservation_at: 'Fecha de reserva',
@@ -72,6 +92,11 @@ const COLUMN_LABELS = {
     table_number: 'N.° Mesa',
     zone: 'Zona',
     capacity: 'Capacidad',
+    advance_amount: 'Anticipo',
+    applied_credit_amount: 'Crédito aplicado',
+    arrival_deadline: 'Límite tolerancia',
+    checked_in_at: 'Llegada cliente',
+    seating: 'Distribución mesas',
     customer_code: 'Código cliente',
     document_type: 'Tipo doc.',
     document_number: 'N.° documento',
@@ -107,6 +132,10 @@ const COLUMN_LABELS = {
     discount_type: 'Tipo descuento',
     discount_value: 'Valor descuento',
     promotion_type: 'Tipo promoción',
+    per_customer_limit: 'Usos por cliente',
+    usage_count: 'Usos realizados',
+    usage_limit: 'Límite total',
+    max_discount: 'Descuento máximo',
     min_subtotal: 'Compra mínima',
     points_cost: 'Puntos requeridos',
     points_balance: 'Saldo puntos',
@@ -186,6 +215,11 @@ const COLUMN_LABELS = {
     inventory_value: 'Valor de inventario',
     amount: 'Monto',
     net_total: 'Total neto',
+    is_featured: 'Destacado',
+    is_popular: 'Popular',
+    is_new: 'Nuevo',
+    included_items: 'Platos incluidos',
+    emoji: 'Ícono',
 };
 
 const SUMMARY_GROUP_LABELS = {
@@ -231,9 +265,50 @@ function display(value, key, section = '') {
             'minimum_eligible_amount',
             'hourly_rate',
             'inventory_value',
+            'advance_amount',
+            'applied_credit_amount',
         ].includes(key)
     ) {
         return money(value);
+    }
+    if (key === 'per_customer_limit') {
+        const limit = Number(value);
+        return limit === 0
+            ? 'Sin límite'
+            : limit === 1
+              ? 'Una vez por cliente'
+              : `${limit} veces por cliente`;
+    }
+    if (
+        [
+            'reservation_at',
+            'created_at',
+            'updated_at',
+            'paid_at',
+            'completed_at',
+            'arrival_deadline',
+            'checked_in_at',
+        ].includes(key) &&
+        typeof value === 'string'
+    ) {
+        const str = value.trim();
+        let d;
+        if (str.endsWith('Z') || /[+-]\d{2}:\d{2}$/.test(str)) {
+            d = new Date(str);
+        } else {
+            d = new Date(str.replace(' ', 'T') + 'Z');
+        }
+        if (!isNaN(d.getTime())) {
+            return d.toLocaleString('es-PE', {
+                timeZone: 'America/Lima',
+                year: 'numeric',
+                month: 'short',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true,
+            });
+        }
     }
     if (typeof value === 'object') {
         return JSON.stringify(value);
@@ -245,14 +320,17 @@ const GOOD_STATES = [
     'active', 'available', 'Entregado', 'Pagado', 'Confirmada', 'Sentada', 'Completada', 'Listo',
     'completed', 'closed', 'valid', 'received', 'resolved', 'issued', 'approved',
     'Disponible', 'Activo', 'Válido', 'Abierto', 'Cerrado',
+    'CONFIRMED', 'CHECKED_IN', 'IN_SERVICE', 'PAID',
 ];
 const WARN_STATES = [
     'Pendiente', 'pending', 'Preparando', 'En reparto', 'draft', 'in_progress',
     'waiting_user', 'scheduled', 'partially_received', 'open',
+    'PENDING_PAYMENT', 'PARTIALLY_PAID',
 ];
 const BAD_STATES = [
     'Cancelado', 'Cancelada', 'Reembolsado', 'inactive', 'unavailable', 'invalid', 'failed',
     'cancelled', 'canceled', 'voided', 'deleted', 'rejected', 'No disponible', 'Inactivo',
+    'NO_SHOW', 'RETAINED', 'EXPIRED', 'REFUNDED',
 ];
 
 function StatusBadge({ value, field = 'status', section = '' }) {
@@ -275,6 +353,19 @@ function StatusBadge({ value, field = 'status', section = '' }) {
 const BRAND = '#004797';
 const DONUT_COLORS = ['#004797', '#1d72d2', '#5b9bdc', '#9dc2ea', '#d3e3f6'];
 const WEEKDAYS = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
+const peruDateTime = (value) => {
+    if (!value) return '';
+    const str = String(value).trim();
+    let d;
+    if (str.endsWith('Z') || /[+-]\d{2}:\d{2}$/.test(str)) {
+        d = new Date(str);
+    } else {
+        d = new Date(str.replace(' ', 'T') + 'Z');
+    }
+    if (isNaN(d.getTime())) return '';
+    const limaDate = new Date(d.getTime() - 5 * 60 * 60 * 1000);
+    return limaDate.toISOString().slice(0, 16);
+};
 
 function buildWeek(dailySales = []) {
     const totals = new Map(
@@ -491,6 +582,11 @@ function RecordTable({ rows = [], section, onEdit }) {
     const [query, setQuery] = useState('');
     const [page, setPage] = useState(1);
 
+    useEffect(() => {
+        setQuery('');
+        setPage(1);
+    }, [section]);
+
     const hiddenColumns = [
         'password_hash',
         'permissions',
@@ -520,6 +616,10 @@ function RecordTable({ rows = [], section, onEdit }) {
     ];
 
     const columns = useMemo(() => {
+        if (section === 'reservas') return ['reservation_code', 'customer_name', 'guest_count', 'reservation_at', 'table_label', 'status', 'payment_status', 'advance_amount'];
+        if (section === 'carta') return ['code', 'name', 'category', 'price', 'is_featured', 'is_popular', 'status'];
+        if (section === 'soporte') return ['ticket_number', 'creator_name', 'subject', 'category', 'priority', 'status', 'attachment_url', 'created_at'];
+        if (section === 'promociones') return ['name', 'promotion_type', 'code', 'discount_type', 'discount_value', 'per_customer_limit', 'usage_count'];
         const sample = rows[0] || {};
         return Object.keys(sample)
             .filter(
@@ -528,7 +628,7 @@ function RecordTable({ rows = [], section, onEdit }) {
                     typeof sample[key] !== 'object'
             )
             .slice(0, 7);
-    }, [rows]);
+    }, [rows, section]);
 
     const filtered = useMemo(
         () =>
@@ -574,8 +674,8 @@ function RecordTable({ rows = [], section, onEdit }) {
 
             {current.length ? (
                 <>
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left border-collapse">
+                    <div className="admin-records-table-wrap">
+                        <table className={`admin-records-table admin-records-table-${section} w-full text-left border-collapse`}>
                             <thead>
                                 <tr className="border-b text-[11px] uppercase tracking-wider">
                                     {columns.map((key) => (
@@ -604,6 +704,7 @@ function RecordTable({ rows = [], section, onEdit }) {
                                             <td
                                                 key={key}
                                                 className="px-5 py-3.5 whitespace-nowrap"
+                                                data-label={COLUMN_LABELS[key] || adminText(key, key, section)}
                                             >
                                                 {[
                                                     'status',
@@ -619,6 +720,21 @@ function RecordTable({ rows = [], section, onEdit }) {
                                                         field={key}
                                                         section={section}
                                                     />
+                                                ) : key === 'attachment_url' ? (
+                                                    row[key] ? (
+                                                        <a
+                                                            href={row[key]}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold bg-blue-50 text-[#004797] hover:bg-blue-100 hover:text-blue-900 transition-colors border border-blue-200"
+                                                            onClick={(e) => e.stopPropagation()}
+                                                            title="Ver archivo o evidencia adjunta"
+                                                        >
+                                                            <Paperclip size={12} /> {String(row[key]).toLowerCase().endsWith('.pdf') ? 'Ver PDF' : 'Ver Imagen'}
+                                                        </a>
+                                                    ) : (
+                                                        <span className="text-slate-400 text-xs">—</span>
+                                                    )
                                                 ) : (
                                                     display(
                                                         row[key],
@@ -629,7 +745,7 @@ function RecordTable({ rows = [], section, onEdit }) {
                                             </td>
                                         ))}
                                         {onEdit && (
-                                            <td className="px-5 py-3.5 text-right whitespace-nowrap">
+                                            <td className="px-5 py-3.5 text-right whitespace-nowrap" data-label="Acción" data-action="true">
                                                 <button
                                                     type="button"
                                                     onClick={() => onEdit(row)}
@@ -689,37 +805,75 @@ function RecordTable({ rows = [], section, onEdit }) {
 }
 
 function Editor({ section, data, catalog, ingredients = [], editing, close }) {
+    const { auth } = usePage().props;
     const defaults = {
+        categorias: {
+            action: editing ? 'category.update' : 'category.create', id: editing?.id || null,
+            name: editing?.name || '', description: editing?.description || '',
+        },
+        insumos: {
+            action: editing ? 'ingredient.update' : 'ingredient.create', id: editing?.id || null,
+            name: editing?.name || '', description: editing?.description || '', unit: editing?.unit || 'kg',
+            min_stock: editing?.min_stock || 0, cost_per_unit: editing?.cost_per_unit || 0,
+            initial_stock: 0, allergen_ids: editing?.allergen_ids || [],
+        },
+        alergenos: {
+            action: editing ? 'allergen.status' : 'allergen.create', id: editing?.id || null,
+            name: editing?.name || '', description: editing?.description || '', status: editing?.status || 'active',
+        },
         pedidos: {
             action: editing ? 'status' : 'create',
             id: editing?.id || '',
             status: editing?.status || 'Preparando',
-            payment_status: editing?.payment_status || 'Pagado',
-            payment_method: 'cash',
+            payment_status: editing?.payment_status || 'Pendiente',
+            payment_method: editing?.payment_method || 'Efectivo',
             customer_name: editing?.customer_name || '',
-            order_type: 'Salón',
+            order_type: 'Mesa',
             table_label: 'Mesa 1',
             notes: '',
             items: [{ product_id: catalog?.products?.[0]?.id || 1, quantity: 1 }],
         },
         carta: {
+            action: editing ? 'product.update' : 'product.create',
             entity: 'product',
             id: editing?.id || 0,
+            code: editing?.code || '',
             name: editing?.name || '',
             category_id:
                 editing?.category_id || catalog?.categories?.[0]?.id || 1,
-            price: editing?.price || '25.00',
+            price: editing?.price ?? '25.00',
             emoji: editing?.emoji || '🐟',
             description: editing?.description || '',
+            included_items: editing?.included_items || '',
+            image_url: editing?.image_url || '',
+            gallery: editing?.gallery?.length
+                ? editing.gallery.map((g) =>
+                      typeof g === 'string' ? g : g.image_url || ''
+                  )
+                : [],
+            is_featured: Boolean(editing?.is_featured),
+            is_popular: Boolean(editing?.is_popular),
+            is_new: Boolean(editing?.is_new),
             status: editing?.status || 'available',
-            ingredients: editing?.ingredients?.length
-                ? editing.ingredients.map((item) => ({
+            ingredients: editing
+                ? (editing.ingredients || []).map((item) => ({
                       ingredient_id: item.ingredient_id,
                       quantity: item.quantity,
                   }))
-                : [{ ingredient_id: ingredients[0]?.id || 1, quantity: '0.250' }],
+                : [],
+            option_groups: (editing?.option_groups || []).map((grp) => ({
+                name: grp.name || '',
+                is_required: Boolean(grp.is_required),
+                max_selections: grp.max_selections || 1,
+                options: (grp.options || []).map((opt) => ({
+                    name: opt.name || '',
+                    price_delta: opt.price_delta ?? 0,
+                    is_available: opt.is_available !== false,
+                })),
+            })),
         },
         inventario: {
+            action: 'adjust',
             entity: 'ingredient_adjust',
             id: editing?.id || data.ingredients?.[0]?.id || 1,
             movement_type: 'entry',
@@ -728,52 +882,55 @@ function Editor({ section, data, catalog, ingredients = [], editing, close }) {
             notes: 'Ajuste desde panel',
         },
         clientes: {
-            action: 'save',
+            action: editing ? 'customer.update' : 'customer.create',
             id: editing?.id || 0,
             full_name: editing?.full_name || '',
-            document_type: editing?.document_type || 'DNI',
+            document_type: editing?.document_type || 'SIN_DOCUMENTO',
             document_number: editing?.document_number || '',
             phone: editing?.phone || '',
             email: editing?.email || '',
             status: editing?.status || 'active',
         },
         reservas: {
-            action: editing ? 'reservation_status' : 'reservation_create',
+            action: editing ? 'reservation.status' : 'reservation.create',
             id: editing?.id || '',
             status: editing?.status || 'Confirmada',
             table_id: editing?.table_id || data.tables?.[0]?.id || '',
+            table_ids: editing?.tables?.map(table => table.id) || (data.tables?.[0] ? [data.tables[0].id] : []),
             customer_name: editing?.customer_name || '',
-            phone: editing?.phone || '',
+            phone: editing?.customer_phone || editing?.phone || '',
             guest_count: editing?.guest_count || 2,
-            reservation_at:
-                editing?.reservation_at?.slice(0, 16).replace(' ', 'T') || '',
-            duration_minutes: 90,
+            reservation_at: peruDateTime(editing?.reservation_at) || '',
+            duration_minutes: 120,
             notes: '',
         },
         caja: {
-            action: data.session ? 'close_session' : 'open_session',
+            action: data.session ? 'close' : 'open',
             opening_amount: '200.00',
             counted_closing: '200.00',
             notes: 'Operación desde panel',
         },
         cocina: {
-            action: 'advance',
-            order_id: editing?.id || '',
+            action: 'kitchen_status',
+            id: editing?.id || '',
             status:
                 editing?.status === 'Pendiente'
                     ? 'Preparando'
                     : editing?.status === 'Preparando'
                       ? 'Listo'
-                      : 'Entregado',
+                      : 'Listo',
         },
         delivery: {
-            action: 'status',
-            order_id: editing?.id || '',
-            status: editing?.status === 'Listo' ? 'En reparto' : 'Entregado',
+            action: 'delivery_status',
+            id: editing?.id || '',
+            status: editing?.delivery_status === 'En reparto' ? 'Entregado' : 'En reparto',
             incident_notes: editing?.incident_notes || '',
+            recipient_phone: editing?.recipient_phone || '', address_line: editing?.address_line || '',
+            zone: editing?.zone || '', courier_user_id: editing?.courier_user_id || '',
+            estimated_delivery_at: editing?.estimated_delivery_at?.replace(' ', 'T').slice(0, 16) || '',
         },
         compras: {
-            action: 'save_supplier',
+            action: 'supplier.save',
             id: editing?.id || 0,
             name: editing?.name || '',
             tax_id: editing?.tax_id || '',
@@ -783,27 +940,41 @@ function Editor({ section, data, catalog, ingredients = [], editing, close }) {
             status: editing?.status || 'active',
         },
         promociones: {
-            action: 'save',
+            action: editing ? 'update' : 'create',
+            starts_at: peruDateTime(editing?.starts_at) || peruDateTime(new Date().toISOString()),
+            ends_at: editing?.ends_at ? peruDateTime(editing.ends_at) : '',
             id: editing?.id || 0,
-            code: editing?.code || 'DESEGO15',
+            code: editing?.code || (editing?.promotion_type === 'automatic' ? '' : 'DESEGO15'),
             name: editing?.name || '',
+            description: editing?.description || '',
             promotion_type: editing?.promotion_type || 'coupon',
             discount_type: editing?.discount_type || 'percentage',
             discount_value: editing?.discount_value || '10',
-            min_subtotal: editing?.min_subtotal || '40',
+            max_discount: editing?.max_discount ?? '',
+            min_subtotal: editing?.min_subtotal ?? '40',
+            usage_limit: editing?.usage_limit ?? '',
+            per_customer_limit: editing?.per_customer_limit ?? 1,
             status: editing?.status || 'active',
         },
         fidelizacion: {
-            action: 'save_reward',
-            id: editing?.id || 0,
+            action: 'reward.save',
+            starts_at: peruDateTime(editing?.starts_at),
+            ends_at: editing?.ends_at ? peruDateTime(editing.ends_at) : '',
+            id: editing?.id || null,
+            reward_code: editing?.reward_code || `PREMIO-${Date.now()}`,
+            product_id: editing?.product_id || null,
             name: editing?.name || '',
             points_cost: editing?.points_cost || 100,
-            reward_type: editing?.reward_type || 'discount_soles',
-            reward_value: editing?.reward_value || '15.00',
+            reward_type: editing?.reward_type || 'discount',
+            discount_amount: editing?.discount_amount || '15.00',
             status: editing?.status || 'active',
         },
         equipo: {
-            action: 'save_employee',
+            action: 'employee.save',
+            employee_code: editing?.employee_code || `EMP-${Date.now()}`,
+            branch_id: editing?.branch_id || null,
+            user_id: editing?.user_id || null,
+            hourly_rate: editing?.hourly_rate ?? '',
             id: editing?.id || 0,
             full_name: editing?.full_name || '',
             job_title: editing?.job_title || 'Cocina',
@@ -811,54 +982,100 @@ function Editor({ section, data, catalog, ingredients = [], editing, close }) {
             email: editing?.email || '',
             employment_type: editing?.employment_type || 'full_time',
             hire_date:
-                editing?.hire_date || new Date().toISOString().slice(0, 10),
+                editing?.hire_date || peruDateTime().slice(0, 10),
             status: editing?.status || 'active',
         },
-        roles: {
+        usuarios: {
             action: editing ? 'update' : 'create',
             id: editing?.id || 0,
             name: editing?.name || '',
             email: editing?.email || '',
             password: '',
-            role_id: editing?.role_id || data.roles?.[0]?.id || 1,
+            role_id: editing?.role_id || data.roles?.find((role) => role.code === 'waiter')?.id || data.roles?.find((role) => !['admin', 'customer'].includes(role.code))?.id || '',
             status: editing?.status || 'active',
         },
         backups: { action: 'create_backup' },
         soporte: {
-            action: 'create_ticket',
-            subject: '',
-            category: 'orders',
-            priority: 'normal',
+            action: editing ? 'support.update' : 'support.create',
+            id: editing?.id || null,
+            ticket_id: editing?.id || null,
+            subject: editing?.subject || '',
+            category: editing?.category || 'orders',
+            priority: editing?.priority || 'normal',
+            status: editing?.status || 'open',
+            assigned_to: editing?.assigned_to || '',
             message: '',
+            is_internal: false,
+            attachment_url: '',
         },
     }[section];
 
     const modules = {
+        categorias: 'catalog', insumos: 'catalog', alergenos: 'catalog',
         pedidos: 'orders',
         carta: 'catalog',
-        inventario: 'catalog',
+        inventario: 'inventory',
         clientes: 'customers',
         reservas: 'reservations',
         caja: 'cash',
-        cocina: 'kitchen',
-        delivery: 'delivery',
+        cocina: 'operations',
+        delivery: 'operations',
         compras: 'purchasing',
         promociones: 'promotions',
         fidelizacion: 'loyalty',
         equipo: 'workforce',
-        roles: 'users',
+        usuarios: 'users',
         backups: 'admin-tools',
         soporte: 'communications',
     };
 
     const form = useForm(defaults || {});
+    const [uploadingImg, setUploadingImg] = useState(false);
 
     if (!defaults) {
         return null;
     }
 
+    const uploadAdminFile = async (file, onUploaded) => {
+        if (!file) {
+            return;
+        }
+        setUploadingImg(true);
+        try {
+            const fd = new FormData();
+            fd.append('file', file);
+            fd.append('folder', 'products');
+            const csrf =
+                document.querySelector('meta[name="csrf-token"]')?.content ||
+                '';
+            const res = await fetch('/admin/subir-imagen', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': csrf,
+                    Accept: 'application/json',
+                },
+                body: fd,
+            });
+            const json = await res.json();
+            if (json?.ok && json?.url) {
+                onUploaded(json.url);
+            }
+        } catch {
+            // Ignora errores de subida y mantiene el campo editable manualmente
+        } finally {
+            setUploadingImg(false);
+        }
+    };
+
     const submit = (e) => {
         e.preventDefault();
+        form.transform(values => {
+            if (section === 'inventario') { return { ...values, ingredient_id: values.id }; }
+            if (['promociones', 'fidelizacion'].includes(section)) {
+                return { ...values, starts_at: new Date(`${values.starts_at}-05:00`).toISOString().slice(0, 16), ends_at: values.ends_at ? new Date(`${values.ends_at}-05:00`).toISOString().slice(0, 16) : '' };
+            }
+            return values;
+        });
         form.post('/admin/acciones/' + modules[section], {
             preserveScroll: true,
             onSuccess: close,
@@ -898,6 +1115,19 @@ function Editor({ section, data, catalog, ingredients = [], editing, close }) {
 
                 <ErrorList errors={form.errors} />
 
+                {['categorias', 'insumos', 'alergenos'].includes(section) && <>
+                    <label className="glass-field">Nombre<input className={inputCls} required minLength={2} maxLength={section === 'categorias' ? 80 : 100} readOnly={section === 'alergenos' && !!editing} value={form.data.name} onChange={(event) => form.setData('name', event.target.value)} /></label>
+                    {!(section === 'alergenos' && editing) && <label className="glass-field">Descripción<textarea className={inputCls} maxLength={255} value={form.data.description} onChange={(event) => form.setData('description', event.target.value)} /></label>}
+                    {section === 'insumos' && <>
+                        <label className="glass-field">Unidad<select className={inputCls} value={form.data.unit} onChange={(event) => form.setData('unit', event.target.value)}>{['g', 'kg', 'ml', 'l', 'unidad', 'porción'].map(unit => <option key={unit}>{unit}</option>)}</select></label>
+                        <div className="grid grid-cols-2 gap-3"><label className="glass-field">Stock mínimo<input className={inputCls} type="number" min="0" step="0.001" value={form.data.min_stock} onChange={(event) => form.setData('min_stock', event.target.value)} /></label><label className="glass-field">Costo por unidad (S/)<input className={inputCls} type="number" min="0" step="0.0001" value={form.data.cost_per_unit} onChange={(event) => form.setData('cost_per_unit', event.target.value)} /></label></div>
+                        {!editing && auth?.user?.permissions?.includes('inventory.manage') && <label className="glass-field">Stock inicial<input className={inputCls} type="number" min="0" step="0.001" value={form.data.initial_stock} onChange={(event) => form.setData('initial_stock', event.target.value)} /></label>}
+                        <fieldset><legend className="glass-field">Alérgenos asociados</legend>{data.allergens?.filter(allergen => allergen.status === 'active').map(allergen => <label className="glass-field" key={allergen.id}><span><input type="checkbox" checked={form.data.allergen_ids.includes(allergen.id)} onChange={() => form.setData('allergen_ids', form.data.allergen_ids.includes(allergen.id) ? form.data.allergen_ids.filter(id => id !== allergen.id) : [...form.data.allergen_ids, allergen.id])} /> {allergen.name}</span></label>)}</fieldset>
+                    </>}
+                    {section === 'alergenos' && editing && <label className="glass-field">Estado<select className={inputCls} value={form.data.status} onChange={(event) => form.setData('status', event.target.value)}><option value="active">Activo</option><option value="inactive">Inactivo</option></select></label>}
+                    {section === 'categorias' && editing && <button className="glass-btn" type="button" onClick={() => router.post('/admin/acciones/catalog', { action: 'category.status', id: editing.id, status: editing.status === 'active' ? 'inactive' : 'active' }, { preserveScroll: true, onSuccess: close, onError: (errors) => form.setError(errors) })}>{editing.status === 'active' ? 'Desactivar categoría' : 'Activar categoría'}</button>}
+                </>}
+
                 {section === 'pedidos' && !editing && (
                     <>
                         <label className="glass-field">
@@ -924,7 +1154,7 @@ function Editor({ section, data, catalog, ingredients = [], editing, close }) {
                                         )
                                     }
                                 >
-                                    <option>Salón</option>
+                                    <option value="Mesa">Salón</option>
                                     <option>Para llevar</option>
                                     <option>Delivery</option>
                                 </select>
@@ -1038,18 +1268,33 @@ function Editor({ section, data, catalog, ingredients = [], editing, close }) {
 
                 {section === 'carta' && (
                     <>
-                        <label className="glass-field">
-                            Nombre del plato
-                            <input
-                                required
-                                className={inputCls}
-                                value={form.data.name}
-                                onChange={(e) =>
-                                    form.setData('name', e.target.value)
-                                }
-                            />
-                        </label>
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <label className="glass-field">
+                                Código comercial
+                                <input
+                                    className={inputCls}
+                                    placeholder="Ej. PF001"
+                                    maxLength={32}
+                                    value={form.data.code}
+                                    onChange={(e) =>
+                                        form.setData('code', e.target.value)
+                                    }
+                                />
+                            </label>
+                            <label className="glass-field sm:col-span-2">
+                                Nombre del plato
+                                <input
+                                    required
+                                    className={inputCls}
+                                    value={form.data.name}
+                                    onChange={(e) =>
+                                        form.setData('name', e.target.value)
+                                    }
+                                />
+                            </label>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                             <label className="glass-field">
                                 Categoría
                                 <select
@@ -1062,11 +1307,13 @@ function Editor({ section, data, catalog, ingredients = [], editing, close }) {
                                         )
                                     }
                                 >
-                                    {catalog?.categories?.map((c) => (
-                                        <option key={c.id} value={c.id}>
-                                            {c.name}
-                                        </option>
-                                    ))}
+                                    {(data.categories || catalog?.categories || []).map(
+                                        (c) => (
+                                            <option key={c.id} value={c.id}>
+                                                {c.name}
+                                            </option>
+                                        )
+                                    )}
                                 </select>
                             </label>
                             <label className="glass-field">
@@ -1074,6 +1321,7 @@ function Editor({ section, data, catalog, ingredients = [], editing, close }) {
                                 <input
                                     type="number"
                                     step="0.10"
+                                    min="0"
                                     required
                                     className={inputCls}
                                     value={form.data.price}
@@ -1082,9 +1330,25 @@ function Editor({ section, data, catalog, ingredients = [], editing, close }) {
                                     }
                                 />
                             </label>
+                            <label className="glass-field">
+                                Estado
+                                <select
+                                    className={inputCls}
+                                    value={form.data.status}
+                                    onChange={(e) =>
+                                        form.setData('status', e.target.value)
+                                    }
+                                >
+                                    <option value="available">Disponible</option>
+                                    <option value="unavailable">
+                                        No disponible
+                                    </option>
+                                </select>
+                            </label>
                         </div>
+
                         <label className="glass-field">
-                            Descripción
+                            Descripción comercial
                             <textarea
                                 rows={2}
                                 required
@@ -1095,66 +1359,511 @@ function Editor({ section, data, catalog, ingredients = [], editing, close }) {
                                 }
                             />
                         </label>
-                        <div className="grid grid-cols-2 gap-3">
-                            <label className="glass-field">
-                                Insumo principal
-                                <select
-                                    className={inputCls}
-                                    value={
-                                        form.data.ingredients[0]?.ingredient_id
-                                    }
+
+                        <label className="glass-field">
+                            Platos incluidos (para Dúos, Tríos o Rondas marinas)
+                            <input
+                                className={inputCls}
+                                placeholder="Ej. Defina aquí los platos incluidos cuando estén confirmados"
+                                value={form.data.included_items}
+                                onChange={(e) =>
+                                    form.setData(
+                                        'included_items',
+                                        e.target.value
+                                    )
+                                }
+                            />
+                        </label>
+
+                        <div className="glass-field">
+                            <span>Imagen principal del plato (URL o archivo real)</span>
+                            <div className="flex flex-wrap gap-2 items-center mt-1">
+                                <input
+                                    className={`${inputCls} flex-1 min-w-[200px]`}
+                                    placeholder="/uploads/products/... o https://..."
+                                    value={form.data.image_url}
                                     onChange={(e) =>
-                                        form.setData('ingredients', [
+                                        form.setData('image_url', e.target.value)
+                                    }
+                                />
+                                <label className="glass-btn cursor-pointer inline-flex items-center gap-1.5 text-xs">
+                                    <Upload size={14} />
+                                    <span>
+                                        {uploadingImg
+                                            ? 'Subiendo...'
+                                            : 'Subir foto'}
+                                    </span>
+                                    <input
+                                        type="file"
+                                        accept="image/jpeg,image/png,image/webp"
+                                        className="hidden"
+                                        onChange={(e) =>
+                                            uploadAdminFile(
+                                                e.target.files?.[0],
+                                                (url) =>
+                                                    form.setData(
+                                                        'image_url',
+                                                        url
+                                                    )
+                                            )
+                                        }
+                                    />
+                                </label>
+                            </div>
+                        </div>
+
+                        <div className="glass-field">
+                            <div className="flex items-center justify-between">
+                                <span>Galería adicional de imágenes</span>
+                                <div className="flex gap-2">
+                                    <label className="glass-btn glass-btn-sm cursor-pointer inline-flex items-center gap-1 text-xs">
+                                        <Upload size={12} />
+                                        <span>Subir a galería</span>
+                                        <input
+                                            type="file"
+                                            accept="image/jpeg,image/png,image/webp"
+                                            className="hidden"
+                                            onChange={(e) =>
+                                                uploadAdminFile(
+                                                    e.target.files?.[0],
+                                                    (url) =>
+                                                        form.setData(
+                                                            'gallery',
+                                                            [
+                                                                ...(form.data
+                                                                    .gallery ||
+                                                                    []),
+                                                                url,
+                                                            ]
+                                                        )
+                                                )
+                                            }
+                                        />
+                                    </label>
+                                    <button
+                                        type="button"
+                                        className="glass-btn glass-btn-sm text-xs"
+                                        onClick={() =>
+                                            form.setData('gallery', [
+                                                ...(form.data.gallery || []),
+                                                '',
+                                            ])
+                                        }
+                                    >
+                                        + URL
+                                    </button>
+                                </div>
+                            </div>
+                            {(form.data.gallery || []).map((gUrl, idx) => (
+                                <div
+                                    key={idx}
+                                    className="flex items-center gap-2 mt-1.5"
+                                >
+                                    <input
+                                        className={`${inputCls} flex-1`}
+                                        placeholder="URL de imagen de galería"
+                                        value={gUrl}
+                                        onChange={(e) => {
+                                            const copy = [
+                                                ...(form.data.gallery || []),
+                                            ];
+                                            copy[idx] = e.target.value;
+                                            form.setData('gallery', copy);
+                                        }}
+                                    />
+                                    <button
+                                        type="button"
+                                        className="glass-btn glass-btn-sm"
+                                        onClick={() =>
+                                            form.setData(
+                                                'gallery',
+                                                form.data.gallery.filter(
+                                                    (_, i) => i !== idx
+                                                )
+                                            )
+                                        }
+                                        aria-label="Quitar imagen"
+                                    >
+                                        <Trash2 size={13} />
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+
+                        <div className="flex flex-wrap gap-4 py-1 text-xs">
+                            <label className="inline-flex items-center gap-2 cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    checked={Boolean(form.data.is_featured)}
+                                    onChange={(e) =>
+                                        form.setData(
+                                            'is_featured',
+                                            e.target.checked
+                                        )
+                                    }
+                                />
+                                <span>Plato destacado</span>
+                            </label>
+                            <label className="inline-flex items-center gap-2 cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    checked={Boolean(form.data.is_popular)}
+                                    onChange={(e) =>
+                                        form.setData(
+                                            'is_popular',
+                                            e.target.checked
+                                        )
+                                    }
+                                />
+                                <span>Popular en carta</span>
+                            </label>
+                            <label className="inline-flex items-center gap-2 cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    checked={Boolean(form.data.is_new)}
+                                    onChange={(e) =>
+                                        form.setData('is_new', e.target.checked)
+                                    }
+                                />
+                                <span>Nuevo ingreso</span>
+                            </label>
+                        </div>
+
+                        {/* RECETA MULTI-INSUMO OPCIONAL */}
+                        <div className="glass-field border-t pt-3">
+                            <div className="flex items-center justify-between mb-1.5">
+                                <span>
+                                    Receta de insumos (opcional · controla stock y alérgenos)
+                                </span>
+                                {ingredients.length > 0 && (
+                                    <button
+                                        type="button"
+                                        className="glass-btn glass-btn-sm text-xs"
+                                        onClick={() =>
+                                            form.setData('ingredients', [
+                                                ...(form.data.ingredients ||
+                                                    []),
+                                                {
+                                                    ingredient_id:
+                                                        ingredients[0]?.id || 1,
+                                                    quantity: '0.200',
+                                                },
+                                            ])
+                                        }
+                                    >
+                                        + Agregar insumo
+                                    </button>
+                                )}
+                            </div>
+                            {(form.data.ingredients || []).length === 0 ? (
+                                <p className="text-xs opacity-70">
+                                    Sin receta asignada (disponibilidad controlada manualmente).
+                                </p>
+                            ) : (
+                                (form.data.ingredients || []).map(
+                                    (ingRow, idx) => (
+                                        <div
+                                            key={idx}
+                                            className="grid grid-cols-12 gap-2 items-center mb-1.5"
+                                        >
+                                            <select
+                                                className={`${inputCls} col-span-7`}
+                                                value={ingRow.ingredient_id}
+                                                onChange={(e) => {
+                                                    const copy = [
+                                                        ...form.data.ingredients,
+                                                    ];
+                                                    copy[idx] = {
+                                                        ...copy[idx],
+                                                        ingredient_id: Number(
+                                                            e.target.value
+                                                        ),
+                                                    };
+                                                    form.setData(
+                                                        'ingredients',
+                                                        copy
+                                                    );
+                                                }}
+                                            >
+                                                {ingredients.map((i) => (
+                                                    <option
+                                                        key={i.id}
+                                                        value={i.id}
+                                                    >
+                                                        {i.name} (
+                                                        {adminText(
+                                                            i.unit,
+                                                            'unit'
+                                                        )}
+                                                        )
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <input
+                                                type="number"
+                                                step="0.001"
+                                                min="0.001"
+                                                required
+                                                className={`${inputCls} col-span-4`}
+                                                value={ingRow.quantity}
+                                                onChange={(e) => {
+                                                    const copy = [
+                                                        ...form.data.ingredients,
+                                                    ];
+                                                    copy[idx] = {
+                                                        ...copy[idx],
+                                                        quantity: e.target.value,
+                                                    };
+                                                    form.setData(
+                                                        'ingredients',
+                                                        copy
+                                                    );
+                                                }}
+                                            />
+                                            <button
+                                                type="button"
+                                                className="glass-btn glass-btn-sm col-span-1 flex justify-center"
+                                                onClick={() =>
+                                                    form.setData(
+                                                        'ingredients',
+                                                        form.data.ingredients.filter(
+                                                            (_, i) => i !== idx
+                                                        )
+                                                    )
+                                                }
+                                                aria-label="Quitar insumo"
+                                            >
+                                                <Trash2 size={13} />
+                                            </button>
+                                        </div>
+                                    )
+                                )
+                            )}
+                        </div>
+
+                        {/* OPCIONES Y ADICIONALES */}
+                        <div className="glass-field border-t pt-3">
+                            <div className="flex items-center justify-between mb-1.5">
+                                <span>
+                                    Opciones y adicionales del plato (ej. Nivel de ají, Guarnición)
+                                </span>
+                                <button
+                                    type="button"
+                                    className="glass-btn glass-btn-sm text-xs"
+                                    onClick={() =>
+                                        form.setData('option_groups', [
+                                            ...(form.data.option_groups || []),
                                             {
-                                                ...form.data.ingredients[0],
-                                                ingredient_id: Number(
-                                                    e.target.value
-                                                ),
+                                                name: 'Nivel de picante',
+                                                is_required: false,
+                                                max_selections: 1,
+                                                options: [
+                                                    {
+                                                        name: 'Sin ají',
+                                                        price_delta: 0,
+                                                        is_available: true,
+                                                    },
+                                                ],
                                             },
                                         ])
                                     }
                                 >
-                                    {ingredients.map((i) => (
-                                        <option key={i.id} value={i.id}>
-                                            {i.name} ({adminText(i.unit, 'unit')})
-                                        </option>
-                                    ))}
-                                </select>
-                            </label>
-                            <label className="glass-field">
-                                Cantidad por plato
-                                <input
-                                    type="number"
-                                    step="0.001"
-                                    required
-                                    className={inputCls}
-                                    value={form.data.ingredients[0]?.quantity}
-                                    onChange={(e) =>
-                                        form.setData('ingredients', [
-                                            {
-                                                ...form.data.ingredients[0],
-                                                quantity: e.target.value,
-                                            },
-                                        ])
-                                    }
-                                />
-                            </label>
+                                    + Grupo de opciones
+                                </button>
+                            </div>
+                            {(form.data.option_groups || []).map(
+                                (grp, gIdx) => (
+                                    <div
+                                        key={gIdx}
+                                        className="p-3 rounded-xl border border-white/10 mb-2 space-y-2"
+                                    >
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            <input
+                                                className={`${inputCls} flex-1 min-w-[150px]`}
+                                                placeholder="Nombre del grupo (ej. Punto de ají)"
+                                                value={grp.name}
+                                                onChange={(e) => {
+                                                    const copy = [
+                                                        ...form.data
+                                                            .option_groups,
+                                                    ];
+                                                    copy[gIdx] = {
+                                                        ...copy[gIdx],
+                                                        name: e.target.value,
+                                                    };
+                                                    form.setData(
+                                                        'option_groups',
+                                                        copy
+                                                    );
+                                                }}
+                                            />
+                                            <label className="text-xs inline-flex items-center gap-1">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={Boolean(
+                                                        grp.is_required
+                                                    )}
+                                                    onChange={(e) => {
+                                                        const copy = [
+                                                            ...form.data
+                                                                .option_groups,
+                                                        ];
+                                                        copy[gIdx] = {
+                                                            ...copy[gIdx],
+                                                            is_required:
+                                                                e.target
+                                                                    .checked,
+                                                        };
+                                                        form.setData(
+                                                            'option_groups',
+                                                            copy
+                                                        );
+                                                    }}
+                                                />
+                                                Obligatorio
+                                            </label>
+                                            <button
+                                                type="button"
+                                                className="glass-btn glass-btn-sm text-xs"
+                                                onClick={() => {
+                                                    const copy = [
+                                                        ...form.data
+                                                            .option_groups,
+                                                    ];
+                                                    copy[gIdx] = {
+                                                        ...copy[gIdx],
+                                                        options: [
+                                                            ...(copy[gIdx]
+                                                                .options || []),
+                                                            {
+                                                                name: '',
+                                                                price_delta: 0,
+                                                                is_available: true,
+                                                            },
+                                                        ],
+                                                    };
+                                                    form.setData(
+                                                        'option_groups',
+                                                        copy
+                                                    );
+                                                }}
+                                            >
+                                                + Opción
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className="glass-btn glass-btn-sm"
+                                                onClick={() =>
+                                                    form.setData(
+                                                        'option_groups',
+                                                        form.data.option_groups.filter(
+                                                            (_, i) => i !== gIdx
+                                                        )
+                                                    )
+                                                }
+                                            >
+                                                <Trash2 size={13} />
+                                            </button>
+                                        </div>
+                                        {(grp.options || []).map(
+                                            (opt, oIdx) => (
+                                                <div
+                                                    key={oIdx}
+                                                    className="grid grid-cols-12 gap-2 items-center"
+                                                >
+                                                    <input
+                                                        className={`${inputCls} col-span-7`}
+                                                        placeholder="Nombre opción"
+                                                        value={opt.name}
+                                                        onChange={(e) => {
+                                                            const copy = [
+                                                                ...form.data
+                                                                    .option_groups,
+                                                            ];
+                                                            const opts = [
+                                                                ...copy[gIdx]
+                                                                    .options,
+                                                            ];
+                                                            opts[oIdx] = {
+                                                                ...opts[oIdx],
+                                                                name: e.target
+                                                                    .value,
+                                                            };
+                                                            copy[gIdx] = {
+                                                                ...copy[gIdx],
+                                                                options: opts,
+                                                            };
+                                                            form.setData(
+                                                                'option_groups',
+                                                                copy
+                                                            );
+                                                        }}
+                                                    />
+                                                    <input
+                                                        type="number"
+                                                        step="0.50"
+                                                        min="0"
+                                                        className={`${inputCls} col-span-4`}
+                                                        placeholder="+ S/ 0.00"
+                                                        value={opt.price_delta}
+                                                        onChange={(e) => {
+                                                            const copy = [
+                                                                ...form.data
+                                                                    .option_groups,
+                                                            ];
+                                                            const opts = [
+                                                                ...copy[gIdx]
+                                                                    .options,
+                                                            ];
+                                                            opts[oIdx] = {
+                                                                ...opts[oIdx],
+                                                                price_delta:
+                                                                    e.target
+                                                                        .value,
+                                                            };
+                                                            copy[gIdx] = {
+                                                                ...copy[gIdx],
+                                                                options: opts,
+                                                            };
+                                                            form.setData(
+                                                                'option_groups',
+                                                                copy
+                                                            );
+                                                        }}
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        className="glass-btn glass-btn-sm col-span-1 flex justify-center"
+                                                        onClick={() => {
+                                                            const copy = [
+                                                                ...form.data
+                                                                    .option_groups,
+                                                            ];
+                                                            copy[gIdx] = {
+                                                                ...copy[gIdx],
+                                                                options: copy[
+                                                                    gIdx
+                                                                ].options.filter(
+                                                                    (_, i) =>
+                                                                        i !==
+                                                                        oIdx
+                                                                ),
+                                                            };
+                                                            form.setData(
+                                                                'option_groups',
+                                                                copy
+                                                            );
+                                                        }}
+                                                    >
+                                                        <X size={12} />
+                                                    </button>
+                                                </div>
+                                            )
+                                        )}
+                                    </div>
+                                )
+                            )}
                         </div>
-                        <label className="glass-field">
-                            Estado
-                            <select
-                                className={inputCls}
-                                value={form.data.status}
-                                onChange={(e) =>
-                                    form.setData('status', e.target.value)
-                                }
-                            >
-                                <option value="available">Disponible</option>
-                                <option value="unavailable">
-                                    No disponible
-                                </option>
-                            </select>
-                        </label>
                     </>
                 )}
 
@@ -1305,6 +2014,7 @@ function Editor({ section, data, catalog, ingredients = [], editing, close }) {
                             Fecha y hora
                             <input
                                 type="datetime-local"
+                                    min={new Intl.DateTimeFormat('sv-SE', { timeZone: 'America/Lima', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date()).replace(' ', 'T')}
                                 required
                                 className={inputCls}
                                 value={form.data.reservation_at}
@@ -1316,6 +2026,7 @@ function Editor({ section, data, catalog, ingredients = [], editing, close }) {
                                 }
                             />
                         </label>
+                        <fieldset className="glass-field"><legend>Mesas asignadas</legend>{data.tables?.filter(table => table.is_active && table.operational_status !== 'maintenance').map(table => <label key={table.id} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 8 }}><input type="checkbox" checked={form.data.table_ids.includes(table.id)} onChange={() => form.setData('table_ids', form.data.table_ids.includes(table.id) ? form.data.table_ids.filter(id => id !== table.id) : [...form.data.table_ids, table.id])} />{table.label} · {table.capacity} asientos {table.join_group && `· Unible: ${table.join_group}`}</label>)}</fieldset>
                     </>
                 )}
 
@@ -1324,20 +2035,33 @@ function Editor({ section, data, catalog, ingredients = [], editing, close }) {
                         Estado de la reserva
                         <select
                             className={inputCls}
-                            value={form.data.status}
+                            value={
+                                form.data.status === 'CONFIRMED'
+                                    ? 'Confirmada'
+                                    : ['CHECKED_IN', 'IN_SERVICE'].includes(form.data.status)
+                                      ? 'Sentada'
+                                      : form.data.status === 'COMPLETED'
+                                        ? 'Completada'
+                                        : form.data.status === 'CANCELLED'
+                                          ? 'Cancelada'
+                                          : form.data.status === 'NO_SHOW'
+                                            ? 'No asistió'
+                                            : form.data.status
+                            }
                             onChange={(e) =>
                                 form.setData('status', e.target.value)
                             }
                         >
                             {[
-                                'Pendiente',
-                                'Confirmada',
-                                'Sentada',
-                                'Completada',
-                                'Cancelada',
-                            ].map((s) => (
-                                <option key={s} value={s}>
-                                    {s}
+                                { value: 'Pendiente', label: 'Pendiente' },
+                                { value: 'Confirmada', label: 'Confirmada (Anticipo abonado)' },
+                                { value: 'Sentada', label: 'Sentada (En mesa / Servicio)' },
+                                { value: 'Completada', label: 'Completada (Consumo pagado)' },
+                                { value: 'Cancelada', label: 'Cancelada' },
+                                { value: 'No asistió', label: 'No asistió (Retener anticipo S/ 10)' },
+                            ].map((opt) => (
+                                <option key={opt.value} value={opt.value}>
+                                    {opt.label}
                                 </option>
                             ))}
                         </select>
@@ -1382,8 +2106,8 @@ function Editor({ section, data, catalog, ingredients = [], editing, close }) {
                             }
                         >
                             {(section === 'cocina'
-                                ? ['Preparando', 'Listo', 'Entregado']
-                                : ['En reparto', 'Entregado']
+                                ? ['Preparando', 'Listo']
+                                : ['En reparto', 'Entregado', 'Incidencia']
                             ).map((s) => (
                                 <option key={s} value={s}>
                                     {s}
@@ -1392,6 +2116,17 @@ function Editor({ section, data, catalog, ingredients = [], editing, close }) {
                         </select>
                     </label>
                 )}
+
+                {section === 'delivery' && <>
+                    <label className="glass-field">Notas de incidencia<textarea className={inputCls} required={form.data.status === 'Incidencia'} maxLength={500} value={form.data.incident_notes} onChange={(event) => form.setData('incident_notes', event.target.value)} /></label>
+                    {auth?.user?.permissions?.includes('delivery.manage') && <>
+                        <label className="glass-field">Repartidor asignado<select className={inputCls} value={form.data.courier_user_id} onChange={(event) => form.setData('courier_user_id', event.target.value ? Number(event.target.value) : '')}><option value="">Sin asignar</option>{data.couriers?.map(courier => <option key={courier.id} value={courier.id}>{courier.name}</option>)}</select></label>
+                        <label className="glass-field">Teléfono del destinatario<input className={inputCls} maxLength={30} value={form.data.recipient_phone} onChange={(event) => form.setData('recipient_phone', event.target.value)} /></label>
+                        <label className="glass-field">Dirección de entrega<input className={inputCls} maxLength={255} value={form.data.address_line} onChange={(event) => form.setData('address_line', event.target.value)} /></label>
+                        <label className="glass-field">Hora estimada de entrega<input type="datetime-local" className={inputCls} value={form.data.estimated_delivery_at} onChange={(event) => form.setData('estimated_delivery_at', event.target.value)} /></label>
+                        <button className="glass-btn" type="button" onClick={() => router.post('/admin/acciones/operations', { ...form.data, action: 'save_delivery' }, { preserveScroll: true, onSuccess: close, onError: (errors) => form.setError(errors) })}>Guardar asignación y dirección</button>
+                    </>}
+                </>}
 
                 {section === 'compras' && (
                     <>
@@ -1435,21 +2170,73 @@ function Editor({ section, data, catalog, ingredients = [], editing, close }) {
                     <>
                         <div className="grid grid-cols-2 gap-3">
                             <label className="glass-field">
-                                Código
-                                <input
-                                    required
+                                Tipo de promoción
+                                <select
                                     className={inputCls}
-                                    value={form.data.code}
+                                    value={form.data.promotion_type}
+                                    onChange={(e) => {
+                                        const promotionType = e.target.value;
+                                        form.setData({
+                                            ...form.data,
+                                            promotion_type: promotionType,
+                                            code:
+                                                promotionType === 'automatic'
+                                                    ? ''
+                                                    : form.data.code || 'DESEGO15',
+                                        });
+                                    }}
+                                >
+                                    <option value="coupon">Cupón con código</option>
+                                    <option value="automatic">Automática</option>
+                                </select>
+                            </label>
+                            {form.data.promotion_type === 'coupon' && (
+                                <label className="glass-field">
+                                    Código del cupón
+                                    <input
+                                        required
+                                        className={inputCls}
+                                        value={form.data.code}
+                                        onChange={(e) =>
+                                            form.setData('code', e.target.value)
+                                        }
+                                    />
+                                </label>
+                            )}
+                            <label className="glass-field">
+                                Tipo de descuento
+                                <select
+                                    className={inputCls}
+                                    value={form.data.discount_type}
                                     onChange={(e) =>
-                                        form.setData('code', e.target.value)
+                                        form.setData(
+                                            'discount_type',
+                                            e.target.value
+                                        )
                                     }
-                                />
+                                >
+                                    <option value="percentage">
+                                        Porcentaje (%)
+                                    </option>
+                                    <option value="fixed">
+                                        Monto fijo (S/)
+                                    </option>
+                                </select>
                             </label>
                             <label className="glass-field">
-                                Descuento (%)
+                                {form.data.discount_type === 'percentage'
+                                    ? 'Descuento (%)'
+                                    : 'Descuento (S/)'}
                                 <input
                                     type="number"
                                     required
+                                    min="0.01"
+                                    max={
+                                        form.data.discount_type === 'percentage'
+                                            ? 100
+                                            : 1000000
+                                    }
+                                    step="0.01"
                                     className={inputCls}
                                     value={form.data.discount_value}
                                     onChange={(e) =>
@@ -1457,6 +2244,97 @@ function Editor({ section, data, catalog, ingredients = [], editing, close }) {
                                             'discount_value',
                                             e.target.value
                                         )
+                                    }
+                                />
+                            </label>
+                            <label className="glass-field">
+                                Límite de usos por cliente
+                                <select
+                                    className={inputCls}
+                                    value={form.data.per_customer_limit}
+                                    onChange={(e) =>
+                                        form.setData(
+                                            'per_customer_limit',
+                                            Number(e.target.value)
+                                        )
+                                    }
+                                >
+                                    <option value={1}>Una vez por cliente</option>
+                                    <option value={0}>Sin límite de usos</option>
+                                    {Number(form.data.per_customer_limit) > 1 && (
+                                        <option value={form.data.per_customer_limit}>
+                                            Mantener límite actual: {form.data.per_customer_limit}
+                                        </option>
+                                    )}
+                                </select>
+                                <small>
+                                    El uso ilimitado por cliente no elimina la fecha de vigencia ni el límite total.
+                                </small>
+                            </label>
+                            <label className="glass-field">
+                                Compra mínima (S/)
+                                <input
+                                    type="number"
+                                    min="0"
+                                    max="1000000"
+                                    step="0.01"
+                                    className={inputCls}
+                                    value={form.data.min_subtotal}
+                                    onChange={(e) =>
+                                        form.setData('min_subtotal', e.target.value)
+                                    }
+                                />
+                            </label>
+                            <label className="glass-field">
+                                Límite total de usos
+                                <input
+                                    type="number"
+                                    min="1"
+                                    max="100000000"
+                                    step="1"
+                                    placeholder="Sin límite"
+                                    className={inputCls}
+                                    value={form.data.usage_limit}
+                                    onChange={(e) =>
+                                        form.setData('usage_limit', e.target.value)
+                                    }
+                                />
+                            </label>
+                            <label className="glass-field">
+                                Descuento máximo (S/)
+                                <input
+                                    type="number"
+                                    min="0.01"
+                                    max="1000000"
+                                    step="0.01"
+                                    placeholder="Sin tope"
+                                    className={inputCls}
+                                    value={form.data.max_discount}
+                                    onChange={(e) =>
+                                        form.setData('max_discount', e.target.value)
+                                    }
+                                />
+                            </label>
+                            <label className="glass-field">
+                                Válida desde
+                                <input
+                                    type="datetime-local"
+                                    required
+                                    className={inputCls}
+                                    value={form.data.starts_at}
+                                    onChange={(e) =>
+                                        form.setData('starts_at', e.target.value)
+                                    }
+                                />
+                            </label>
+                            <label className="glass-field">
+                                Válida hasta
+                                <input
+                                    type="datetime-local"
+                                    className={inputCls}
+                                    value={form.data.ends_at}
+                                    onChange={(e) =>
+                                        form.setData('ends_at', e.target.value)
                                     }
                                 />
                             </label>
@@ -1469,6 +2347,17 @@ function Editor({ section, data, catalog, ingredients = [], editing, close }) {
                                 value={form.data.name}
                                 onChange={(e) =>
                                     form.setData('name', e.target.value)
+                                }
+                            />
+                        </label>
+                        <label className="glass-field">
+                            Descripción (opcional)
+                            <textarea
+                                maxLength={255}
+                                className={inputCls}
+                                value={form.data.description}
+                                onChange={(e) =>
+                                    form.setData('description', e.target.value)
                                 }
                             />
                         </label>
@@ -1511,10 +2400,10 @@ function Editor({ section, data, catalog, ingredients = [], editing, close }) {
                                     step="0.10"
                                     required
                                     className={inputCls}
-                                    value={form.data.reward_value}
+                                    value={form.data.discount_amount}
                                     onChange={(e) =>
                                         form.setData(
-                                            'reward_value',
+                                            'discount_amount',
                                             e.target.value
                                         )
                                     }
@@ -1566,7 +2455,17 @@ function Editor({ section, data, catalog, ingredients = [], editing, close }) {
                     </>
                 )}
 
-                {section === 'roles' && (
+                {section === 'equipo' && <>
+                    <label className="glass-field">Cuenta del sistema vinculada<select className={inputCls} value={form.data.user_id || ''} onChange={(event) => form.setData('user_id', event.target.value ? Number(event.target.value) : null)}><option value="">Sin cuenta vinculada</option>{data.users?.map(user => <option key={user.id} value={user.id}>{user.name} · {user.role_name}</option>)}</select></label>
+                    {auth?.user?.permissions?.includes('users.view') && <Link href="/admin/seccion/usuarios" className="glass-btn">Gestionar cuentas y asignar roles</Link>}
+                    <label className="glass-field">Sucursal<select className={inputCls} value={form.data.branch_id || ''} onChange={(event) => form.setData('branch_id', event.target.value ? Number(event.target.value) : null)}><option value="">Sin sucursal</option>{data.branches?.map(branch => <option key={branch.id} value={branch.id}>{branch.name}</option>)}</select></label>
+                </>}
+
+                {['promociones', 'fidelizacion'].includes(section) && (
+                    <div className="grid grid-cols-2 gap-3"><label className="glass-field">Inicio de vigencia (Perú)<input type="datetime-local" className={inputCls} required value={form.data.starts_at} onChange={(event) => form.setData('starts_at', event.target.value)} /></label><label className="glass-field">Fin de vigencia (opcional)<input type="datetime-local" className={inputCls} min={form.data.starts_at} value={form.data.ends_at} onChange={(event) => form.setData('ends_at', event.target.value)} /></label></div>
+                )}
+
+                {section === 'usuarios' && (
                     <>
                         <label className="glass-field">
                             Nombre
@@ -1618,13 +2517,16 @@ function Editor({ section, data, catalog, ingredients = [], editing, close }) {
                                     )
                                 }
                             >
-                                {data.roles?.map((r) => (
+                                {data.roles?.filter((r) => r.code !== 'admin' || auth?.user?.role_code === 'admin').map((r) => (
                                     <option key={r.id} value={r.id}>
                                         {adminText(r.name, 'role_name')}
                                     </option>
                                 ))}
                             </select>
                         </label>
+                        {editing && !editing.is_self && auth?.user?.permissions?.includes('users.deactivate') && (
+                            <button type="button" className="glass-btn" onClick={() => router.post('/admin/acciones/users', { action: 'status', id: editing.id, status: editing.status === 'active' ? 'inactive' : 'active' }, { preserveScroll: true, onSuccess: close })}>{editing.status === 'active' ? 'Desactivar cuenta' : 'Activar cuenta'}</button>
+                        )}
                     </>
                 )}
 
@@ -1634,29 +2536,288 @@ function Editor({ section, data, catalog, ingredients = [], editing, close }) {
                     </p>
                 )}
 
-                {section === 'soporte' && (
+                {section === 'soporte' && editing && (
+                    <>
+                        <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2 text-xs mb-3">
+                            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-2">
+                                <div className="flex items-center gap-2">
+                                    <span className="font-bold text-sm tracking-wide text-[#004797]">
+                                        #{editing.ticket_number || `TCK-${String(editing.id).padStart(6, '0')}`}
+                                    </span>
+                                    <span className="px-2 py-0.5 rounded-full bg-slate-200 text-slate-700 font-medium text-[11px]">
+                                        {adminText(editing.category, 'category', 'soporte')}
+                                    </span>
+                                </div>
+                                <StatusBadge value={form.data.status || editing.status} field="status" section="soporte" />
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-600">
+                                <div>
+                                    <strong className="text-slate-800">Cliente:</strong> {editing.creator_name || 'Cliente registrado'}
+                                    {editing.creator_email && <span className="block text-[11px] text-slate-500">{editing.creator_email}</span>}
+                                </div>
+                                <div>
+                                    <strong className="text-slate-800">Registrado:</strong> {display(editing.created_at, 'created_at')}
+                                </div>
+                            </div>
+
+                            <div className="pt-1">
+                                <strong className="text-slate-800">Asunto:</strong>{' '}
+                                <span className="text-slate-900 font-semibold">{editing.subject}</span>
+                            </div>
+                        </div>
+
+                        <label className="glass-field">
+                            Estado *
+                            <select
+                                className={inputCls}
+                                value={form.data.status === 'closed' ? 'resolved' : form.data.status}
+                                onChange={(e) => form.setData('status', e.target.value)}
+                                required
+                            >
+                                <option value="open">Pendiente</option>
+                                <option value="in_progress">En atención</option>
+                                <option value="waiting_user">Esperando cliente</option>
+                                <option value="resolved">Resuelto</option>
+                            </select>
+                        </label>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <label className="glass-field">
+                                Prioridad
+                                <select
+                                    className={inputCls}
+                                    value={form.data.priority}
+                                    onChange={(e) => form.setData('priority', e.target.value)}
+                                >
+                                    <option value="low">Baja</option>
+                                    <option value="normal">Normal</option>
+                                    <option value="high">Alta</option>
+                                    <option value="urgent">Urgente</option>
+                                </select>
+                            </label>
+
+                            <label className="glass-field">
+                                Asignado a
+                                <select
+                                    className={inputCls}
+                                    value={form.data.assigned_to || ''}
+                                    onChange={(e) => form.setData('assigned_to', e.target.value ? Number(e.target.value) : '')}
+                                >
+                                    <option value="">Sin asignar (Todo el equipo)</option>
+                                    {(data.users || []).map((u) => (
+                                        <option key={u.id} value={u.id}>
+                                            {u.name} {u.email ? `(${u.email})` : ''}
+                                        </option>
+                                    ))}
+                                </select>
+                            </label>
+                        </div>
+
+                        <div className="glass-field">
+                            <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5 mb-1.5">
+                                <Paperclip size={14} className="text-[#004797]" />
+                                Archivos, imágenes y documentos adjuntos del cliente
+                            </label>
+                            {(() => {
+                                const attachments = [];
+                                if (editing.attachment_url) {
+                                    attachments.push({
+                                        url: editing.attachment_url,
+                                        title: 'Archivo adjunto inicial',
+                                        author: editing.creator_name || 'Cliente',
+                                    });
+                                }
+                                (editing.messages || []).forEach((m, idx) => {
+                                    if (m.attachment_url && !attachments.some((item) => item.url === m.attachment_url)) {
+                                        attachments.push({
+                                            url: m.attachment_url,
+                                            title: `Adjunto en respuesta #${idx + 1}`,
+                                            author: m.author_name || 'Cliente',
+                                        });
+                                    }
+                                });
+
+                                if (attachments.length === 0) {
+                                    return (
+                                        <div className="p-3 bg-slate-50 rounded-xl border border-dashed border-slate-200 text-xs text-slate-500 text-center">
+                                            El cliente no adjuntó archivos ni documentos en este ticket.
+                                        </div>
+                                    );
+                                }
+
+                                return (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200">
+                                        {attachments.map((att, i) => {
+                                            const isImage = /\.(jpg|jpeg|png|webp|gif)($|\?)/i.test(att.url);
+                                            return (
+                                                <div key={i} className="flex items-center gap-3 p-2 bg-white rounded-lg border border-slate-200 shadow-xs">
+                                                    {isImage ? (
+                                                        <a
+                                                            href={att.url}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="block w-14 h-14 rounded overflow-hidden flex-shrink-0 border border-slate-200 relative group"
+                                                            title="Clic para ver imagen en tamaño real"
+                                                        >
+                                                            <img
+                                                                src={att.url}
+                                                                alt={att.title}
+                                                                className="w-full h-full object-cover group-hover:scale-110 transition-transform"
+                                                            />
+                                                        </a>
+                                                    ) : (
+                                                        <div className="w-14 h-14 rounded bg-red-50 text-red-600 flex items-center justify-center font-bold text-xs flex-shrink-0 border border-red-200">
+                                                            PDF
+                                                        </div>
+                                                    )}
+                                                    <div className="min-w-0 flex-1">
+                                                        <span className="block text-xs font-semibold text-slate-800 truncate" title={att.title}>
+                                                            {att.title}
+                                                        </span>
+                                                        <small className="block text-[10px] text-slate-500">
+                                                            Por: {att.author}
+                                                        </small>
+                                                        <a
+                                                            href={att.url}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="inline-flex items-center gap-1 mt-1 text-[11px] font-semibold text-[#004797] hover:underline"
+                                                        >
+                                                            {isImage ? 'Ver imagen completa' : 'Abrir documento PDF'} &rarr;
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                );
+                            })()}
+                        </div>
+
+                        {editing.messages && editing.messages.length > 0 && (
+                            <div className="glass-field">
+                                <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5 mb-1.5">
+                                    <MessageSquare size={14} className="text-[#004797]" />
+                                    Historial de mensajes ({editing.messages.length})
+                                </label>
+                                <div className="max-h-48 overflow-y-auto space-y-2 p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs">
+                                    {editing.messages.map((m) => {
+                                        const isInternal = Boolean(m.is_internal);
+                                        const isStaff = !isInternal && (m.author_name === auth?.user?.name || m.author_id === auth?.user?.id);
+                                        return (
+                                            <div
+                                                key={m.id}
+                                                className={`p-2.5 rounded-lg border ${
+                                                    isInternal
+                                                        ? 'bg-amber-50 border-amber-200 text-amber-950'
+                                                        : isStaff
+                                                          ? 'bg-blue-50 border-blue-200 text-blue-950'
+                                                          : 'bg-white border-slate-200 text-slate-800'
+                                                }`}
+                                            >
+                                                <div className="flex items-center justify-between gap-2 mb-1">
+                                                    <strong className="text-xs">
+                                                        {m.author_name}
+                                                        {isInternal && (
+                                                            <span className="ml-1.5 text-[10px] px-1.5 py-0.2 rounded bg-amber-200 text-amber-800 font-normal">
+                                                                Nota interna
+                                                            </span>
+                                                        )}
+                                                    </strong>
+                                                    <small className="text-[10px] text-slate-500">{display(m.created_at, 'created_at')}</small>
+                                                </div>
+                                                <p className="whitespace-pre-wrap leading-relaxed m-0 text-xs">{m.message}</p>
+                                                {m.attachment_url && (
+                                                    <a
+                                                        href={m.attachment_url}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="inline-flex items-center gap-1 mt-1.5 text-[11px] font-semibold text-[#004797] hover:underline"
+                                                    >
+                                                        <Paperclip size={11} /> Ver adjunto del mensaje
+                                                    </a>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
+
+                        <label className="glass-field">
+                            Responder al cliente o agregar nota de seguimiento (opcional)
+                            <textarea
+                                rows={3}
+                                className={inputCls}
+                                placeholder="Escribe la respuesta para el cliente o notas de la resolución del caso..."
+                                value={form.data.message}
+                                onChange={(e) => form.setData('message', e.target.value)}
+                            />
+                            <label className="flex items-center gap-2 mt-2 text-xs text-slate-700 cursor-pointer select-none">
+                                <input
+                                    type="checkbox"
+                                    checked={Boolean(form.data.is_internal)}
+                                    onChange={(e) => form.setData('is_internal', e.target.checked)}
+                                    className="rounded text-[#004797] focus:ring-[#004797]"
+                                />
+                                <span>Nota interna (solo visible para el equipo, no se notifica al cliente)</span>
+                            </label>
+                        </label>
+                    </>
+                )}
+
+                {section === 'soporte' && !editing && (
                     <>
                         <label className="glass-field">
-                            Asunto del ticket
+                            Asunto del ticket *
                             <input
                                 required
                                 className={inputCls}
                                 value={form.data.subject}
-                                onChange={(e) =>
-                                    form.setData('subject', e.target.value)
-                                }
+                                onChange={(e) => form.setData('subject', e.target.value)}
+                                placeholder="Ej. Consulta sobre pedido o incidencia..."
                             />
                         </label>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <label className="glass-field">
+                                Categoría *
+                                <select
+                                    className={inputCls}
+                                    value={form.data.category}
+                                    onChange={(e) => form.setData('category', e.target.value)}
+                                >
+                                    <option value="orders">Pedidos y ventas</option>
+                                    <option value="technical">Problema técnico</option>
+                                    <option value="reservations">Reservas</option>
+                                    <option value="loyalty">Puntos y Club DeSego</option>
+                                    <option value="billing">Pagos y comprobantes</option>
+                                    <option value="other">Otro</option>
+                                </select>
+                            </label>
+                            <label className="glass-field">
+                                Prioridad *
+                                <select
+                                    className={inputCls}
+                                    value={form.data.priority}
+                                    onChange={(e) => form.setData('priority', e.target.value)}
+                                >
+                                    <option value="low">Baja</option>
+                                    <option value="normal">Normal</option>
+                                    <option value="high">Alta</option>
+                                    <option value="urgent">Urgente</option>
+                                </select>
+                            </label>
+                        </div>
                         <label className="glass-field">
-                            Detalle
+                            Detalle / Descripción del caso *
                             <textarea
-                                rows={3}
+                                rows={4}
                                 required
                                 className={inputCls}
                                 value={form.data.message}
-                                onChange={(e) =>
-                                    form.setData('message', e.target.value)
-                                }
+                                onChange={(e) => form.setData('message', e.target.value)}
+                                placeholder="Describe el caso o solicitud detalladamente..."
                             />
                         </label>
                     </>
@@ -1677,7 +2838,9 @@ function Editor({ section, data, catalog, ingredients = [], editing, close }) {
                     >
                         {form.processing
                             ? 'Guardando...'
-                            : 'Guardar en base de datos'}
+                            : editing && section === 'soporte'
+                              ? 'Actualizar estado y ticket'
+                              : 'Guardar en base de datos'}
                     </button>
                 </div>
             </form>
@@ -1699,6 +2862,13 @@ export default function Admin({
     const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
     const [moduleQuery, setModuleQuery] = useState('');
     const [searchOpen, setSearchOpen] = useState(false);
+    const contentRef = useRef(null);
+
+    useEffect(() => {
+        if (contentRef.current) {
+            contentRef.current.scrollTop = 0;
+        }
+    }, [section]);
 
     useEffect(() => {
         const timer = setInterval(
@@ -1709,14 +2879,16 @@ export default function Admin({
     }, [section]);
 
     const rows = useMemo(() => {
-        const key = Object.keys(data).find((k) => Array.isArray(data[k]));
-        return key ? data[key] : [];
-    }, [data]);
+        const primaryKeys = { categorias: 'categories', insumos: 'ingredients', alergenos: 'allergens', pedidos: 'orders', carta: 'products', inventario: 'ingredients', clientes: 'customers', reservas: 'reservations', cocina: 'orders', delivery: 'orders', compras: 'suppliers', promociones: 'promotions', fidelizacion: 'rewards', equipo: 'employees', usuarios: 'users', soporte: 'tickets' };
+        const key = primaryKeys[section] || Object.keys(data).find((k) => Array.isArray(data[k]));
+        return key ? data[key] || [] : [];
+    }, [data, section]);
 
     const canCreate = {
+        categorias: 'categories.manage', insumos: 'ingredients.manage', alergenos: 'allergens.manage',
         pedidos: 'orders.create',
         carta: 'products.manage',
-        inventario: 'ingredients.manage',
+        inventario: 'inventory.manage',
         clientes: 'customers.manage',
         reservas: 'reservations.manage',
         caja: 'cash.manage',
@@ -1724,10 +2896,11 @@ export default function Admin({
         promociones: 'promotions.manage',
         fidelizacion: 'loyalty.manage',
         equipo: 'employees.manage',
-        roles: 'users.create',
+        usuarios: 'users.create',
         backups: 'backups.create',
         soporte: 'support.create',
     };
+    const canEdit = { ...canCreate, pedidos: 'orders.update', cocina: 'kitchen.manage', delivery: 'delivery.update', usuarios: 'users.update', soporte: 'support.reply', caja: null, backups: null };
 
     const firstName = useMemo(() => {
         const full = auth?.user?.name || 'Administrador';
@@ -1925,7 +3098,7 @@ export default function Admin({
                     </header>
 
                     {/* CONTENIDO PRINCIPAL */}
-                    <main className="screen-content">
+                    <main className="screen-content" ref={contentRef}>
                         {flash?.success && (
                             <div
                                 className="glass-flash"
@@ -1971,7 +3144,7 @@ export default function Admin({
                                             <span className="glass-metric-icon">
                                                 <CircleDollarSign size={20} strokeWidth={1.7} />
                                             </span>
-                                            <span className="glass-metric-detail">Cobros confirmados</span>
+                                            <span className="glass-metric-detail">Cobrado hoy</span>
                                         </div>
                                         <h2>Ventas de hoy</h2>
                                         <strong className="glass-metric-value">{money(data.sales || 0)}</strong>
@@ -1983,9 +3156,9 @@ export default function Admin({
                                             <span className="glass-metric-icon">
                                                 <ClipboardList size={20} strokeWidth={1.7} />
                                             </span>
-                                            <span className="glass-metric-detail">Registrados hoy</span>
+                                            <span className="glass-metric-detail">Hoy</span>
                                         </div>
-                                        <h2>Pedidos del día</h2>
+                                        <h2>Pedidos hoy</h2>
                                         <strong className="glass-metric-value">{data.orders_today ?? 0}</strong>
                                         <div className="glass-metric-bar" aria-hidden="true"><span style={{ width: '68%' }} /></div>
                                     </article>
@@ -1995,7 +3168,7 @@ export default function Admin({
                                             <span className="glass-metric-icon">
                                                 <Clock3 size={20} strokeWidth={1.7} />
                                             </span>
-                                            <span className="glass-metric-detail">En cocina o reparto</span>
+                                            <span className="glass-metric-detail">En curso</span>
                                         </div>
                                         <h2>Pedidos activos</h2>
                                         <strong className="glass-metric-value">{data.pending ?? 0}</strong>
@@ -2005,15 +3178,101 @@ export default function Admin({
                                     <article className="glass-panel glass-metric">
                                         <div className="glass-metric-top">
                                             <span className="glass-metric-icon">
+                                                <CircleDollarSign size={20} strokeWidth={1.7} />
+                                            </span>
+                                            <span className="glass-metric-detail">Este mes</span>
+                                        </div>
+                                        <h2>Ventas este mes</h2>
+                                        <strong className="glass-metric-value">{money(data.monthly_sales || 0)}</strong>
+                                        <div className="glass-metric-bar" aria-hidden="true"><span style={{ width: '76%' }} /></div>
+                                    </article>
+
+                                    <article className="glass-panel glass-metric">
+                                        <div className="glass-metric-top">
+                                            <span className="glass-metric-icon">
+                                                <CalendarDays size={20} strokeWidth={1.7} />
+                                            </span>
+                                            <span className="glass-metric-detail">Vigentes</span>
+                                        </div>
+                                        <h2>Reservas activas</h2>
+                                        <strong className="glass-metric-value">{data.pending_reservations ?? 0}</strong>
+                                        <div className="glass-metric-bar" aria-hidden="true"><span style={{ width: '60%' }} /></div>
+                                    </article>
+
+                                    <article className="glass-panel glass-metric">
+                                        <div className="glass-metric-top">
+                                            <span className="glass-metric-icon">
                                                 <UsersRound size={20} strokeWidth={1.7} />
                                             </span>
-                                            <span className="glass-metric-detail">Base activa en CRM</span>
+                                            <span className="glass-metric-detail">En CRM</span>
                                         </div>
                                         <h2>Clientes registrados</h2>
                                         <strong className="glass-metric-value">{data.customers ?? 0}</strong>
                                         <div className="glass-metric-bar" aria-hidden="true"><span style={{ width: '90%' }} /></div>
                                     </article>
                                 </div>
+
+                                {/* PRODUCTOS MÁS VENDIDOS Y MODALIDAD */}
+                                {(data.top_products?.length > 0 || data.orders_by_modality?.length > 0) && (
+                                    <div className="glass-grid-secondary mb-5">
+                                        <section className="glass-panel glass-panel-pad" aria-label="Platos más vendidos">
+                                            <div className="glass-panel-head">
+                                                <div>
+                                                    <h3 className="glass-section-title">
+                                                        <Flame size={18} aria-hidden="true" />
+                                                        <span>Platos más vendidos</span>
+                                                    </h3>
+                                                    <p className="glass-panel-sub">Ranking histórico de unidades e ingresos</p>
+                                                </div>
+                                                <Link href="/admin/seccion/carta" className="glass-link">
+                                                    Ver carta →
+                                                </Link>
+                                            </div>
+                                            {data.top_products?.length ? (
+                                                <ul className="glass-stock-list">
+                                                    {data.top_products.map((tp, idx) => (
+                                                        <li key={tp.product_id || idx}>
+                                                            <div>
+                                                                <strong>#{idx + 1} · {tp.product_name}</strong>
+                                                                <small>{tp.units_sold} porciones vendidas</small>
+                                                            </div>
+                                                            <span className="glass-stock-qty">{money(tp.revenue || 0)}</span>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            ) : (
+                                                <p className="glass-empty">Aún no se registran ventas de platos.</p>
+                                            )}
+                                        </section>
+
+                                        <section className="glass-panel glass-panel-pad" aria-label="Pedidos por modalidad">
+                                            <div className="glass-panel-head">
+                                                <div>
+                                                    <h3 className="glass-section-title">
+                                                        <Award size={18} aria-hidden="true" />
+                                                        <span>Pedidos por modalidad</span>
+                                                    </h3>
+                                                    <p className="glass-panel-sub">Delivery, recojo en local y salón</p>
+                                                </div>
+                                            </div>
+                                            {data.orders_by_modality?.length ? (
+                                                <ul className="glass-stock-list">
+                                                    {data.orders_by_modality.map((m, idx) => (
+                                                        <li key={m.order_type || idx}>
+                                                            <div>
+                                                                <strong>{m.order_type}</strong>
+                                                                <small>{m.total_orders} pedidos registrados</small>
+                                                            </div>
+                                                            <span className="glass-stock-qty">{money(m.revenue || 0)}</span>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            ) : (
+                                                <p className="glass-empty">Sin pedidos acumulados por modalidad.</p>
+                                            )}
+                                        </section>
+                                    </div>
+                                )}
 
                                 {/* GRÁFICAS */}
                                 <div className="glass-grid-main">
@@ -2118,6 +3377,14 @@ export default function Admin({
                                     section="dashboard"
                                 />
                             </>
+                        ) : section === 'roles' ? (
+                            <AdminRoles data={data} />
+                        ) : section === 'chatbot' ? (
+                            <AdminChatHistory data={data} />
+                        ) : section === 'configuracion' ? (
+                            <AdminSettingsPanel data={data} />
+                        ) : section === 'resenas' ? (
+                            <AdminReviewsPanel data={data} />
                         ) : section === 'salon' ? (
                             <DiningFloor />
                         ) : section === 'herramientas' ? (
@@ -2175,13 +3442,34 @@ export default function Admin({
                                     </div>
                                 </div>
 
+                                {section === 'reservas' && (
+                                    <AdminReservationTables
+                                        tables={data.tables || []}
+                                        canManage={
+                                            auth?.user?.permissions?.includes('tables.manage') ||
+                                            auth?.user?.role_code === 'admin'
+                                        }
+                                    />
+                                )}
+                                {section === 'delivery' && (
+                                    <div className="mb-5">
+                                        <AdminDeliveryZones
+                                            zones={data.delivery_zones || []}
+                                            canManage={
+                                                auth?.user?.permissions?.includes('delivery.manage') ||
+                                                auth?.user?.role_code === 'admin'
+                                            }
+                                        />
+                                    </div>
+                                )}
+
                                 <RecordTable
                                     rows={rows}
                                     section={section}
-                                    onEdit={(row) => {
+                                    onEdit={canEdit[section] && (auth?.user?.permissions?.includes(canEdit[section]) || (section === 'delivery' && auth?.user?.permissions?.includes('delivery.manage'))) ? (row) => {
                                         setEditing(row);
                                         setEditor(true);
-                                    }}
+                                    } : undefined}
                                 />
 
                                 {section === 'caja' && data.session && (

@@ -528,19 +528,17 @@ export default function Home({
             <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#E2E8F0]">
                 <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
                     <a href="#inicio" className="flex items-center gap-3 shrink-0">
-                        <div className="w-10 h-10 rounded-[10px] bg-[#004797] flex items-center justify-center p-1 shadow-xs">
-                            <img
-                                src="/assets/desego-logo.png"
-                                alt="DESEGO"
-                                className="w-full h-full object-contain rounded-[6px] bg-white"
-                            />
-                        </div>
-                        <div>
+                        <img
+                            src="/assets/desego-logo.png"
+                            alt="DESEGO CEVICHERÍA"
+                            className="h-10 w-auto object-contain"
+                        />
+                        <div className="hidden sm:block">
                             <div className="flex items-center gap-2">
                                 <span className="text-sm font-bold tracking-tight text-[#0F172A]">
                                     DESEGO CEVICHERÍA
                                 </span>
-                                <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#ECFDF5] border border-[#A7F3D0] text-[#047857] text-[10px] font-semibold">
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#ECFDF5] border border-[#A7F3D0] text-[#047857] text-[10px] font-semibold">
                                     <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]" />
                                     Abierto
                                 </span>

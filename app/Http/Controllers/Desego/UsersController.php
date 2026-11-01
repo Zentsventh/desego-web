@@ -103,11 +103,14 @@ class UsersController extends Controller
                 if ($role['code'] === 'admin' && $actor['role_code'] !== 'admin') {
                     json_response(['ok' => false, 'message' => 'No puedes asignar el rol administrador.'], 403);
                 }
-                $targetStmt = $pdo->prepare('SELECT id, role_id FROM users WHERE id = :id');
+                $targetStmt = $pdo->prepare('SELECT u.id, u.role_id, r.code AS role_code FROM users u JOIN roles r ON r.id = u.role_id WHERE u.id = :id');
                 $targetStmt->execute(['id' => $id]);
                 $target = $targetStmt->fetch();
                 if (! $target) {
                     json_response(['ok' => false, 'message' => 'El usuario no existe.'], 404);
+                }
+                if ($target['role_code'] === 'admin' && $actor['role_code'] !== 'admin') {
+                    json_response(['ok' => false, 'message' => 'Solo un administrador puede modificar otra cuenta administradora.'], 403);
                 }
                 if ((int) $id === (int) $actor['id'] && $role['code'] !== 'admin') {
                     json_response(['ok' => false, 'message' => 'No puedes quitarte el rol de administrador desde tu propia sesión.'], 422);
@@ -139,6 +142,9 @@ class UsersController extends Controller
                 $target = $targetStmt->fetch();
                 if (! $target) {
                     json_response(['ok' => false, 'message' => 'El usuario no existe.'], 404);
+                }
+                if ($target['role_code'] === 'admin' && $actor['role_code'] !== 'admin') {
+                    json_response(['ok' => false, 'message' => 'Solo un administrador puede cambiar el estado de otra cuenta administradora.'], 403);
                 }
                 if ($status === 'inactive' && $target['role_code'] === 'admin') {
                     // Bloquea administradores activos durante la comprobación para evitar desactivar al último por carreras simultáneas.
