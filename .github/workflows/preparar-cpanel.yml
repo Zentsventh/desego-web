@@ -1,0 +1,56 @@
+
+name: Preparar DESEGO para cPanel
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  preparar:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Descargar proyecto
+        uses: actions/checkout@v4
+
+      - name: Configurar PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, intl, pdo_mysql, bcmath, curl, xml, zip, gd
+          tools: composer:v2
+
+      - name: Instalar dependencias Laravel
+        run: |
+          composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader --no-progress
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Instalar dependencias React
+        run: npm ci
+
+      - name: Compilar React
+        run: npm run build
+
+      - name: Verificar archivos
+        run: |
+          test -f vendor/autoload.php
+          test -f public/build/manifest.json
+
+      - name: Generar ZIP
+        run: |
+          zip -qr desego-dependencias.zip vendor public/build
+
+      - name: Publicar archivo preparado
+        uses: actions/upload-artifact@v4
+        with:
+          name: desego-cpanel
+          path: desego-dependencias.zip
+          if-no-files-found: error
+          retention-days: 7
