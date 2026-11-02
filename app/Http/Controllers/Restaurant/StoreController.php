@@ -17,24 +17,32 @@ use Inertia\Response;
 
 class StoreController extends Controller
 {
-    public function index(RestaurantPortal $portal, LegacyEndpoint $legacy): Response
+    public function index(Request $request, RestaurantPortal $portal, LegacyEndpoint $legacy): Response
     {
         return Inertia::render('Restaurant/Store', [
             'catalog' => $portal->catalog(),
             'lastOrder' => $legacy->call('storefront', [], ['view' => 'order'])['order'] ?? null,
+            'canonicalUrl' => $request->url(),
         ]);
     }
 
     public function checkout(Request $request, RestaurantPortal $portal, NiubizOrderPayment $payments): \Symfony\Component\HttpFoundation\Response
     {
-        if ($request->input('payment_preference') === 'Niubiz') {
-            $customer = $portal->customer();
+        $usesNiubiz = $request->input('payment_preference') === 'Niubiz';
+        $customer = null;
+        if ($usesNiubiz) {
+            $customer = $portal->customer(false);
             abort_unless($payments->available(), 503, 'Niubiz no está disponible. Elige otro medio de pago.');
         }
         $result = $portal->checkout($request->all());
 
-        if ($request->input('payment_preference') === 'Niubiz') {
-            $url = $payments->start((int) $result['order_id'], (int) $customer->id, (string) $request->ip());
+        if ($usesNiubiz) {
+            $url = $payments->start(
+                (int) $result['order_id'],
+                $customer ? (int) $customer->id : null,
+                (string) $request->ip(),
+                $customer ? null : (string) $request->input('checkout_key'),
+            );
             $request->session()->flash('niubiz_clear_cart', true);
 
             return $request->header('X-Inertia') ? Inertia::location($url) : redirect()->to($url);
@@ -77,6 +85,10 @@ class StoreController extends Controller
         $today = now('America/Lima')->format('Y-m-d');
         $urls = [
             ['loc' => $base.'/', 'priority' => '1.0', 'changefreq' => 'daily'],
+            ['loc' => $base.'/carta', 'priority' => '0.9', 'changefreq' => 'weekly'],
+            ['loc' => $base.'/nuestra-esencia', 'priority' => '0.7', 'changefreq' => 'monthly'],
+            ['loc' => $base.'/reservar', 'priority' => '0.8', 'changefreq' => 'monthly'],
+            ['loc' => $base.'/ubicacion', 'priority' => '0.8', 'changefreq' => 'monthly'],
             ['loc' => $base.'/ingresar', 'priority' => '0.6', 'changefreq' => 'monthly'],
             ['loc' => $base.'/registro', 'priority' => '0.6', 'changefreq' => 'monthly'],
         ];

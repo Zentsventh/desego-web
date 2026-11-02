@@ -4,72 +4,42 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use App\Services\DiningService;
-use App\Support\Desego\SqlDump;
+use App\Services\ReservationAvailabilityService;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use RuntimeException;
 
 class DatabaseSeeder extends Seeder
 {
-    /**
-     * Semilla maestra para inicializar una base de datos limpia de desarrollo/staging.
-     */
     public function run(): void
     {
-        $pdo = DB::connection()->getPdo();
-        $referenceDataPath = database_path('desego/reference-data.sql');
+        $email = (string) config('desego.seeding.admin_email');
+        $password = (string) config('desego.seeding.admin_password');
+        $hasAdministrator = DB::table('users')->join('roles', 'roles.id', '=', 'users.role_id')
+            ->where('roles.code', 'admin')->where('users.status', 'active')->exists();
+        if (! $hasAdministrator && strlen($password) < 12) {
+            throw new RuntimeException('Configura DESEGO_ADMIN_PASSWORD con al menos 12 caracteres antes de inicializar el administrador.');
+        }
+        if (! $hasAdministrator && DB::table('users')->where('email', $email)->exists()) {
+            throw new RuntimeException('DESEGO_ADMIN_EMAIL pertenece a una cuenta existente sin acceso administrativo. Elige otro correo.');
+        }
 
-        // 1. Cargar el catálogo base y roles si aún no existen
-        $hasRoles = DB::table('roles')->exists();
-        if (! $hasRoles && is_file($referenceDataPath)) {
-            $this->command?->info('Sembrando catálogo base (roles, permisos, categorías, productos)...');
-            $parser = app(SqlDump::class);
-            $statements = $parser->statements((string) file_get_contents($referenceDataPath));
-
-            $pdo->exec('SET FOREIGN_KEY_CHECKS=0');
-            try {
-                $pdo->beginTransaction();
-                foreach ($statements as $statement) {
-                    $pdo->exec($statement);
-                }
-                $pdo->commit();
-            } catch (\Throwable $e) {
-                if ($pdo->inTransaction()) {
-                    $pdo->rollBack();
-                }
-                throw $e;
-            } finally {
-                $pdo->exec('SET FOREIGN_KEY_CHECKS=1');
+        DB::transaction(function () use ($email, $password, $hasAdministrator): void {
+            $this->call(RestaurantReferenceSeeder::class);
+            $this->call(OfficialCatalogSeeder::class);
+            if (! $hasAdministrator) {
+                User::create([
+                    'name' => 'Administrador General',
+                    'email' => $email,
+                    'password_hash' => Hash::make($password),
+                    'role_id' => DB::table('roles')->where('code', 'admin')->value('id'),
+                    'status' => 'active',
+                ]);
+                $this->command?->info('Administrador inicial creado con la contraseña configurada.');
             }
-        }
-
-        // 2. Crear usuario Administrador inicial si no existe
-        $adminEmail = env('DESEGO_ADMIN_EMAIL', 'admin@desego.pe');
-        $adminPassword = env('DESEGO_ADMIN_PASSWORD', 'admin12345');
-
-        $adminExists = DB::table('users')->where('email', $adminEmail)->exists();
-        if (! $adminExists) {
-            $adminRoleId = DB::table('roles')->where('code', 'admin')->value('id') ?? 1;
-
-            User::create([
-                'name' => 'Administrador General',
-                'email' => $adminEmail,
-                'password_hash' => Hash::make($adminPassword),
-                'role_id' => $adminRoleId,
-                'status' => 'active',
-            ]);
-
-            $this->command?->info("Usuario Administrador creado: {$adminEmail} / {$adminPassword}");
-        }
-
-        // 3. Preparar mesas y códigos QR del salón
-        if (class_exists(DiningService::class)) {
             app(DiningService::class)->prepare();
-            $this->command?->info('Mesas del salón y tokens QR inicializados.');
-        }
-
-        // 4. Sembrar catálogo oficial completo de DeSego (35 productos en 4 categorías, horarios y zonas)
-        $this->call(OfficialCatalogSeeder::class);
-        $this->command?->info('Catálogo oficial de DeSego Cevichería inicializado con éxito (35 platos).');
+            app(ReservationAvailabilityService::class)->config();
+        });
     }
 }

@@ -44,43 +44,57 @@ class OfficialStorefrontAndCatalogTest extends TestCase
 
         $this->assertTrue($data['ok']);
 
-        // Check products count
-        $products = collect($data['products']);
-        $this->assertCount(35, $products);
-
-        // Check exact code counts per category
-        $frescos = $products->filter(fn ($p) => str_starts_with($p['code'], 'PF'));
-        $this->assertCount(8, $frescos);
-        $this->assertEquals(['PF001', 'PF002', 'PF003', 'PF004', 'PF005', 'PF006', 'PF007', 'PF008'], $frescos->pluck('code')->all());
-
-        $calientes = $products->filter(fn ($p) => str_starts_with($p['code'], 'PC'));
-        $this->assertCount(11, $calientes);
-        $this->assertEquals(['PC001', 'PC002', 'PC003', 'PC004', 'PC005', 'PC006', 'PC007', 'PC008', 'PC009', 'PC010', 'PC011'], $calientes->pluck('code')->all());
-
-        $frituras = $products->filter(fn ($p) => str_starts_with($p['code'], 'FR'));
-        $this->assertCount(6, $frituras);
-        $this->assertEquals(['FR001', 'FR002', 'FR003', 'FR004', 'FR005', 'FR006'], $frituras->pluck('code')->all());
-
-        $duos = $products->filter(fn ($p) => str_starts_with($p['code'], 'DT'));
-        $this->assertCount(10, $duos);
-        $this->assertEquals(['DT001', 'DT002', 'DT003', 'DT004', 'DT005', 'DT006', 'DT007', 'DT008', 'DT009', 'DT010'], $duos->pluck('code')->all());
+        // Check products count (55 official products)
+        $products = collect($data['products'])->filter(fn (array $product): bool => preg_match('/^(EN|CV|DT|SO|AR|PA|FR|BE|CZ)\d{3}$/', $product['code'] ?? '') === 1)->sortBy('code');
+        $this->assertCount(55, $products);
 
         // Check categories
         $categories = collect($data['categories'])->pluck('name')->all();
-        $this->assertContains('Platos frescos', $categories);
-        $this->assertContains('Platos calientes', $categories);
+        $this->assertContains('Entradas', $categories);
+        $this->assertContains('Ceviches', $categories);
+        $this->assertContains('Dúos y Tríos Marinos', $categories);
+        $this->assertContains('Sopas', $categories);
+        $this->assertContains('Arroces', $categories);
+        $this->assertContains('Pastas', $categories);
         $this->assertContains('Frituras', $categories);
-        $this->assertContains('Dúos, tríos y rondas marinas', $categories);
         $this->assertContains('Bebidas', $categories);
+        $this->assertContains('Cervezas', $categories);
 
         // Check official business hours and delivery zones
         $this->assertNotEmpty($data['business_hours']);
         $this->assertNotEmpty($data['delivery_zones']);
     }
 
+    public function test_catalog_contains_the_beverages_and_beers_from_the_menu(): void
+    {
+        $response = $this->get('/api/storefront');
+        $response->assertOk();
+        $data = $response->json();
+
+        $products = collect($data['products'])->keyBy('slug');
+
+        $this->assertEquals(7.0, $products['chicha-morada']['price']);
+        $this->assertDatabaseHas('products', [
+            'slug' => 'chicha-morada',
+            'price' => 7.00,
+            'status' => 'available',
+        ]);
+        $this->assertEquals(9.0, $products['chicha-de-jora']['price']);
+        $this->assertEquals(9.0, $products['limonada']['price']);
+        $this->assertEquals(7.0, $products['maracuya']['price']);
+        $this->assertEquals(9.0, $products['heineken']['price']);
+        $this->assertEquals(9.0, $products['corona']['price']);
+        $this->assertEquals(9.0, $products['flying-fish']['price']);
+        $this->assertSame(
+            'Combina el cuerpo tradicional de la cerveza con un toque cítrico y dulce de lima-limón.',
+            $products['flying-fish']['description'],
+        );
+        $this->assertContains('Cervezas', collect($data['categories'])->pluck('name')->all());
+    }
+
     public function test_storefront_order_flow_for_delivery_modality(): void
     {
-        $cevicheId = (int) DB::table('products')->where('code', 'PF001')->value('id');
+        $cevicheId = (int) DB::table('products')->where('slug', 'ceviche-clasico-de-pescado')->value('id');
         $checkoutKey = 'abc12345-6789-4000-8000-000000000001';
 
         $response = $this->postJson('/api/storefront', [
@@ -115,7 +129,7 @@ class OfficialStorefrontAndCatalogTest extends TestCase
 
     public function test_storefront_order_flow_for_takeout_modality(): void
     {
-        $arrozId = (int) DB::table('products')->where('code', 'PC001')->value('id');
+        $arrozId = (int) DB::table('products')->where('slug', 'arroz-con-mariscos')->value('id');
         $checkoutKey = 'abc12345-6789-4000-8000-000000000002';
 
         $response = $this->postJson('/api/storefront', [
@@ -145,7 +159,7 @@ class OfficialStorefrontAndCatalogTest extends TestCase
 
     public function test_storefront_order_flow_for_dine_in_table_modality(): void
     {
-        $duoId = (int) DB::table('products')->where('code', 'DT005')->value('id');
+        $duoId = (int) DB::table('products')->where('slug', 'duo-chaufa')->value('id');
         $checkoutKey = 'abc12345-6789-4000-8000-000000000003';
 
         $response = $this->postJson('/api/storefront', [
@@ -176,7 +190,7 @@ class OfficialStorefrontAndCatalogTest extends TestCase
 
     public function test_customer_promotion_limits_allow_once_or_unlimited_use(): void
     {
-        $productId = (int) DB::table('products')->where('code', 'PF001')->value('id');
+        $productId = (int) DB::table('products')->where('slug', 'ceviche-clasico-de-pescado')->value('id');
         $now = now('UTC');
         $promotionId = DB::table('promotions')->insertGetId([
             'name' => 'Cupón de un solo uso',

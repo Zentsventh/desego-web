@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Mail\AccountVerificationCode;
 use App\Support\Desego\LegacyEndpoint;
+use App\Support\Desego\OrderItemOptions;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -103,14 +104,14 @@ class RestaurantPortal
             'address' => (string) ($settings['restaurant_address'] ?? ($branch->address ?? 'UCV 19, Lote 13, Zona A, Huaycán, Ate')),
             'district' => (string) ($settings['restaurant_district'] ?? ($branch->district ?? 'Ate')),
             'postal_code' => (string) ($settings['restaurant_postal_code'] ?? '15479'),
-            'latitude' => (float) ($settings['restaurant_latitude'] ?? -12.0168500),
-            'longitude' => (float) ($settings['restaurant_longitude'] ?? -76.8211200),
+            'latitude' => (float) ($settings['restaurant_latitude'] ?? -12.009536180504373),
+            'longitude' => (float) ($settings['restaurant_longitude'] ?? -76.82422937768825),
             'email' => (string) ($settings['restaurant_email'] ?? ''),
             'schedule' => $scheduleText,
         ];
         $catalog['is_open_now'] = $isOpenNow;
         $paymentMethods = array_values(array_filter($paymentMethods, fn (string $method): bool => $method !== 'Niubiz'));
-        if (current_user() && app(NiubizOrderPayment::class)->available()) {
+        if (app(NiubizOrderPayment::class)->available()) {
             $paymentMethods[] = 'Niubiz';
         }
         $catalog['payment_methods'] = array_values($paymentMethods);
@@ -228,10 +229,10 @@ class RestaurantPortal
             str_contains($value, 'jalea') => '/assets/images/dish_jalea_mixta.jpg',
             str_contains($value, 'mixto') && str_contains($value, 'ceviche') => '/assets/images/dish_ceviche_mixto.jpg',
             str_contains($value, 'arroz') || str_contains($value, 'chaufa') => '/assets/images/dish_arroz_mariscos.jpg',
-            str_contains($value, 'chicha') || str_contains($value, 'bebida') => '/assets/images/drink_chicha_morada.jpg',
+            str_contains($value, 'chicha') || str_contains($value, 'bebida') || str_contains($value, 'limonada') || str_contains($value, 'maracuya') || str_contains($value, 'cerveza') || str_contains($value, 'corona') || str_contains($value, 'heineken') || str_contains($value, 'flying') || str_contains($value, 'artesanal') => '/assets/images/drink_chicha_morada.jpg',
             str_contains($value, 'parihuela') || str_contains($value, 'chilcano') || str_contains($value, 'sudado') => '/assets/images/dish_chupe_langostinos.jpg',
-            str_contains($value, 'chicharron') || str_contains($value, 'frito') || str_contains($value, 'spaghetti') || str_contains($value, 'tallarin') => '/assets/images/food_pescado.jpg',
-            str_contains($value, 'trio') || str_contains($value, 'duo') || str_contains($value, 'ronda') => '/assets/images/dish_jalea_mixta.jpg',
+            str_contains($value, 'chicharron') || str_contains($value, 'frito') || str_contains($value, 'spaghetti') || str_contains($value, 'tallarin') || str_contains($value, 'yuca') => '/assets/images/food_pescado.jpg',
+            str_contains($value, 'trio') || str_contains($value, 'duo') || str_contains($value, 'ronda') || str_contains($value, 'festin') => '/assets/images/dish_jalea_mixta.jpg',
             default => '/assets/images/dish_ceviche_clasico.jpg',
         };
     }
@@ -334,7 +335,9 @@ class RestaurantPortal
     public function login(array $input): array
     {
         $result = $this->legacy->call('auth', $input, ['action' => 'login'], 'POST');
-        $this->customer(false);
+        if (($result['user']['role_code'] ?? null) === 'customer') {
+            $this->customer(false);
+        }
 
         return $result;
     }
@@ -401,11 +404,7 @@ class RestaurantPortal
         foreach ($orders as $order) {
             $order->online_payment_pending = app(NiubizOrderPayment::class)->hasPendingAttempt((int) $order->id);
             $order->items = DB::table('order_items')->where('order_id', $order->id)->get()->map(function (object $item): object {
-                if (! empty($item->selected_options) && is_string($item->selected_options)) {
-                    $item->selected_options = json_decode($item->selected_options, true) ?: [];
-                } else {
-                    $item->selected_options = [];
-                }
+                $item->selected_options = OrderItemOptions::forItem((int) $item->id);
 
                 return $item;
             });
@@ -1343,9 +1342,7 @@ class RestaurantPortal
         abort_unless($order, 404);
 
         $items = DB::table('order_items')->where('order_id', $order->id)->get()->map(function (object $item): object {
-            $item->selected_options = ! empty($item->selected_options) && is_string($item->selected_options)
-                ? (json_decode($item->selected_options, true) ?: [])
-                : [];
+            $item->selected_options = OrderItemOptions::forItem((int) $item->id);
 
             return $item;
         });

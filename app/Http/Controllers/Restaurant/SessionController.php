@@ -16,9 +16,13 @@ use function App\Support\Desego\current_user;
 
 class SessionController extends Controller
 {
-    public function create(Request $request): Response
+    public function create(Request $request): Response|RedirectResponse
     {
-        return Inertia::render('Restaurant/Auth', ['register' => false, 'staff' => $request->boolean('staff')]);
+        if ($request->boolean('staff')) {
+            return redirect()->route('admin.home');
+        }
+
+        return Inertia::render('Restaurant/Auth', ['register' => false, 'staff' => false]);
     }
 
     public function registration(): Response
@@ -27,6 +31,16 @@ class SessionController extends Controller
     }
 
     public function login(Request $request, RestaurantPortal $portal): RedirectResponse
+    {
+        return $this->authenticate($request, $portal, false);
+    }
+
+    public function staffLogin(Request $request, RestaurantPortal $portal): RedirectResponse
+    {
+        return $this->authenticate($request, $portal, true);
+    }
+
+    private function authenticate(Request $request, RestaurantPortal $portal, bool $staff): RedirectResponse
     {
         $data = $request->validate(['email' => 'required|email|max:190', 'password' => 'required|string|max:4096', 'remember' => 'boolean']);
         try {
@@ -39,7 +53,19 @@ class SessionController extends Controller
         }
         $user = current_user();
 
-        return redirect($user['role_code'] === 'customer' ? '/cuenta' : '/admin');
+        $isStaff = ($user['role_code'] ?? null) !== 'customer'
+            && ! empty($user['permissions'] ?? []);
+        if ($staff !== $isStaff) {
+            $portal->logout();
+
+            throw ValidationException::withMessages([
+                'email' => $staff
+                    ? 'Esta cuenta no tiene acceso al panel del equipo. Ingresa desde el acceso de clientes.'
+                    : 'Esta cuenta pertenece al equipo DESEGO. Ingresa desde el acceso del personal.',
+            ]);
+        }
+
+        return redirect($staff ? '/admin' : '/cuenta');
     }
 
     public function forgotPassword(): Response
@@ -77,8 +103,10 @@ class SessionController extends Controller
 
     public function logout(RestaurantPortal $portal): RedirectResponse
     {
+        $user = current_user();
+        $wasStaff = ($user['role_code'] ?? null) !== 'customer';
         $portal->logout();
 
-        return redirect('/');
+        return redirect($wasStaff ? route('admin.home') : '/');
     }
 }

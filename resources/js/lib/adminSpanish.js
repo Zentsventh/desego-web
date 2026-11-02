@@ -50,6 +50,7 @@ const states = {
     CANCELLED: 'Cancelada',
     PENDING_PAYMENT: 'Pendiente de anticipo',
     PAID: 'Pagado',
+    PARTIALLY_REFUNDED: 'Devolución parcial',
     RETAINED: 'Retenido por inasistencia',
     REFUNDED: 'Reembolsado',
     EXPIRED: 'Expirado',

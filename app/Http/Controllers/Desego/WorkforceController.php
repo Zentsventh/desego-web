@@ -490,8 +490,8 @@ class WorkforceController extends Controller
                         $event = 'clock_out';
                         $message = 'Salida registrada. El turno quedó completado.';
                     }
-                    $q = $pdo->prepare('INSERT INTO attendance_events (shift_id,employee_id,branch_id,event_type,recorded_at,recorded_by,source,notes) VALUES (:shift_id,:employee_id,:branch_id,:event_type,UTC_TIMESTAMP(),:uid,:source,:notes)');
-                    $q->execute(['shift_id' => $id, 'employee_id' => $shift['employee_id'], 'branch_id' => $shift['branch_id'], 'event_type' => $event, 'uid' => $actor['id'], 'source' => $canManage ? 'admin' : 'web', 'notes' => $this->wf_text($body['notes'] ?? null, 500, 'nota', false)]);
+                    $q = $pdo->prepare('INSERT INTO attendance_events (shift_id,event_type,recorded_at,recorded_by,source,notes) VALUES (:shift_id,:event_type,UTC_TIMESTAMP(),:uid,:source,:notes)');
+                    $q->execute(['shift_id' => $id, 'event_type' => $event, 'uid' => $actor['id'], 'source' => $canManage ? 'admin' : 'web', 'notes' => $this->wf_text($body['notes'] ?? null, 500, 'nota', false)]);
                     $pdo->commit();
                     $this->wf_audit($pdo, $actor, 'attendance.'.$event, ['shift_id' => $id, 'employee_id' => (int) $shift['employee_id']]);
                     json_response(['ok' => true, 'message' => $message]);

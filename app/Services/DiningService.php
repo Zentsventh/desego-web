@@ -33,11 +33,6 @@ class DiningService
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
-            DB::table('restaurant_tables')->where('table_number', $number)->update([
-                'capacity' => $capacity,
-                'is_active' => true,
-                'updated_at' => now(),
-            ]);
             DB::table('restaurant_tables')->where('table_number', $number)->whereNull('dining_qr_token')->update([
                 'dining_qr_token' => Str::random(32),
             ]);

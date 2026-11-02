@@ -24,6 +24,7 @@ import {
     ShieldCheck,
     Trash2,
 } from './Icons';
+import { navigateToStoreSection, STORE_SECTION_PATHS } from '../../lib/storeNavigation';
 import InteractiveMap from './InteractiveMap';
 
 export const money = (value) =>
@@ -222,7 +223,7 @@ export function Hero({ products }) {
                                 </span>
                                 <h1>{slide.title}</h1>
                                 <p>{slide.description}</p>
-                                <a href="#carta" className="dg-button dg-button-ochre">
+                                <a href={STORE_SECTION_PATHS.carta} onClick={(event) => navigateToStoreSection('carta', event)} className="dg-button dg-button-ochre">
                                     Explorar la carta <ArrowUpRight size={19} />
                                 </a>
                             </div>
@@ -260,7 +261,7 @@ export function Hero({ products }) {
                         {paused ? <Play size={14} /> : <Pause size={14} />}
                     </button>
                 </div>
-                <a href="#carta" className="dg-scroll-hint">
+                <a href={STORE_SECTION_PATHS.carta} onClick={(event) => navigateToStoreSection('carta', event)} className="dg-scroll-hint">
                     DESLIZA PARA DESCUBRIR <ArrowRight size={15} />
                 </a>
             </div>
@@ -471,7 +472,7 @@ export function Checkout({
                     ? ` [${item.selected_options.map((o) => o.name).join(', ')}]`
                     : '';
                 const note = item.notes ? ` (Nota: ${item.notes})` : '';
-                return `• ${item.quantity}x ${item.product.code ? `[${item.product.code}] ` : ''}${item.product.name}${opts}${note} (${money(item.lineTotal ?? item.product.price * item.quantity)})`;
+                return `• ${item.quantity}x ${item.product.name}${opts}${note} (${money(item.lineTotal ?? item.product.price * item.quantity)})`;
             }),
             '',
             '━━━━━━━━━━━━━━━━━━━━',
@@ -643,14 +644,7 @@ export function Checkout({
                                                     <div className="dg-cart-info">
                                                         <div className="dg-cart-title-row">
                                                             <div>
-                                                                <div className="dg-cart-code-row">
-                                                                    {product.code && (
-                                                                        <span className="dg-cart-code-pill">
-                                                                            {product.code}
-                                                                        </span>
-                                                                    )}
-                                                                    <h3>{product.name}</h3>
-                                                                </div>
+                                                                <h3>{product.name}</h3>
                                                                 <span className="dg-unit-price">
                                                                     {money(unitPrice ?? product.price)} c/u
                                                                 </span>
@@ -1088,8 +1082,8 @@ export function Checkout({
                                                 <InteractiveMap
                                                     mode="delivery"
                                                     height={185}
-                                                    restaurantLat={social?.latitude ?? -12.0125}
-                                                    restaurantLng={social?.longitude ?? -76.8285}
+                                                    restaurantLat={social?.latitude ?? -12.009536180504373}
+                                                    restaurantLng={social?.longitude ?? -76.82422937768825}
                                                     restaurantName={
                                                         social?.name || 'DeSego Cevichería'
                                                     }
@@ -1156,8 +1150,7 @@ export function Checkout({
                                             </div>
                                             <p>
                                                 {social?.address ||
-                                                    'UCV 19, Lote 13, Zona A, Huaycán, Ate'}{' '}
-                                                (CP {social?.postal_code || '15479'})
+                                                    'UCV 19, Lote 13, Zona A, Huaycán, Ate'}
                                             </p>
                                             <small>
                                                 Horario:{' '}

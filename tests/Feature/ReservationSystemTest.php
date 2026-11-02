@@ -59,6 +59,16 @@ class ReservationSystemTest extends TestCase
     }
 
     /**
+     * The old public confirmation endpoint has been removed; tests confirm payments through the service boundary.
+     *
+     * @return array<string, mixed>
+     */
+    private function confirmHold(string $holdToken, string $provider = 'niubiz', ?string $reference = null): array
+    {
+        return app(ReservationAvailabilityService::class)->confirmPayment($holdToken, $provider, $reference);
+    }
+
+    /**
      * Caso 1. Un cliente reserva la mesa 01 a las 19:00, paga S/10 y recibe su confirmación.
      */
     public function test_case_1_customer_reserves_table_01_at_1900_pays_10_soles_receives_confirmation(): void
@@ -81,19 +91,15 @@ class ReservationSystemTest extends TestCase
         $this->assertSame(10.0, (float) $holdResponse->json('advance_amount'));
 
         // Paso 2: Confirmar pago de anticipo de S/ 10.00
-        $confirmResponse = $this->postJson('/api/reservas/confirmar-pago', [
-            'hold_token' => $token,
-            'provider' => 'niubiz',
-            'external_reference' => 'NIUBIZ-AUTH-001',
-        ])->assertOk();
+        $confirmResponse = $this->confirmHold($token, 'niubiz', 'NIUBIZ-AUTH-001');
 
-        $this->assertTrue($confirmResponse->json('ok'));
-        $this->assertSame('CONFIRMED', $confirmResponse->json('status'));
-        $this->assertStringStartsWith('RES-', $confirmResponse->json('reservation_code'));
-        $this->assertSame(10.0, (float) $confirmResponse->json('advance_amount'));
+        $this->assertTrue($confirmResponse['ok']);
+        $this->assertSame('CONFIRMED', $confirmResponse['status']);
+        $this->assertStringStartsWith('RES-', $confirmResponse['reservation_code']);
+        $this->assertSame(10.0, (float) $confirmResponse['advance_amount']);
 
         // Verificar en DB
-        $reservation = DB::table('reservations')->where('reservation_code', $confirmResponse->json('reservation_code'))->first();
+        $reservation = DB::table('reservations')->where('reservation_code', $confirmResponse['reservation_code'])->first();
         $this->assertNotNull($reservation);
         $this->assertSame(1, (int) $reservation->table_id);
         $this->assertSame('PAID', $reservation->payment_status);
@@ -184,11 +190,9 @@ class ReservationSystemTest extends TestCase
             'table_ids' => [1],
         ])->assertOk();
 
-        $confirm = $this->postJson('/api/reservas/confirmar-pago', [
-            'hold_token' => $hold->json('hold_token'),
-        ])->assertOk();
+        $confirm = $this->confirmHold($hold->json('hold_token'));
 
-        $resId = $confirm->json('id');
+        $resId = $confirm['id'];
 
         // Avanzar el reloj exactamente a las 19:15:00 (límite exacto de tolerancia)
         $this->travelTo(CarbonImmutable::parse('2026-11-10 19:15:00', 'America/Lima'));
@@ -217,11 +221,9 @@ class ReservationSystemTest extends TestCase
             'table_ids' => [1],
         ])->assertOk();
 
-        $confirm = $this->postJson('/api/reservas/confirmar-pago', [
-            'hold_token' => $hold->json('hold_token'),
-        ])->assertOk();
+        $confirm = $this->confirmHold($hold->json('hold_token'));
 
-        $resId = $confirm->json('id');
+        $resId = $confirm['id'];
 
         // Avanzar a las 19:16:00 (tolerancia estrictamente superada)
         $this->travelTo(CarbonImmutable::parse('2026-11-10 19:16:00', 'America/Lima'));
@@ -256,11 +258,9 @@ class ReservationSystemTest extends TestCase
             'table_ids' => [1],
         ])->assertOk();
 
-        $confirm = $this->postJson('/api/reservas/confirmar-pago', [
-            'hold_token' => $hold->json('hold_token'),
-        ])->assertOk();
+        $confirm = $this->confirmHold($hold->json('hold_token'));
 
-        $resId = $confirm->json('id');
+        $resId = $confirm['id'];
 
         // Llegada a las 19:00
         $this->travelTo(CarbonImmutable::parse('2026-11-10 19:00:00', 'America/Lima'));
@@ -380,9 +380,7 @@ class ReservationSystemTest extends TestCase
             'table_ids' => [5],
         ])->assertOk();
 
-        $this->postJson('/api/reservas/confirmar-pago', [
-            'hold_token' => $hold->json('hold_token'),
-        ])->assertOk();
+        $this->confirmHold($hold->json('hold_token'));
 
         // Intento a las 20:30 (durante el tiempo de limpieza): DEBE SER RECHAZADO
         $service = app(ReservationAvailabilityService::class);
@@ -413,22 +411,14 @@ class ReservationSystemTest extends TestCase
         $token = $hold->json('hold_token');
 
         // Primera notificación
-        $resp1 = $this->postJson('/api/reservas/confirmar-pago', [
-            'hold_token' => $token,
-            'provider' => 'niubiz',
-            'external_reference' => 'NIUBIZ-DUPLICATE-TEST',
-        ])->assertOk();
+        $resp1 = $this->confirmHold($token, 'niubiz', 'NIUBIZ-DUPLICATE-TEST');
 
-        $code1 = $resp1->json('reservation_code');
+        $code1 = $resp1['reservation_code'];
 
         // Segunda notificación idéntica
-        $resp2 = $this->postJson('/api/reservas/confirmar-pago', [
-            'hold_token' => $token,
-            'provider' => 'niubiz',
-            'external_reference' => 'NIUBIZ-DUPLICATE-TEST',
-        ])->assertOk();
+        $resp2 = $this->confirmHold($token, 'niubiz', 'NIUBIZ-DUPLICATE-TEST');
 
-        $code2 = $resp2->json('reservation_code');
+        $code2 = $resp2['reservation_code'];
 
         $this->assertSame($code1, $code2);
         $count = DB::table('reservations')->where('reservation_code', $code1)->count();
@@ -466,9 +456,7 @@ class ReservationSystemTest extends TestCase
             'people' => 2,
             'table_ids' => [1],
         ])->assertOk();
-        $this->postJson('/api/reservas/confirmar-pago', [
-            'hold_token' => $hold2->json('hold_token'),
-        ])->assertOk();
+        $this->confirmHold($hold2->json('hold_token'));
 
         // Ahora llega tardíamente el webhook de Usuario 1
         $service = app(ReservationAvailabilityService::class);
@@ -500,11 +488,9 @@ class ReservationSystemTest extends TestCase
             'table_ids' => [1],
         ])->assertOk();
 
-        $confirm = $this->postJson('/api/reservas/confirmar-pago', [
-            'hold_token' => $hold->json('hold_token'),
-        ])->assertOk();
+        $confirm = $this->confirmHold($hold->json('hold_token'));
 
-        $resId = $confirm->json('id');
+        $resId = $confirm['id'];
 
         // Check-in a las 19:05
         $this->travelTo(CarbonImmutable::parse('2026-11-10 19:05:00', 'America/Lima'));
@@ -536,11 +522,9 @@ class ReservationSystemTest extends TestCase
             'table_ids' => [1],
         ])->assertOk();
 
-        $confirm = $this->postJson('/api/reservas/confirmar-pago', [
-            'hold_token' => $hold->json('hold_token'),
-        ])->assertOk();
+        $confirm = $this->confirmHold($hold->json('hold_token'));
 
-        $code = $confirm->json('reservation_code');
+        $code = $confirm['reservation_code'];
 
         // Cancelar con anticipación
         $cancel = $this->postJson("/api/reservas/{$code}/cancelar", [
@@ -591,6 +575,175 @@ class ReservationSystemTest extends TestCase
         ]);
 
         $response->assertStatus(403);
+    }
+
+    public function test_admin_refund_rejects_reservations_without_confirmed_payments(): void
+    {
+        $this->adminSession();
+        $reservationId = DB::table('reservations')->insertGetId([
+            'customer_name' => 'Reserva sin pago',
+            'table_id' => DB::table('restaurant_tables')->value('id'),
+            'guest_count' => 2,
+            'reservation_at' => now()->addDay(),
+            'payment_status' => 'PENDING',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->postJson("/api/admin/reservas/{$reservationId}/reembolsar", [
+            'reason' => 'Solicitud de devolución',
+        ])->assertUnprocessable()->assertJsonValidationErrors('amount');
+
+        $this->assertDatabaseHas('reservations', [
+            'id' => $reservationId,
+            'payment_status' => 'PENDING',
+        ]);
+        $this->assertDatabaseMissing('reservation_payments', [
+            'reservation_id' => $reservationId,
+            'status' => 'REFUNDED',
+        ]);
+    }
+
+    public function test_admin_refund_cannot_exceed_the_unreturned_paid_amount(): void
+    {
+        $this->adminSession();
+        $reservationId = DB::table('reservations')->insertGetId([
+            'customer_name' => 'Reserva pagada',
+            'table_id' => DB::table('restaurant_tables')->value('id'),
+            'guest_count' => 2,
+            'reservation_at' => now()->addDay(),
+            'payment_status' => 'PAID',
+            'advance_amount' => 15,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        DB::table('reservation_payments')->insert([
+            'reservation_id' => $reservationId,
+            'amount' => 15,
+            'status' => 'PAID',
+            'paid_at' => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->postJson("/api/admin/reservas/{$reservationId}/reembolsar", [
+            'reason' => 'Monto con precisión inválida',
+            'amount' => 15.001,
+        ])->assertUnprocessable()->assertJsonValidationErrors('amount');
+
+        $this->postJson("/api/admin/reservas/{$reservationId}/reembolsar", [
+            'reason' => 'Monto solicitado excede el pago',
+            'amount' => 15.01,
+        ])->assertUnprocessable()->assertJsonValidationErrors('amount');
+
+        $this->assertDatabaseHas('reservations', [
+            'id' => $reservationId,
+            'payment_status' => 'PAID',
+        ]);
+        $this->assertDatabaseHas('reservation_payments', [
+            'reservation_id' => $reservationId,
+            'status' => 'PAID',
+            'refund_amount' => 0,
+        ]);
+    }
+
+    public function test_admin_can_partially_refund_multiple_reservation_payments_without_over_refunding(): void
+    {
+        $admin = $this->adminSession();
+        $reservationId = DB::table('reservations')->insertGetId([
+            'customer_name' => 'Reserva con pagos divididos',
+            'table_id' => DB::table('restaurant_tables')->value('id'),
+            'guest_count' => 2,
+            'reservation_at' => now()->addDay(),
+            'payment_status' => 'PAID',
+            'advance_amount' => 15,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        foreach ([10, 5] as $amount) {
+            DB::table('reservation_payments')->insert([
+                'reservation_id' => $reservationId,
+                'amount' => $amount,
+                'status' => 'PAID',
+                'paid_at' => now(),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+        $this->postJson("/api/admin/reservas/{$reservationId}/reembolsar", [
+            'reason' => 'Devolución parcial autorizada',
+            'amount' => 12,
+        ])->assertOk()->assertJsonPath('ok', true);
+
+        $payments = DB::table('reservation_payments')
+            ->where('reservation_id', $reservationId)
+            ->orderBy('id')
+            ->get();
+
+        $this->assertSame('REFUNDED', $payments[0]->status);
+        $this->assertSame('10.00', $payments[0]->refund_amount);
+        $this->assertSame('PARTIALLY_REFUNDED', $payments[1]->status);
+        $this->assertSame('2.00', $payments[1]->refund_amount);
+        $this->assertDatabaseHas('reservations', [
+            'id' => $reservationId,
+            'payment_status' => 'PARTIALLY_REFUNDED',
+        ]);
+
+        $this->postJson("/api/admin/reservas/{$reservationId}/reembolsar", [
+            'reason' => 'Devolución del saldo restante',
+        ])->assertOk()->assertJsonPath('ok', true);
+
+        $this->assertDatabaseHas('reservations', [
+            'id' => $reservationId,
+            'payment_status' => 'REFUNDED',
+        ]);
+        $this->assertSame(
+            2,
+            DB::table('reservation_payments')
+                ->where('reservation_id', $reservationId)
+                ->where('status', 'REFUNDED')
+                ->count()
+        );
+        $this->assertDatabaseHas('reservation_audit_logs', [
+            'reservation_id' => $reservationId,
+            'user_id' => $admin->id,
+            'action' => 'manual_refund_authorized',
+        ]);
+    }
+
+    public function test_reservation_calendar_filters_dates_in_lima_timezone(): void
+    {
+        $this->adminSession();
+        $tableId = DB::table('restaurant_tables')->value('id');
+        $previousLocalDayId = DB::table('reservations')->insertGetId([
+            'customer_name' => 'Reserva día anterior en Lima',
+            'table_id' => $tableId,
+            'guest_count' => 2,
+            'reservation_at' => '2026-11-10 04:30:00',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        $selectedLocalDayId = DB::table('reservations')->insertGetId([
+            'customer_name' => 'Reserva del día seleccionado',
+            'table_id' => $tableId,
+            'guest_count' => 2,
+            'reservation_at' => '2026-11-11 04:30:00',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $response = $this->getJson('/api/admin/reservas/calendario?from=2026-11-10&to=2026-11-10')->assertOk();
+
+        $this->assertSame(
+            [$selectedLocalDayId],
+            collect($response->json('events'))->pluck('id')->all()
+        );
+        $this->assertNotContains($previousLocalDayId, collect($response->json('events'))->pluck('id')->all());
+
+        $this->getJson('/api/admin/reservas/calendario?from=2026-11-01&to=2026-12-10')
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('to');
     }
 
     /**

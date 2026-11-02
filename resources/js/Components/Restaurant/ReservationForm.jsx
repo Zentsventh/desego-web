@@ -32,8 +32,6 @@ export default function ReservationForm() {
     const [hold, setHold] = useState(null);
     const [confirmedReservation, setConfirmedReservation] = useState(null);
     const [acceptedTerms, setAcceptedTerms] = useState(false);
-    const [paymentMethod, setPaymentMethod] = useState('tarjeta');
-
     useEffect(() => {
         const timer = setInterval(() => {
             setToday(peruDate());
@@ -116,6 +114,10 @@ export default function ReservationForm() {
             setError('Por favor completa todos los campos obligatorios.');
             return;
         }
+        if (requiresAdvance && !availability?.niubiz_available) {
+            setError('El pago seguro de Niubiz no está configurado. No se bloqueó tu mesa; contacta al restaurante.');
+            return;
+        }
 
         setSubmitting(true);
         try {
@@ -163,7 +165,12 @@ export default function ReservationForm() {
 
         try {
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-            const res = await fetch('/api/reservas/confirmar-pago', {
+            const requiresPayment = Number(hold.advance_amount) > 0;
+            const res = await fetch(
+                requiresPayment
+                    ? '/api/reservas/pagos/niubiz'
+                    : '/api/reservas/pagos/sin-anticipo',
+                {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -172,14 +179,17 @@ export default function ReservationForm() {
                 },
                 body: JSON.stringify({
                     hold_token: hold.hold_token,
-                    provider: paymentMethod === 'tarjeta' ? 'niubiz' : 'direct',
-                    external_reference: 'PAG-' + Math.random().toString(36).substring(2, 10).toUpperCase(),
                 }),
-            });
+                }
+            );
 
             const body = await res.json();
             if (!res.ok || !body.ok) {
-                throw new Error(body.message || 'No se pudo verificar el pago del anticipo.');
+                throw new Error(body.message || 'No se pudo iniciar el pago seguro del anticipo.');
+            }
+            if (body.checkout_url) {
+                window.location.assign(body.checkout_url);
+                return;
             }
 
             setConfirmedReservation(body);
@@ -444,26 +454,14 @@ export default function ReservationForm() {
 
                     {Number(hold.advance_amount) > 0 && (
                         <div className="im-payment-options">
-                            <label className="im-pay-option">
-                                <input
-                                    type="radio"
-                                    name="method"
-                                    value="tarjeta"
-                                    checked={paymentMethod === 'tarjeta'}
-                                    onChange={() => setPaymentMethod('tarjeta')}
-                                />
-                                <span>Tarjeta de Débito / Crédito (Niubiz)</span>
-                            </label>
-                            <label className="im-pay-option">
-                                <input
-                                    type="radio"
-                                    name="method"
-                                    value="direct"
-                                    checked={paymentMethod === 'direct'}
-                                    onChange={() => setPaymentMethod('direct')}
-                                />
-                                <span>Yape / Plin / Transferencia Directa</span>
-                            </label>
+                            <div className="im-pay-option">
+                                <span>Tarjeta de débito o crédito en la pasarela segura de Niubiz</span>
+                            </div>
+                            {!availability?.niubiz_available && (
+                                <p role="alert" className="reservation-alert">
+                                    Niubiz no está configurado. No podrás reservar con anticipo en este momento.
+                                </p>
+                            )}
                         </div>
                     )}
 
@@ -480,11 +478,15 @@ export default function ReservationForm() {
                         <button
                             type="button"
                             className="im-reservation-submit"
-                            disabled={submitting || !acceptedTerms}
+                            disabled={
+                                submitting ||
+                                !acceptedTerms ||
+                                (Number(hold.advance_amount) > 0 && !availability?.niubiz_available)
+                            }
                             onClick={handleProcessPayment}
                         >
                             {submitting
-                                ? 'Confirmando…'
+                                ? Number(hold.advance_amount) > 0 ? 'Conectando con Niubiz…' : 'Confirmando…'
                                 : Number(hold.advance_amount) > 0
                                   ? `Pagar ${money(hold.advance_amount)} y Confirmar Reserva`
                                   : 'Confirmar Reserva Ahora'}

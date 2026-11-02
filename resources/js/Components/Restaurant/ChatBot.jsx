@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ArrowUpRight, BookOpen, CalendarDays, RefreshCw, Send, X } from './Icons';
+import { navigateToStoreSection, STORE_SECTION_PATHS } from '../../lib/storeNavigation';
 import '../../../css/chatbot.css';
 
 const WELCOME = {
@@ -54,7 +55,28 @@ function renderInlineMarkdown(content) {
         const link = part.match(/^\[([^\]]+)\]\((https?:\/\/[^)\s]+|#[\w-]+)\)$/);
         if (link) {
             const external = /^https?:\/\//i.test(link[2]);
-            return <a key={index} href={link[2]} {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>{link[1]}</a>;
+            const legacySection = link[2].slice(1);
+            const href = external ? link[2] : STORE_SECTION_PATHS[legacySection];
+            if (!href) {
+                return link[1];
+            }
+
+            return (
+                <a
+                    key={index}
+                    href={href}
+                    onClick={
+                        external
+                            ? undefined
+                            : (event) => {
+                                  navigateToStoreSection(legacySection, event);
+                              }
+                    }
+                    {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                >
+                    {link[1]}
+                </a>
+            );
         }
 
         return part;
@@ -437,8 +459,24 @@ export default function ChatBot() {
                         )}
                     </div>
                     <nav className="dgbot-actions" aria-label="Accesos del asistente">
-                        <a href="#carta" onClick={close}><BookOpen size={15} /> Ver carta <ArrowUpRight size={13} /></a>
-                        <a href="#reservas" onClick={close}><CalendarDays size={15} /> Reservar <ArrowUpRight size={13} /></a>
+                        <a
+                            href={STORE_SECTION_PATHS.carta}
+                            onClick={(event) => {
+                                navigateToStoreSection('carta', event);
+                                close();
+                            }}
+                        >
+                            <BookOpen size={15} /> Ver carta <ArrowUpRight size={13} />
+                        </a>
+                        <a
+                            href={STORE_SECTION_PATHS.reservas}
+                            onClick={(event) => {
+                                navigateToStoreSection('reservas', event);
+                                close();
+                            }}
+                        >
+                            <CalendarDays size={15} /> Reservar <ArrowUpRight size={13} />
+                        </a>
                     </nav>
                     <form className="dgbot-form" onSubmit={(e) => { e.preventDefault(); send(input); }}>
                         <div className="dgbot-composer">

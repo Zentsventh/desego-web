@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Restaurant;
 
 use App\Http\Controllers\Controller;
+use App\Services\NiubizReservationPayment;
 use App\Services\ReservationAvailabilityService;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
@@ -13,8 +14,11 @@ use Illuminate\Support\Facades\RateLimiter;
 
 class ReservationApiController extends Controller
 {
-    public function disponibilidad(Request $request, ReservationAvailabilityService $service): JsonResponse
-    {
+    public function disponibilidad(
+        Request $request,
+        ReservationAvailabilityService $service,
+        NiubizReservationPayment $payments
+    ): JsonResponse {
         $data = $request->validate([
             'date' => 'required|date_format:Y-m-d',
             'time' => 'nullable|date_format:H:i',
@@ -27,7 +31,10 @@ class ReservationApiController extends Controller
             (int) ($data['people'] ?? 2)
         );
 
-        return response()->json($res)->header('Cache-Control', 'no-store');
+        return response()->json([
+            ...$res,
+            'niubiz_available' => $payments->available(),
+        ])->header('Cache-Control', 'no-store');
     }
 
     public function cotizacion(Request $request, ReservationAvailabilityService $service): JsonResponse
@@ -150,7 +157,7 @@ class ReservationApiController extends Controller
     {
         $data = $request->validate([
             'hold_token' => 'required|string',
-            'payment_method' => 'nullable|string|in:niubiz,direct,yape,plin,tarjeta,sandbox',
+            'payment_method' => 'nullable|string|in:niubiz,direct,yape,plin,tarjeta',
         ]);
 
         $hold = DB::table('reservation_holds')->where('hold_token', $data['hold_token'])->first();
@@ -172,27 +179,9 @@ class ReservationApiController extends Controller
             'currency' => 'PEN',
             'merchant_name' => 'DESEGO CEVICHERÍA PERUANA',
             'direct_payment' => config('dining.direct_payment'),
-            'niubiz_available' => filled(config('dining.niubiz.merchant_id')),
+            'niubiz_available' => app(NiubizReservationPayment::class)->available(),
             'checkout_ready' => true,
         ]);
-    }
-
-    public function confirmarPago(Request $request, ReservationAvailabilityService $service): JsonResponse
-    {
-        $data = $request->validate([
-            'hold_token' => 'required|string',
-            'provider' => 'nullable|string',
-            'external_reference' => 'nullable|string',
-        ]);
-
-        $result = $service->confirmPayment(
-            $data['hold_token'],
-            $data['provider'] ?? 'niubiz',
-            $data['external_reference'] ?? null,
-            $request->all()
-        );
-
-        return response()->json($result);
     }
 
     public function detalle(string $codigo): JsonResponse

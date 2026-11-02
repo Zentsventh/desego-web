@@ -1143,8 +1143,198 @@
 }
 .glass-table label input { min-width: 0; width: 100%; color: var(--g-text); font-weight: 500; }
 .glass-table label input::placeholder { color: var(--g-muted); }
+.admin-reservation-calendar { margin-bottom: 20px; overflow: hidden; }
+.admin-reservation-calendar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 18px 22px;
+    border-bottom: 1px solid rgba(0, 71, 151, 0.1);
+    background: rgba(255, 255, 255, 0.35);
+}
+.admin-reservation-calendar-header h3 {
+    margin: 3px 0 0;
+    color: var(--g-text);
+    font-size: 15px;
+    font-weight: 700;
+}
+.admin-reservation-calendar-header p {
+    margin: 4px 0 0;
+    color: var(--g-muted);
+    font-size: 12px;
+    text-transform: capitalize;
+}
+.admin-reservation-calendar-controls { display: flex; align-items: center; gap: 6px; }
+.admin-reservation-calendar-controls button,
+.admin-reservation-calendar-message button {
+    display: inline-flex;
+    min-width: 34px;
+    height: 34px;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 0 10px;
+    border: 1px solid var(--g-border-hairline);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.72);
+    color: var(--g-brand);
+    font-size: 12px;
+    font-weight: 650;
+    transition: all var(--g-ease);
+}
+.admin-reservation-calendar-controls button:hover:not(:disabled),
+.admin-reservation-calendar-message button:hover {
+    border-color: var(--g-brand);
+    background: var(--g-brand);
+    color: #fff;
+}
+.admin-reservation-calendar-controls button:disabled { cursor: wait; opacity: 0.55; }
+.admin-reservation-calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(124px, 1fr));
+    gap: 8px;
+    width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    padding: 14px;
+}
+.admin-calendar-total-chip {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(0, 71, 151, 0.08);
+    color: var(--g-brand);
+}
+.admin-today-pill {
+    font-size: 9.5px;
+    font-weight: 750;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: var(--g-brand);
+    color: #fff;
+}
+.admin-event-table-pill {
+    font-size: 9.5px;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: rgba(0, 71, 151, 0.08);
+    color: var(--g-brand);
+}
+.admin-reservation-calendar-day {
+    min-width: 0;
+    min-height: 140px;
+    padding: 10px;
+    border: 1px solid var(--g-border-hairline);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.48);
+    transition: all 180ms ease;
+}
+.admin-reservation-calendar-day.is-today {
+    border-color: rgba(0, 71, 151, 0.35);
+    background: rgba(255, 255, 255, 0.88);
+    box-shadow: 0 4px 14px -3px rgba(0, 71, 151, 0.12);
+}
+.admin-reservation-calendar-day > header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(0, 71, 151, 0.1);
+    color: var(--g-brand);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: capitalize;
+}
+.admin-reservation-calendar-day > header strong {
+    display: grid;
+    width: 20px;
+    height: 20px;
+    place-items: center;
+    border-radius: 50%;
+    background: rgba(0, 71, 151, 0.06);
+    color: var(--g-muted);
+    font-size: 10px;
+    font-weight: 700;
+}
+.admin-reservation-calendar-day > header strong.has-events {
+    background: var(--g-brand);
+    color: #fff;
+}
+.admin-reservation-calendar-day ul { display: grid; gap: 6px; margin: 8px 0 0; padding: 0; list-style: none; }
+.admin-reservation-calendar-event {
+    display: grid;
+    gap: 3px;
+    padding: 8px 9px;
+    border: 1px solid rgba(0, 71, 151, 0.1);
+    border-radius: 9px;
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 2px 6px rgba(0, 71, 151, 0.04);
+}
+.admin-reservation-calendar-event time { color: var(--g-brand); font-size: 11px; font-weight: 750; }
+.admin-reservation-calendar-event > strong {
+    overflow: hidden;
+    color: var(--g-text);
+    font-size: 11.5px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.admin-event-guests {
+    overflow: hidden;
+    color: var(--g-muted);
+    font-size: 10px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.admin-reservation-calendar-status {
+    width: fit-content;
+    max-width: 100%;
+    margin-top: 2px;
+    padding: 2px 6px;
+    border-radius: 999px;
+    font-size: 9px;
+    font-weight: 700;
+}
+.admin-reservation-calendar-status.is-confirmed { background: rgba(16, 185, 129, 0.12); color: #047857; }
+.admin-reservation-calendar-status.is-pending { background: rgba(245, 158, 11, 0.14); color: #b45309; }
+.admin-reservation-calendar-status.is-cancelled { background: rgba(100, 116, 139, 0.12); color: #64748b; }
+.admin-reservation-calendar-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 70px;
+    color: #cbd5e1;
+    font-size: 13px;
+    font-weight: 600;
+}
+.admin-reservation-calendar-message {
+    display: flex;
+    min-height: 100px;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 18px;
+    color: var(--g-muted);
+    font-size: 13px;
+}
+.admin-reservation-calendar-message.is-error { justify-content: space-between; color: #b91c1c; }
 .glass-table table { min-width: 100%; }
 .dg-glass-admin .glass-table .admin-records-table-wrap { width: 100%; min-width: 0; overflow: hidden; }
+.dg-glass-admin .glass-table .admin-records-table-wrap-orders {
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-color: rgba(0, 71, 151, 0.28) transparent;
+    scrollbar-width: thin;
+}
+.dg-glass-admin .glass-table .admin-records-table-wrap-orders:focus-visible {
+    outline: 3px solid var(--g-brand-ring);
+    outline-offset: -3px;
+}
 .dg-glass-admin .glass-table table.admin-records-table { width: 100%; min-width: 0; table-layout: fixed; }
 .dg-glass-admin .glass-table table.admin-records-table th,
 .dg-glass-admin .glass-table table.admin-records-table td {
@@ -1155,6 +1345,53 @@
 }
 .dg-glass-admin .glass-table table.admin-records-table .glass-badge { max-width: 100%; white-space: normal; text-align: center; }
 .dg-glass-admin .glass-table table.admin-records-table td[data-action="true"] .glass-row-action { max-width: 100%; justify-content: center; padding-inline: 8px; white-space: normal; }
+.dg-glass-admin .glass-table table:is(.admin-records-table-pedidos, .admin-records-table-cocina, .admin-records-table-delivery) {
+    min-width: 1040px;
+}
+.dg-glass-admin .glass-table table:is(.admin-records-table-pedidos, .admin-records-table-cocina, .admin-records-table-delivery) th,
+.dg-glass-admin .glass-table table:is(.admin-records-table-pedidos, .admin-records-table-cocina, .admin-records-table-delivery) td {
+    overflow-wrap: normal;
+    word-break: normal;
+}
+.dg-glass-admin .glass-table table:is(.admin-records-table-pedidos, .admin-records-table-cocina, .admin-records-table-delivery) :is(th, td):nth-child(1) { width: 5%; }
+.dg-glass-admin .glass-table table:is(.admin-records-table-pedidos, .admin-records-table-cocina, .admin-records-table-delivery) :is(th, td):nth-child(2) { width: 10%; }
+.dg-glass-admin .glass-table table:is(.admin-records-table-pedidos, .admin-records-table-cocina, .admin-records-table-delivery) :is(th, td):nth-child(3) { width: 13%; }
+.dg-glass-admin .glass-table table:is(.admin-records-table-pedidos, .admin-records-table-cocina, .admin-records-table-delivery) :is(th, td):nth-child(4) { width: 10%; }
+.dg-glass-admin .glass-table table:is(.admin-records-table-pedidos, .admin-records-table-cocina, .admin-records-table-delivery) :is(th, td):nth-child(5) { width: 13%; }
+.dg-glass-admin .glass-table table:is(.admin-records-table-pedidos, .admin-records-table-cocina, .admin-records-table-delivery) :is(th, td):nth-child(6) { width: 18%; }
+.dg-glass-admin .glass-table table:is(.admin-records-table-pedidos, .admin-records-table-cocina, .admin-records-table-delivery) :is(th, td):nth-child(7) { width: 9%; }
+.dg-glass-admin .glass-table table:is(.admin-records-table-pedidos, .admin-records-table-cocina, .admin-records-table-delivery) :is(th, td):nth-child(8) { width: 10%; }
+.dg-glass-admin .glass-table table:is(.admin-records-table-pedidos, .admin-records-table-cocina, .admin-records-table-delivery) :is(th, td):nth-child(9) { width: 7%; }
+.dg-glass-admin .glass-table table:is(.admin-records-table-pedidos, .admin-records-table-cocina, .admin-records-table-delivery) :is(th, td):nth-child(10) { width: 5%; }
+.dg-glass-admin .glass-table table:is(.admin-records-table-pedidos, .admin-records-table-cocina, .admin-records-table-delivery) td[data-column="notes"] {
+    color: var(--g-text-2);
+    font-size: 11px;
+    line-height: 1.5;
+}
+.admin-order-note {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+}
+.dg-glass-admin .glass-table table:is(.admin-records-table-pedidos, .admin-records-table-cocina, .admin-records-table-delivery) :is(.glass-badge, .glass-row-action) {
+    white-space: nowrap;
+}
+.dg-glass-admin .glass-table table.admin-records-table-pedidos :is(th, td):nth-child(1) { width: 13%; }
+.dg-glass-admin .glass-table table.admin-records-table-pedidos :is(th, td):nth-child(2) { width: 17%; }
+.dg-glass-admin .glass-table table.admin-records-table-pedidos :is(th, td):nth-child(3) { width: 11%; }
+.dg-glass-admin .glass-table table.admin-records-table-pedidos :is(th, td):nth-child(4) { width: 16%; }
+.dg-glass-admin .glass-table table.admin-records-table-pedidos :is(th, td):nth-child(5) { width: 12%; }
+.dg-glass-admin .glass-table table.admin-records-table-pedidos :is(th, td):nth-child(6) { width: 13%; }
+.dg-glass-admin .glass-table table.admin-records-table-pedidos :is(th, td):nth-child(7) { width: 9%; }
+.dg-glass-admin .glass-table table.admin-records-table-pedidos :is(th, td):nth-child(8) { width: 9%; }
+.dg-glass-admin .glass-table table.admin-records-table-pedidos td[data-column="created_at"] { white-space: nowrap; font-size: 11px; font-variant-numeric: tabular-nums; }
+.dg-glass-admin .glass-table table.admin-records-table-pedidos td[data-column="total"] { font-weight: 750; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.admin-order-reference { display: grid; gap: 4px; min-width: 0; }
+.admin-order-reference > strong { color: var(--g-brand); font-size: 12px; font-weight: 750; letter-spacing: 0.01em; }
+.admin-order-reference .admin-order-note { color: var(--g-muted); font-size: 10px; line-height: 1.4; }
+.dg-glass-admin .glass-table table.admin-records-table-pedidos tbody > tr:hover { background: rgba(255, 255, 255, 0.76); }
 .dg-glass-admin .glass-table table.admin-records-table-support th:nth-child(1),
 .dg-glass-admin .glass-table table.admin-records-table-support td:nth-child(1) { width: 8%; }
 .dg-glass-admin .glass-table table.admin-records-table-support th:nth-child(2),
@@ -1420,6 +1657,12 @@ textarea.glass-input { resize: vertical; }
 
 @media (max-width: 1023px) {
     .dg-glass-admin .glass-table .admin-records-table-wrap { overflow: visible; }
+    .dg-glass-admin .glass-table table:is(.admin-records-table-pedidos, .admin-records-table-cocina, .admin-records-table-delivery) {
+        width: 100%;
+        min-width: 0;
+    }
+    .dg-glass-admin .glass-table table.admin-records-table-pedidos :is(th, td):nth-child(n) { width: auto; }
+    .dg-glass-admin .glass-table table.admin-records-table-pedidos td[data-column="created_at"] { white-space: normal; }
     .dg-glass-admin .glass-table table.admin-records-table,
     .dg-glass-admin .glass-table table.admin-records-table tbody { display: block; }
     .dg-glass-admin .glass-table table.admin-records-table thead { display: none; }

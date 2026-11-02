@@ -89,6 +89,87 @@ class AccountPaymentAndDocumentTest extends TestCase
         ]);
     }
 
+    private function fakePaymentLookup(object $attempt, array $overrides = []): void
+    {
+        Http::fake([
+            '*api.security/v1/security' => Http::response(str_repeat('s', 50)),
+            '*retrieve/purchase/*' => Http::response(array_replace_recursive([
+                'fulfillment' => ['merchantId' => '123456789'],
+                'dataMap' => ['ACTION_CODE' => '000', 'STATUS' => 'Authorized'],
+                'order' => ['currency' => 'PEN', 'purchaseNumber' => $attempt->purchase_number, 'authorizedAmount' => 65.30, 'transactionId' => 'TX-LOOKUP-001'],
+            ], $overrides)),
+        ]);
+    }
+
+    public function test_uncertain_authorization_is_confirmed_automatically_by_reading_niubiz_without_charging_again(): void
+    {
+        $attempt = $this->startPayment();
+        $this->fakeAuthorization($attempt, [], 503);
+        $this->fakePaymentLookup($attempt);
+
+        $this->post($this->returnUrl($attempt), ['transactionToken' => str_repeat('r', 32)])
+            ->assertOk()->assertSee('Pago confirmado')->assertDontSee('Consultar estado en Niubiz');
+        $this->post($this->returnUrl($attempt), ['transactionToken' => str_repeat('r', 32)])->assertOk();
+
+        $this->assertDatabaseHas('order_payment_attempts', ['id' => $attempt->id, 'status' => 'paid', 'provider_reference' => 'TX-LOOKUP-001']);
+        $this->assertSame(1, DB::table('payments')->where('order_id', $this->orderId)->count());
+        $this->assertCount(1, Http::recorded(fn ($request): bool => str_contains($request->url(), 'authorization/ecommerce')));
+        $this->assertCount(1, Http::recorded(fn ($request): bool => str_contains($request->url(), 'retrieve/purchase')));
+    }
+
+    public function test_sandbox_not_authorized_without_action_code_shows_provider_result_and_allows_new_attempt(): void
+    {
+        $attempt = $this->startPayment();
+        DB::table('order_payment_attempts')->where('id', $attempt->id)->update(['status' => 'unknown']);
+        $this->fakePaymentLookup($attempt, [
+            'dataMap' => ['ACTION_CODE' => '', 'STATUS' => 'Not Authorized'],
+            'order' => ['actionCode' => '', 'transactionId' => '', 'authorizationCode' => ''],
+        ]);
+
+        $this->post($this->returnUrl($attempt), ['transactionToken' => str_repeat('n', 32)])
+            ->assertOk()->assertSee('Pago no autorizado')->assertDontSee('Guardar constancia')
+            ->assertDontSee('verificación del restaurante');
+
+        $this->assertDatabaseHas('order_payment_attempts', ['id' => $attempt->id, 'status' => 'declined']);
+        $this->assertDatabaseHas('orders', ['id' => $this->orderId, 'payment_status' => 'Pendiente']);
+        $this->assertFalse(app(NiubizOrderPayment::class)->hasPendingAttempt($this->orderId));
+        $this->assertSame(0, DB::table('payments')->where('order_id', $this->orderId)->count());
+        $this->assertCount(0, Http::recorded(fn ($request): bool => str_contains($request->url(), 'authorization/ecommerce')));
+    }
+
+    public function test_payment_status_link_requires_signature_and_reconciles_expired_unknown_attempt(): void
+    {
+        $attempt = $this->startPayment();
+        DB::table('order_payment_attempts')->where('id', $attempt->id)->update(['status' => 'unknown', 'expires_at' => now()->subHour()]);
+        $this->fakePaymentLookup($attempt);
+
+        $this->get('/pagos/niubiz/'.$attempt->id.'/estado')->assertForbidden();
+        $url = URL::temporarySignedRoute('customer.payment.status', now()->addHour(), ['attempt' => $attempt->id]);
+        $this->get($url)->assertOk()->assertSee('Pago confirmado');
+        $this->get($url)->assertOk()->assertSee('Pago confirmado');
+
+        $this->assertSame(1, DB::table('payments')->where('order_id', $this->orderId)->count());
+        $this->assertCount(1, Http::recorded(fn ($request): bool => str_contains($request->url(), 'retrieve/purchase')));
+    }
+
+    public function test_lookup_with_wrong_order_or_amount_or_merchant_cannot_confirm_payment(): void
+    {
+        $attempt = $this->startPayment();
+        DB::table('order_payment_attempts')->where('id', $attempt->id)->update(['status' => 'unknown']);
+        foreach ([
+            ['order' => ['purchaseNumber' => 'different-order']],
+            ['order' => ['authorizedAmount' => 1]],
+            ['fulfillment' => ['merchantId' => 'different-merchant']],
+            ['dataMap' => ['STATUS' => 'Voided']],
+        ] as $overrides) {
+            $this->fakePaymentLookup($attempt, $overrides);
+            $result = app(NiubizOrderPayment::class)->reconcile($attempt->id);
+            $this->assertFalse($result['paid']);
+            $this->assertDatabaseHas('order_payment_attempts', ['id' => $attempt->id, 'status' => 'unknown']);
+        }
+        $this->assertSame(0, DB::table('payments')->where('order_id', $this->orderId)->count());
+    }
+
     public function test_dni_uses_configured_provider_and_normalizes_nested_names(): void
     {
         Http::fake(['https://documents.example/v2/reniec/dni*' => Http::response([
@@ -142,7 +223,7 @@ class AccountPaymentAndDocumentTest extends TestCase
     {
         $attempt = $this->startPayment();
         $this->fakeAuthorization($attempt, ['order' => ['authorizedAmount' => 1]]);
-        $this->post($this->returnUrl($attempt), ['transactionToken' => str_repeat('m', 32)])->assertOk()->assertSee('verificación');
+        $this->post($this->returnUrl($attempt), ['transactionToken' => str_repeat('m', 32)])->assertOk()->assertSee('Esperando confirmación de Niubiz');
         $this->assertDatabaseHas('orders', ['id' => $this->orderId, 'payment_status' => 'Pendiente']);
         $this->assertDatabaseHas('order_payment_attempts', ['id' => $attempt->id, 'status' => 'unknown']);
         $this->postJson("/cuenta/pedidos/{$this->orderId}/pagar")->assertConflict();
@@ -202,15 +283,15 @@ class AccountPaymentAndDocumentTest extends TestCase
         $this->assertCount(1, Http::recorded(fn ($request): bool => str_contains($request->url(), 'authorization/ecommerce')));
     }
 
-    public function test_approved_payment_after_cash_closes_preserves_reference_for_reconciliation(): void
+    public function test_approved_payment_after_cash_closes_is_confirmed_automatically_by_gateway(): void
     {
         $attempt = $this->startPayment();
         DB::table('cash_sessions')->where('id', $attempt->cash_session_id)->update(['status' => 'closed', 'closed_at' => now()]);
         $this->fakeAuthorization($attempt);
-        $this->post($this->returnUrl($attempt), ['transactionToken' => str_repeat('c', 32)])->assertOk()->assertSee('conciliarlo');
-        $this->assertDatabaseHas('order_payment_attempts', ['id' => $attempt->id, 'status' => 'review', 'provider_reference' => 'TX-TEST-001']);
-        $this->assertSame(0, DB::table('payments')->where('order_id', $this->orderId)->count());
-        $this->postJson("/cuenta/pedidos/{$this->orderId}/pagar")->assertConflict();
+        $this->post($this->returnUrl($attempt), ['transactionToken' => str_repeat('c', 32)])->assertOk()->assertSee('Pago confirmado');
+        $this->assertDatabaseHas('order_payment_attempts', ['id' => $attempt->id, 'status' => 'paid', 'provider_reference' => 'TX-TEST-001']);
+        $this->assertDatabaseHas('orders', ['id' => $this->orderId, 'payment_status' => 'Pagado', 'payment_preference' => 'Niubiz']);
+        $this->assertSame(1, DB::table('payments')->where('order_id', $this->orderId)->count());
     }
 
     public function test_store_checkout_with_niubiz_opens_real_provider_form(): void
@@ -227,6 +308,35 @@ class AccountPaymentAndDocumentTest extends TestCase
         $response->assertRedirect();
         $this->assertStringContainsString('/pagos/niubiz/', $response->headers->get('Location'));
         $this->assertDatabaseHas('orders', ['web_checkout_key' => '22222222-3333-4000-8000-000000000099', 'payment_preference' => 'Niubiz', 'payment_status' => 'Pendiente']);
+    }
+
+    public function test_guest_store_checkout_with_niubiz_opens_real_provider_form(): void
+    {
+        $this->withSession([
+            '_token' => 'guest-csrf-token',
+            'user_id' => null,
+            'auth_password_fingerprint' => null,
+        ])->withHeader('X-CSRF-TOKEN', 'guest-csrf-token');
+        $this->fakeSession();
+        $productId = DB::table('products')->where('status', 'available')->value('id');
+        $response = $this->post('/pedido', [
+            'customer_name' => 'Cliente Invitado', 'email' => 'guest@example.test', 'phone' => '987654321',
+            'consent' => true, 'order_type' => 'Para llevar', 'payment_preference' => 'Niubiz',
+            'checkout_key' => '33333333-3333-4000-8000-000000000099',
+            'items' => [['product_id' => $productId, 'quantity' => 1]],
+        ]);
+
+        $response->assertRedirect();
+        $this->assertStringContainsString('/pagos/niubiz/', $response->headers->get('Location'));
+        $this->assertDatabaseHas('orders', [
+            'web_checkout_key' => '33333333-3333-4000-8000-000000000099',
+            'payment_preference' => 'Niubiz',
+            'payment_status' => 'Pendiente',
+        ]);
+        Http::assertSent(fn ($request): bool => str_contains($request->url(), 'token/session')
+            && $request['antifraud']['merchantDefineData']['MDD4'] === 'guest@example.test'
+            && $request['antifraud']['merchantDefineData']['MDD75'] === 'Invitado'
+            && $request['antifraud']['merchantDefineData']['MDD77'] === 0);
     }
 
     public function test_payment_unavailable_without_configuration_or_open_cash(): void

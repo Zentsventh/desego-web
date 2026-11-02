@@ -1,9 +1,10 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Head } from '@inertiajs/react';
 import { diningApi } from '../../lib/dining';
+import { searchProducts } from '../../lib/productSearch';
 import { money } from '../../Components/Restaurant/ShopParts';
 import DishModel from '../../Components/Restaurant/DishModel';
-import { Plus, Minus, ArrowUpRight, Fish, Check } from '../../Components/Restaurant/Icons';
+import { Plus, Minus, ArrowUpRight, Fish, Check, Search } from '../../Components/Restaurant/Icons';
 import '../../../css/dining.css';
 
 const visitLabels = {
@@ -39,9 +40,22 @@ export default function Table({ tablePreview, qrToken, catalog }) {
     const [detail, setDetail] = useState(null);
     const [rotation, setRotation] = useState({ x: 0, y: 0 });
     const [notice, setNotice] = useState('');
+    const [productQuery, setProductQuery] = useState('');
+    const [productCategory, setProductCategory] = useState('all');
 
     const checkoutKey = useRef(crypto.randomUUID());
     const products = catalog?.products || [];
+    const categories = useMemo(
+        () => [...new Set(products.map((product) => product.category).filter(Boolean))],
+        [products]
+    );
+    const visibleProducts = useMemo(() => {
+        const categoryProducts =
+            productCategory === 'all'
+                ? products
+                : products.filter((product) => product.category === productCategory);
+        return searchProducts(categoryProducts, productQuery);
+    }, [products, productCategory, productQuery]);
     const total = products.reduce((sum, product) => sum + product.price * (cart[product.id] || 0), 0);
     const count = Object.values(cart).reduce((sum, quantity) => sum + quantity, 0);
 
@@ -290,13 +304,47 @@ export default function Table({ tablePreview, qrToken, catalog }) {
 
                             <section className="dining-client-catalog">
                                 <div className="dining-section-title">
-                                    <h2>Elige tu próximo antojo.</h2>
-                                    <span>Preparado al momento</span>
+                                    <div>
+                                        <span className="dining-eyebrow">CARTA DE LA CASA</span>
+                                        <h2>Elige tu próximo antojo.</h2>
+                                    </div>
+                                    <span className="dining-catalog-count">
+                                        {visibleProducts.length}{' '}
+                                        {visibleProducts.length === 1 ? 'plato' : 'platos'}
+                                    </span>
                                 </div>
+                                <label className="dining-catalog-search">
+                                    <Search size={17} aria-hidden="true" />
+                                    <input
+                                        type="search"
+                                        aria-label="Buscar platos de la carta"
+                                        placeholder="Busca un plato, ingrediente o categoría..."
+                                        value={productQuery}
+                                        onChange={(event) => setProductQuery(event.target.value)}
+                                    />
+                                </label>
+                                {categories.length > 0 && (
+                                    <div
+                                        className="dining-catalog-categories"
+                                        aria-label="Filtrar por categoría"
+                                    >
+                                        {['all', ...categories].map((category) => (
+                                            <button
+                                                key={category}
+                                                type="button"
+                                                aria-pressed={productCategory === category}
+                                                onClick={() => setProductCategory(category)}
+                                            >
+                                                {category === 'all' ? 'Toda la carta' : category}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
                                 <div className="dining-client-products">
-                                    {products.map((product) => (
+                                    {visibleProducts.map((product) => (
                                         <article key={product.id}>
                                             <button
+                                                type="button"
                                                 className="dining-dish-photo"
                                                 onClick={() => {
                                                     setDetail(product);
@@ -310,6 +358,11 @@ export default function Table({ tablePreview, qrToken, catalog }) {
                                                 <span className="dining-eyebrow">
                                                     {product.category}
                                                 </span>
+                                                {product.can_order === false && (
+                                                    <span className="dining-product-unavailable">
+                                                        Agotado por ahora
+                                                    </span>
+                                                )}
                                                 <h3>{product.name}</h3>
                                                 <p>{product.description}</p>
                                                 <footer>
@@ -350,6 +403,12 @@ export default function Table({ tablePreview, qrToken, catalog }) {
                                             </div>
                                         </article>
                                     ))}
+                                    {visibleProducts.length === 0 && (
+                                        <p className="dining-catalog-empty" role="status">
+                                            No encontramos platos con esa búsqueda. Prueba otra
+                                            palabra o categoría.
+                                        </p>
+                                    )}
                                 </div>
                             </section>
 

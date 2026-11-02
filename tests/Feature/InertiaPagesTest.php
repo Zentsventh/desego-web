@@ -97,7 +97,9 @@ class InertiaPagesTest extends TestCase
 
     public function test_admin_panel_renders_login_when_there_is_no_session(): void
     {
-        $this->get('/admin')->assertRedirect('/ingresar?staff=1');
+        $this->get('/admin')->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->component('Restaurant/Auth')
+            ->where('staff', true));
     }
 
     public function test_storefront_api_still_serves_the_catalog_to_the_android_app(): void

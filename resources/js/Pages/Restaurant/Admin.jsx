@@ -6,6 +6,7 @@ import AdminChatHistory from '../../Components/Restaurant/AdminChatHistory';
 import AdminSettingsPanel from '../../Components/Restaurant/AdminSettingsPanel';
 import AdminReviewsPanel from '../../Components/Restaurant/AdminReviewsPanel';
 import AdminDeliveryZones from '../../Components/Restaurant/AdminDeliveryZones';
+import AdminReservationCalendar from '../../Components/Restaurant/AdminReservationCalendar';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import {
     AlertTriangle,
@@ -37,6 +38,7 @@ import { adminModuleTitle, adminText } from '../../lib/adminSpanish';
 import '../../../css/restaurant-glass.css';
 
 const COLUMN_LABELS = {
+    id: 'ID',
     ticket_number: 'N.° Ticket',
     creator_name: 'Cliente',
     creator_email: 'Correo',
@@ -45,6 +47,7 @@ const COLUMN_LABELS = {
     attachment_url: 'Adjunto / Evidencia',
     message_count: 'Mensajes',
     order_number: 'Pedido',
+    item_summary: 'Productos',
     customer_name: 'Cliente',
     order_type: 'Canal',
     order_channel: 'Origen',
@@ -83,7 +86,6 @@ const COLUMN_LABELS = {
     customer_phone: 'Celular',
     email: 'Correo',
     customer_email: 'Correo',
-    seating: 'Distribuci\u00f3n',
     reservation_code: 'Reserva',
     guest_count: 'Personas',
     reservation_at: 'Fecha de reserva',
@@ -325,7 +327,7 @@ const GOOD_STATES = [
 const WARN_STATES = [
     'Pendiente', 'pending', 'Preparando', 'En reparto', 'draft', 'in_progress',
     'waiting_user', 'scheduled', 'partially_received', 'open',
-    'PENDING_PAYMENT', 'PARTIALLY_PAID',
+    'PENDING_PAYMENT', 'PARTIALLY_PAID', 'PARTIALLY_REFUNDED',
 ];
 const BAD_STATES = [
     'Cancelado', 'Cancelada', 'Reembolsado', 'inactive', 'unavailable', 'invalid', 'failed',
@@ -616,6 +618,31 @@ function RecordTable({ rows = [], section, onEdit }) {
     ];
 
     const columns = useMemo(() => {
+        if (section === 'dashboard') return ['order_number', 'customer_name', 'order_type', 'created_at', 'status', 'payment_status', 'total'];
+        if (section === 'pedidos') {
+            return [
+                'order_number',
+                'customer_name',
+                'order_type',
+                'created_at',
+                'status',
+                'payment_status',
+                'total',
+            ];
+        }
+        if (['pedidos', 'cocina', 'delivery'].includes(section)) {
+            return [
+                'id',
+                'order_number',
+                'customer_name',
+                'order_type',
+                'created_at',
+                section === 'cocina' ? 'item_summary' : 'notes',
+                'status',
+                'payment_status',
+                'total',
+            ];
+        }
         if (section === 'reservas') return ['reservation_code', 'customer_name', 'guest_count', 'reservation_at', 'table_label', 'status', 'payment_status', 'advance_amount'];
         if (section === 'carta') return ['code', 'name', 'category', 'price', 'is_featured', 'is_popular', 'status'];
         if (section === 'soporte') return ['ticket_number', 'creator_name', 'subject', 'category', 'priority', 'status', 'attachment_url', 'created_at'];
@@ -643,6 +670,7 @@ function RecordTable({ rows = [], section, onEdit }) {
     const pageSize = 10;
     const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
     const current = filtered.slice((page - 1) * pageSize, page * pageSize);
+    const isOrderTable = ['pedidos', 'cocina', 'delivery'].includes(section);
 
     return (
         <section className="glass-panel glass-table overflow-hidden">
@@ -651,10 +679,14 @@ function RecordTable({ rows = [], section, onEdit }) {
                     <h3>
                         {section === 'dashboard'
                             ? 'Últimos pedidos en tiempo real'
+                            : section === 'pedidos'
+                              ? 'Pedidos registrados'
                             : 'Registros del módulo'}
                     </h3>
                     <span className="text-xs">
-                        {filtered.length} registros sincronizados con la base de datos
+                        {section === 'pedidos'
+                            ? `${filtered.length} pedidos sincronizados con la base de datos`
+                            : `${filtered.length} registros sincronizados con la base de datos`}
                     </span>
                 </div>
                 <label className="flex items-center gap-2 text-xs">
@@ -674,7 +706,11 @@ function RecordTable({ rows = [], section, onEdit }) {
 
             {current.length ? (
                 <>
-                    <div className="admin-records-table-wrap">
+                    <div
+                        className={`admin-records-table-wrap${isOrderTable ? ' admin-records-table-wrap-orders' : ''}`}
+                        tabIndex={isOrderTable ? 0 : undefined}
+                        aria-label={isOrderTable ? 'Tabla de pedidos; desplázate horizontalmente para ver todas las columnas' : undefined}
+                    >
                         <table className={`admin-records-table admin-records-table-${section} w-full text-left border-collapse`}>
                             <thead>
                                 <tr className="border-b text-[11px] uppercase tracking-wider">
@@ -704,6 +740,7 @@ function RecordTable({ rows = [], section, onEdit }) {
                                             <td
                                                 key={key}
                                                 className="px-5 py-3.5 whitespace-nowrap"
+                                                data-column={key}
                                                 data-label={COLUMN_LABELS[key] || adminText(key, key, section)}
                                             >
                                                 {[
@@ -736,10 +773,31 @@ function RecordTable({ rows = [], section, onEdit }) {
                                                         <span className="text-slate-400 text-xs">—</span>
                                                     )
                                                 ) : (
-                                                    display(
-                                                        row[key],
-                                                        key,
-                                                        section
+                                                    key === 'order_number' && section === 'pedidos' ? (
+                                                        <div className="admin-order-reference">
+                                                            <strong>{display(row[key], key, section)}</strong>
+                                                            {row.notes && (
+                                                                <span
+                                                                    className="admin-order-note"
+                                                                    title={String(row.notes)}
+                                                                >
+                                                                    {display(row.notes, 'notes', section)}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    ) : key === 'notes' && isOrderTable ? (
+                                                        <span
+                                                            className="admin-order-note"
+                                                            title={String(row[key] ?? '')}
+                                                        >
+                                                            {display(row[key], key, section)}
+                                                        </span>
+                                                    ) : (
+                                                        display(
+                                                            row[key],
+                                                            key,
+                                                            section
+                                                        )
                                                     )
                                                 )}
                                             </td>
@@ -958,7 +1016,7 @@ function Editor({ section, data, catalog, ingredients = [], editing, close }) {
         },
         fidelizacion: {
             action: 'reward.save',
-            starts_at: peruDateTime(editing?.starts_at),
+            starts_at: peruDateTime(editing?.starts_at) || peruDateTime(new Date().toISOString()),
             ends_at: editing?.ends_at ? peruDateTime(editing.ends_at) : '',
             id: editing?.id || null,
             reward_code: editing?.reward_code || `PREMIO-${Date.now()}`,
@@ -982,7 +1040,7 @@ function Editor({ section, data, catalog, ingredients = [], editing, close }) {
             email: editing?.email || '',
             employment_type: editing?.employment_type || 'full_time',
             hire_date:
-                editing?.hire_date || peruDateTime().slice(0, 10),
+                editing?.hire_date || peruDateTime(new Date().toISOString()).slice(0, 10),
             status: editing?.status || 'active',
         },
         usuarios: {
@@ -1043,6 +1101,7 @@ function Editor({ section, data, catalog, ingredients = [], editing, close }) {
         setUploadingImg(true);
         try {
             const fd = new FormData();
+            fd.append('image', file);
             fd.append('file', file);
             fd.append('folder', 'products');
             const csrf =
@@ -1072,7 +1131,16 @@ function Editor({ section, data, catalog, ingredients = [], editing, close }) {
         form.transform(values => {
             if (section === 'inventario') { return { ...values, ingredient_id: values.id }; }
             if (['promociones', 'fidelizacion'].includes(section)) {
-                return { ...values, starts_at: new Date(`${values.starts_at}-05:00`).toISOString().slice(0, 16), ends_at: values.ends_at ? new Date(`${values.ends_at}-05:00`).toISOString().slice(0, 16) : '' };
+                const parseLimaIso = (val) => {
+                    if (!val || typeof val !== 'string') return '';
+                    const trimmed = val.trim();
+                    if (!trimmed) return '';
+                    const d = new Date(`${trimmed}-05:00`);
+                    return isNaN(d.getTime()) ? '' : d.toISOString().slice(0, 16);
+                };
+                const starts = parseLimaIso(values.starts_at) || new Date().toISOString().slice(0, 16);
+                const ends = values.ends_at ? parseLimaIso(values.ends_at) : '';
+                return { ...values, starts_at: starts, ends_at: ends };
             }
             return values;
         });
@@ -2791,7 +2859,9 @@ function Editor({ section, data, catalog, ingredients = [], editing, close }) {
                                     <option value="technical">Problema técnico</option>
                                     <option value="reservations">Reservas</option>
                                     <option value="loyalty">Puntos y Club DeSego</option>
+                                    <option value="inventory">Insumos e inventario</option>
                                     <option value="billing">Pagos y comprobantes</option>
+                                    <option value="access">Accesos y usuarios</option>
                                     <option value="other">Otro</option>
                                 </select>
                             </label>
@@ -3443,13 +3513,18 @@ export default function Admin({
                                 </div>
 
                                 {section === 'reservas' && (
-                                    <AdminReservationTables
-                                        tables={data.tables || []}
-                                        canManage={
-                                            auth?.user?.permissions?.includes('tables.manage') ||
-                                            auth?.user?.role_code === 'admin'
-                                        }
-                                    />
+                                    <>
+                                        <AdminReservationCalendar />
+                                        <div className="mt-5">
+                                            <AdminReservationTables
+                                                tables={data.tables || []}
+                                                canManage={
+                                                    auth?.user?.permissions?.includes('tables.manage') ||
+                                                    auth?.user?.role_code === 'admin'
+                                                }
+                                            />
+                                        </div>
+                                    </>
                                 )}
                                 {section === 'delivery' && (
                                     <div className="mb-5">

@@ -18,10 +18,15 @@ class AdminController extends Controller
 {
     public function index(RestaurantPortal $portal, LegacyEndpoint $legacy, string $section = 'dashboard'): Response
     {
+        $user = current_user();
+        if (! $user) {
+            return Inertia::render('Restaurant/Auth', ['register' => false, 'staff' => true]);
+        }
+        abort_if(($user['role_code'] ?? null) === 'customer' || empty($user['permissions']), 403);
+
         $sections = $portal->sections();
         abort_unless(isset($sections[$section]), 404);
         $item = $sections[$section];
-        $user = current_user();
         abort_unless(in_array($item['permission'], $user['permissions'], true), 403);
         $needsCatalog = in_array($section, ['pedidos', 'carta'], true)
             && (in_array('orders.create', $user['permissions'], true) || in_array('products.manage', $user['permissions'], true));
@@ -79,11 +84,14 @@ class AdminController extends Controller
     public function uploadImage(Request $request, RestaurantPortal $portal): JsonResponse
     {
         $user = current_user();
-        abort_unless($user && (in_array('products.manage', $user['permissions'] ?? [], true) || in_array('settings.manage', $user['permissions'] ?? [], true)), 403);
+        abort_unless($user && (($user['role_code'] ?? '') === 'admin' || in_array('products.manage', $user['permissions'] ?? [], true) || in_array('settings.manage', $user['permissions'] ?? [], true)), 403);
+        $file = $request->file('image') ?? $request->file('file');
+        abort_unless($file !== null, 422, 'Debes enviar un archivo de imagen válido.');
         $request->validate([
-            'image' => 'required|file|mimes:jpg,jpeg,png,webp|max:4096',
+            'image' => 'nullable|file|mimes:jpg,jpeg,png,webp|max:4096',
+            'file' => 'nullable|file|mimes:jpg,jpeg,png,webp|max:4096',
         ]);
-        $url = $portal->storeUploadedFile($request->file('image'), 'products', ['jpg', 'jpeg', 'png', 'webp'], 4096);
+        $url = $portal->storeUploadedFile($file, 'products', ['jpg', 'jpeg', 'png', 'webp'], 4096);
 
         return response()->json(['ok' => true, 'url' => $url]);
     }

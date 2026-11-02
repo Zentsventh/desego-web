@@ -8,6 +8,7 @@ use App\Services\RestaurantPortal;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\URL;
 use Inertia\Inertia;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -35,8 +36,23 @@ class OrderPaymentController extends Controller
         $data = $request->validate(['transactionToken' => 'required|string|max:200']);
 
         $result = $payments->complete($attempt, $data['transactionToken']);
-        $receipt = DB::table('order_payment_attempts')->where('id', $attempt)->first(['purchase_number', 'amount_cents', 'provider_reference', 'updated_at']);
 
-        return view('desego.order-payment-result', [...$result, 'receipt' => $receipt]);
+        return $this->result($attempt, $result);
+    }
+
+    public function status(string $attempt, NiubizOrderPayment $payments): View
+    {
+        return $this->result($attempt, $payments->reconcile($attempt));
+    }
+
+    /** @param array{paid: bool, message: string} $result */
+    private function result(string $attempt, array $result): View
+    {
+        $receipt = DB::table('order_payment_attempts')->where('id', $attempt)->first(['purchase_number', 'amount_cents', 'provider_reference', 'updated_at', 'status']);
+        $statusUrl = $receipt->status === 'unknown'
+            ? URL::temporarySignedRoute('customer.payment.status', now()->addDay(), ['attempt' => $attempt])
+            : null;
+
+        return view('desego.order-payment-result', [...$result, 'receipt' => $receipt, 'statusUrl' => $statusUrl]);
     }
 }

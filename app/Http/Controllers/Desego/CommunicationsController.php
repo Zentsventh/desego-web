@@ -197,7 +197,7 @@ class CommunicationsController extends Controller
                 $message = $this->comm_text($body['message'] ?? null, 5000, 'descripción', true);
                 $category = (string) ($body['category'] ?? 'other');
                 $priority = (string) ($body['priority'] ?? 'normal');
-                if (! in_array($category, ['technical', 'orders', 'inventory', 'billing', 'access', 'other'], true)) {
+                if (! in_array($category, ['technical', 'orders', 'inventory', 'billing', 'access', 'reservations', 'loyalty', 'other'], true)) {
                     throw new CommunicationsProblem('Categoría de soporte no válida.');
                 }
                 if (! in_array($priority, ['low', 'normal', 'high', 'urgent'], true)) {

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
-import { Brand, ErrorList } from '../../Components/Restaurant/ShopParts';
+import { ErrorList } from '../../Components/Restaurant/ShopParts';
 import '../../../css/restaurant.css';
 import '../../../css/restaurant-account.css';
 import '../../../css/restaurant-mobile.css';
@@ -13,6 +13,7 @@ export default function Auth({
     token = '',
 }) {
     const { flash } = usePage().props;
+    const [passwordVisible, setPasswordVisible] = React.useState(false);
     const isLogin = !register && !forgot && !reset;
     const heading = forgot
         ? 'Recupera tu cuenta.'
@@ -47,7 +48,9 @@ export default function Auth({
           ? '/restablecer-contrasena'
           : register
             ? '/registro'
-            : '/ingresar';
+            : staff
+              ? '/admin'
+              : '/ingresar';
     const form = useForm({
         name: '',
         email: '',
@@ -61,32 +64,14 @@ export default function Auth({
     return (
         <main className="dg-auth">
             <Head title={heading} />
-            <aside className="dg-auth-photo">
-                <img
-                    src="/images/menu/food_ceviche.jpg"
-                    alt="Ceviche de nuestra cocina"
-                />
-                <div />
-                <Brand light />
-                <section>
-                    <span className="dg-eyebrow dg-eyebrow-light">
-                        SABORES QUE NOS ENCUENTRAN
-                    </span>
-                    <h1>
-                        Siempre hay
-                        <br />
-                        un buen motivo
-                        <br />
-                        para <em>volver.</em>
-                    </h1>
-                    <p>Tu próxima experiencia empieza aquí.</p>
-                </section>
-            </aside>
             <section className="dg-auth-form">
                 <Link href="/" className="dg-text-button">
                     ← Volver a la carta
                 </Link>
                 <div>
+                    <div className="dg-auth-logo" aria-hidden="true">
+                        <img src="/assets/desego-logo.png" alt="" />
+                    </div>
                     <span className="dg-eyebrow">
                         {staff ? 'DESEGO · EQUIPO' : 'BIENVENIDO A TU MESA'}
                     </span>
@@ -181,18 +166,37 @@ export default function Auth({
                         {!forgot && (
                             <label>
                                 Contraseña
-                                <input
-                                    type="password"
-                                    required
-                                    minLength={reset ? 12 : register ? 10 : 1}
-                                    autoComplete={
-                                        register || reset ? 'new-password' : 'current-password'
-                                    }
-                                    value={form.data.password}
-                                    onChange={(e) =>
-                                        form.setData('password', e.target.value)
-                                    }
-                                />
+                                <span className="dg-auth-password">
+                                    <input
+                                        type={passwordVisible ? 'text' : 'password'}
+                                        required
+                                        minLength={reset ? 12 : register ? 10 : 1}
+                                        autoComplete={
+                                            register || reset ? 'new-password' : 'current-password'
+                                        }
+                                        value={form.data.password}
+                                        onChange={(e) =>
+                                            form.setData('password', e.target.value)
+                                        }
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setPasswordVisible((visible) => !visible)}
+                                        aria-label={passwordVisible ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                                    >
+                                        {passwordVisible ? (
+                                            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+                                                <path d="m3 3 18 18M10.6 10.6a2 2 0 0 0 2.8 2.8" />
+                                                <path d="M9.9 5.2A10.7 10.7 0 0 1 12 5c5.2 0 9 4.5 10 7a11.8 11.8 0 0 1-3.1 4.4M6.2 6.2C3.9 7.7 2.5 10 2 12c.5 1.3 1.7 3.2 3.7 4.7A10.4 10.4 0 0 0 12 19c.8 0 1.5-.1 2.2-.3" />
+                                            </svg>
+                                        ) : (
+                                            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+                                                <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z" />
+                                                <circle cx="12" cy="12" r="3" />
+                                            </svg>
+                                        )}
+                                    </button>
+                                </span>
                             </label>
                         )}
                         {register || reset ? (
@@ -212,7 +216,7 @@ export default function Auth({
                                 />
                             </label>
                         ) : (
-                            isLogin && (
+                            isLogin && !staff && (
                                 <label className="dg-check">
                                     <input
                                         type="checkbox"
@@ -230,7 +234,7 @@ export default function Auth({
                         </button>
                     </form>
 
-                    {isLogin && (
+                    {isLogin && !staff && (
                         <p className="dg-auth-switch">
                             <Link href="/recuperar-contrasena">Olvidé mi contraseña</Link>
                         </p>
@@ -252,9 +256,6 @@ export default function Auth({
                             </Link>
                         </p>
                     )}
-                    <span className="dg-auth-security">
-                        ✓ Tus datos se gestionan en DESEGO.
-                    </span>
                 </div>
                 <small>DESEGO · Cevichería & cocina marina</small>
             </section>

@@ -36,7 +36,7 @@ class StoreController extends Controller
         try {
             $categories = DB::table('categories')
                 ->where('status', 'active')
-                ->orderBy('id')
+                ->orderByRaw("FIELD(slug, 'entradas', 'ceviches', 'duos-trios-marinos', 'sopas', 'arroces', 'pastas', 'frituras', 'bebidas', 'cervezas'), id")
                 ->get(['id', 'name', 'slug'])
                 ->map(fn (object $cat): array => [
                     'id' => (int) $cat->id,
@@ -64,8 +64,7 @@ class StoreController extends Controller
                 ->join('categories as c', 'c.id', '=', 'p.category_id')
                 ->where('p.status', 'available')
                 ->where('c.status', 'active')
-                ->orderBy('c.id')
-                ->orderBy('p.name')
+                ->orderByRaw("FIELD(c.slug, 'entradas', 'ceviches', 'duos-trios-marinos', 'sopas', 'arroces', 'pastas', 'frituras', 'bebidas', 'cervezas'), p.code, p.id")
                 ->select([
                     'p.id',
                     'p.slug',

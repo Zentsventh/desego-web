@@ -83,8 +83,8 @@ function pointInPolygon(latitude, longitude, polygon) {
 
 export default function InteractiveMap({
     mode = 'restaurant',
-    restaurantLat = -12.0125,
-    restaurantLng = -76.8285,
+    restaurantLat = -12.009536180504373,
+    restaurantLng = -76.82422937768825,
     restaurantName = 'DeSego Cevichería',
     restaurantAddress = 'UCV 19, Lote 13, Zona A, Huaycán, Ate',
     latitude = null,
@@ -345,7 +345,7 @@ export default function InteractiveMap({
         );
     };
 
-    const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${restaurantLat},${restaurantLng}`;
+    const googleMapsUrl = 'https://www.google.com/maps/place/DeSego+Cevicher%C3%ADa/@-12.0096506,-76.8241563,19z/data=!4m6!3m5!1s0x9105c7f0a2da78c3:0xfdfca0a32b2a63e8!8m2!3d-12.0096965!4d-76.8241697!16s%2Fg%2F11lsg8mlbn';
     const wazeUrl = `https://waze.com/ul?ll=${restaurantLat},${restaurantLng}&navigate=yes`;
 
     return (
@@ -482,59 +482,57 @@ export default function InteractiveMap({
             {mode === 'restaurant' && (
                 <div
                     style={{
-                        padding: '10px 14px',
+                        padding: '12px 14px',
                         display: 'flex',
                         flexWrap: 'wrap',
                         alignItems: 'center',
-                        justifyContent: 'space-between',
-                        gap: '10px',
+                        gap: '8px',
                         background: '#ffffff',
                         borderTop: '1px solid #e2e8f0',
                         fontSize: '12px',
                     }}
                 >
-                    <span style={{ color: '#334155' }}>
-                        📍 <strong>{restaurantAddress}</strong> (CP 15479)
-                    </span>
-                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                        <a
-                            href={googleMapsUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '5px',
-                                padding: '6px 12px',
-                                borderRadius: '8px',
-                                background: '#004797',
-                                color: '#fff',
-                                fontWeight: 600,
-                                textDecoration: 'none',
-                            }}
-                        >
-                            <Navigation size={13} />
-                            Cómo llegar (Google Maps)
-                        </a>
-                        <a
-                            href={wazeUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '5px',
-                                padding: '6px 12px',
-                                borderRadius: '8px',
-                                background: '#eef2f8',
-                                color: '#004797',
-                                fontWeight: 600,
-                                textDecoration: 'none',
-                            }}
-                        >
-                            Abrir en Waze
-                        </a>
-                    </div>
+                    <a
+                        href={googleMapsUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            padding: '8px 14px',
+                            borderRadius: '8px',
+                            background: '#004797',
+                            color: '#fff',
+                            fontWeight: 600,
+                            textDecoration: 'none',
+                            fontSize: '12px',
+                            transition: 'opacity 0.2s ease',
+                        }}
+                    >
+                        <Navigation size={13} />
+                        Cómo llegar (Google Maps)
+                    </a>
+                    <a
+                        href={wazeUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            padding: '8px 14px',
+                            borderRadius: '8px',
+                            background: '#eef2f8',
+                            color: '#004797',
+                            fontWeight: 600,
+                            textDecoration: 'none',
+                            fontSize: '12px',
+                            transition: 'opacity 0.2s ease',
+                        }}
+                    >
+                        Abrir en Waze
+                    </a>
                 </div>
             )}
         </div>

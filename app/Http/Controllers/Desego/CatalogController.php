@@ -39,7 +39,7 @@ class CatalogController extends Controller
                     $categories = $pdo->query($categorySql)->fetchAll();
                     $products = $pdo->query(
                         'SELECT p.id, p.code, p.category_id, c.name AS category, c.status AS category_status, p.name, p.description, p.price, p.emoji, p.status, p.is_featured, p.is_popular, p.is_new, p.included_items, p.image_url, p.created_at, p.updated_at
-                 FROM products p INNER JOIN categories c ON c.id = p.category_id ORDER BY FIELD(c.slug, \'platos-frescos\', \'platos-calientes\', \'frituras\', \'duos-trios-rondas\', \'bebidas\'), p.code, p.name'
+                 FROM products p INNER JOIN categories c ON c.id = p.category_id ORDER BY FIELD(c.slug, \'entradas\', \'ceviches\', \'duos-trios-marinos\', \'sopas\', \'arroces\', \'pastas\', \'frituras\', \'bebidas\', \'cervezas\'), p.code, p.name'
                     )->fetchAll();
                     $recipeRows = $pdo->query(
                         'SELECT pi.product_id, i.id AS ingredient_id, i.name AS ingredient_name, i.unit, pi.quantity,

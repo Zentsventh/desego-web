@@ -14,7 +14,7 @@ class RequireRestaurantStaff
     {
         $user = current_user();
         if (! $user) {
-            return redirect()->route('restaurant.login', ['staff' => 1]);
+            return redirect()->route('admin.home');
         }
         abort_if($user['role_code'] === 'customer' || empty($user['permissions']), 403);
 

@@ -20,8 +20,8 @@ return [
     ],
     'niubiz' => [
         'environment' => env('NIUBIZ_ENV', 'sandbox'),
-        'user' => env('NIUBIZ_USER', 'integraciones@niubiz.com.pe'),
-        'password' => env('NIUBIZ_PASSWORD', '_7z3@8fF'),
-        'merchant_id' => env('NIUBIZ_MERCHANT_ID', '456879852'),
+        'user' => env('NIUBIZ_USER'),
+        'password' => env('NIUBIZ_PASSWORD'),
+        'merchant_id' => env('NIUBIZ_MERCHANT_ID'),
     ],
 ];

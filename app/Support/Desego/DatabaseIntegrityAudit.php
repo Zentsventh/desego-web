@@ -99,6 +99,24 @@ class DatabaseIntegrityAudit
             }
         }
         unset($table);
+        $normalized = $pdo->query("SELECT COUNT(*) FROM migrations WHERE migration='2026_11_01_195023_remove_derived_workforce_and_purchase_columns'")->fetchColumn() > 0;
+        $retired = $normalized ? [
+            'attendance_events' => ['idx_step14_attendance_employee_date', 'fk_step14_attendance_branch', 'fk_step14_attendance_employee'],
+            'purchase_receipts' => ['fk_step13_receipt_supplier'],
+            'purchase_receipt_items' => ['idx_step13_receipt_item_ingredient', 'fk_step13_receipt_item_ingredient'],
+        ] : [];
+        if ($normalized) {
+            foreach (['reservation_hold_tables', 'dining_payment_attempt_orders', 'order_item_options'] as $table) {
+                if (! isset($columns[$table])) {
+                    $issues[] = 'Falta tabla normalizada: '.$table;
+                }
+            }
+            foreach (['orders' => 'fk_order_member_session', 'dining_payment_attempts' => 'fk_dining_attempt_member_session', 'dining_requests' => 'fk_dining_request_member_session'] as $table => $constraint) {
+                if (! isset($foreignKeys[$table][$constraint])) {
+                    $issues[] = 'Falta relacion normalizada: '.$table.'.'.$constraint;
+                }
+            }
+        }
         $expected = (new SqlDump)->parse(file_get_contents(database_path('desego/schema.sql')));
         foreach ($expected['tables'] as $name) {
             if (! isset($columns[$name])) {
@@ -112,13 +130,13 @@ class DatabaseIntegrityAudit
             $name = $match[1];
             preg_match_all('/ADD (?:UNIQUE )?KEY `([^`]+)`/i', $statement, $matches);
             foreach ($matches[1] as $indexName) {
-                if (! isset($indexes[$name][$indexName])) {
+                if (! isset($indexes[$name][$indexName]) && ! in_array($indexName, $retired[$name] ?? [], true)) {
                     $issues[] = 'Falta indice original: '.$name.'.'.$indexName;
                 }
             }
             preg_match_all('/ADD CONSTRAINT `([^`]+)`/i', $statement, $matches);
             foreach ($matches[1] as $constraintName) {
-                if (! isset($foreignKeys[$name][$constraintName])) {
+                if (! isset($foreignKeys[$name][$constraintName]) && ! in_array($constraintName, $retired[$name] ?? [], true)) {
                     $issues[] = 'Falta relacion original: '.$name.'.'.$constraintName;
                 }
             }

@@ -1,6 +1,10 @@
 <?php
 
 return [
+    'seeding' => [
+        'admin_email' => env('DESEGO_ADMIN_EMAIL', 'admin@desego.pe'),
+        'admin_password' => env('DESEGO_ADMIN_PASSWORD'),
+    ],
     'mail' => [
         'app_url' => env('APP_URL', 'http://localhost:8000'),
         'from_email' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),

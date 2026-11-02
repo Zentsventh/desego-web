@@ -210,7 +210,7 @@ class ReservationsController extends Controller
                 if (! $id || $id < 1) {
                     throw new ReservationApiProblem('La reserva seleccionada no es válida.');
                 }
-                $allowed = ['Confirmada', 'Sentada', 'Completada', 'Cancelada', 'No asistió', 'CONFIRMED', 'CHECKED_IN', 'IN_SERVICE', 'COMPLETED', 'CANCELLED', 'NO_SHOW'];
+                $allowed = ['Pendiente', 'PENDING', 'Confirmada', 'Sentada', 'Completada', 'Cancelada', 'No asistió', 'CONFIRMED', 'CHECKED_IN', 'IN_SERVICE', 'COMPLETED', 'CANCELLED', 'NO_SHOW'];
                 if (! in_array($status, $allowed, true)) {
                     throw new ReservationApiProblem('Estado de reserva no permitido.');
                 }
@@ -223,6 +223,7 @@ class ReservationsController extends Controller
                         throw new ReservationApiProblem('La reserva no existe.', 404);
                     }
                     $normalizedCurrent = match ($reservation['status']) {
+                        'PENDING' => 'Pendiente',
                         'CONFIRMED' => 'Confirmada',
                         'CHECKED_IN', 'IN_SERVICE' => 'Sentada',
                         'COMPLETED' => 'Completada',
@@ -231,6 +232,7 @@ class ReservationsController extends Controller
                         default => $reservation['status'],
                     };
                     $normalizedTarget = match ($status) {
+                        'PENDING' => 'Pendiente',
                         'CONFIRMED' => 'Confirmada',
                         'CHECKED_IN', 'IN_SERVICE' => 'Sentada',
                         'COMPLETED' => 'Completada',
@@ -238,10 +240,17 @@ class ReservationsController extends Controller
                         'NO_SHOW' => 'No asistió',
                         default => $status,
                     };
+                    if ($normalizedTarget === $normalizedCurrent) {
+                        $pdo->commit();
+                        json_response(['ok' => true, 'message' => 'La reserva ya se encuentra en estado '.$status.'.']);
+                    }
                     $transitions = [
-                        'Pendiente' => ['Confirmada', 'Cancelada'],
-                        'Confirmada' => ['Sentada', 'Cancelada', 'No asistió', 'Completada'],
-                        'Sentada' => ['Completada', 'Cancelada'],
+                        'Pendiente' => ['Pendiente', 'Confirmada', 'Cancelada'],
+                        'Confirmada' => ['Confirmada', 'Sentada', 'Cancelada', 'No asistió', 'Completada'],
+                        'Sentada' => ['Sentada', 'Completada', 'Cancelada'],
+                        'Completada' => ['Completada'],
+                        'Cancelada' => ['Cancelada'],
+                        'No asistió' => ['No asistió'],
                     ];
                     if (! in_array($normalizedTarget, $transitions[$normalizedCurrent] ?? [], true)) {
                         throw new ReservationApiProblem('No se puede cambiar de '.$reservation['status'].' a '.$status.'.', 409);
@@ -250,6 +259,7 @@ class ReservationsController extends Controller
                         throw new ReservationApiProblem('No se puede marcar como no asistió antes de la hora reservada.', 409);
                     }
                     $dbStatus = match ($normalizedTarget) {
+                        'Pendiente' => 'Pendiente',
                         'No asistió' => 'NO_SHOW',
                         'Confirmada' => 'Confirmada',
                         'Sentada' => 'Sentada',

@@ -8,6 +8,7 @@ use App\Exceptions\Desego\StorefrontProblem;
 use App\Http\Controllers\Controller;
 use App\Services\NiubizOrderPayment;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Support\Facades\DB;
 use PDO;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
@@ -71,7 +72,7 @@ class StorefrontController extends Controller
                     throw new StorefrontProblem('Vista no válida.', 404);
                 }
                 $categories = $pdo->query(
-                    "SELECT id, name, slug FROM categories WHERE status = 'active' ORDER BY FIELD(slug, 'platos-frescos', 'platos-calientes', 'frituras', 'duos-trios-rondas', 'bebidas'), name"
+                    "SELECT id, name, slug FROM categories WHERE status = 'active' ORDER BY FIELD(slug, 'entradas', 'ceviches', 'duos-trios-marinos', 'sopas', 'arroces', 'pastas', 'frituras', 'bebidas', 'cervezas'), name"
                 )->fetchAll();
                 foreach ($categories as &$category) {
                     $category['id'] = (int) $category['id'];
@@ -79,7 +80,7 @@ class StorefrontController extends Controller
                 unset($category);
 
                 $products = $pdo->query(
-                    "SELECT p.id, p.code, p.name, p.description, p.price, p.emoji, p.slug, p.is_featured, p.is_popular, p.is_new, p.included_items, p.image_url,
+                    "SELECT p.id, p.code, p.name, p.description, p.price, p.emoji, p.slug, p.status, p.is_featured, p.is_popular, p.is_new, p.included_items, p.image_url,
                             c.id AS category_id, c.name AS category, c.slug AS category_slug,
                             (SELECT COUNT(*) FROM product_ingredients pi WHERE pi.product_id = p.id) AS recipe_count,
                             (SELECT GROUP_CONCAT(DISTINCT a.name ORDER BY a.name SEPARATOR ', ')
@@ -89,8 +90,8 @@ class StorefrontController extends Controller
                              WHERE pi2.product_id = p.id) AS allergens
                      FROM products p
                      INNER JOIN categories c ON c.id = p.category_id
-                     WHERE p.status = 'available' AND c.status = 'active'
-                     ORDER BY FIELD(c.slug, 'platos-frescos', 'platos-calientes', 'frituras', 'duos-trios-rondas', 'bebidas'), p.code, p.id"
+                     WHERE c.status = 'active'
+                     ORDER BY FIELD(c.slug, 'entradas', 'ceviches', 'duos-trios-marinos', 'sopas', 'arroces', 'pastas', 'frituras', 'bebidas', 'cervezas'), p.code, p.id"
                 )->fetchAll();
 
                 $galleryByProduct = [];
@@ -140,7 +141,7 @@ class StorefrontController extends Controller
                     $product['category_id'] = (int) $product['category_id'];
                     $product['price'] = (float) $product['price'];
                     $product['recipe_count'] = (int) $product['recipe_count'];
-                    $product['can_order'] = true;
+                    $product['can_order'] = ($product['status'] ?? 'available') === 'available';
                     $product['is_featured'] = (bool) ($product['is_featured'] ?? false);
                     $product['is_popular'] = (bool) ($product['is_popular'] ?? false);
                     $product['is_new'] = (bool) ($product['is_new'] ?? false);
@@ -304,7 +305,7 @@ class StorefrontController extends Controller
                 throw new StorefrontProblem('El correo electrónico no es válido.');
             }
             $allowedPayments = $this->storefront_payment_methods($pdo);
-            if (\App\Support\Desego\current_user() && app(NiubizOrderPayment::class)->available()) {
+            if (app(NiubizOrderPayment::class)->available()) {
                 $allowedPayments[] = 'Niubiz';
             }
             if (! in_array($paymentPreference, $allowedPayments, true)) {
@@ -577,7 +578,7 @@ class StorefrontController extends Controller
                     ]);
                 }
 
-                $itemInsert = $pdo->prepare('INSERT INTO order_items (order_id, product_id, product_name, unit_price, quantity, line_total, notes, selected_options) VALUES (:order_id,:product_id,:name,:price,:quantity,:line_total,:notes,:selected_options)');
+                $itemInsert = $pdo->prepare('INSERT INTO order_items (order_id, product_id, product_name, unit_price, quantity, line_total, notes) VALUES (:order_id,:product_id,:name,:price,:quantity,:line_total,:notes)');
                 foreach ($lines as $line) {
                     $itemInsert->execute([
                         'order_id' => $orderId,
@@ -587,8 +588,18 @@ class StorefrontController extends Controller
                         'quantity' => $line['quantity'],
                         'line_total' => number_format($line['line_total'], 2, '.', ''),
                         'notes' => $line['notes'] !== '' ? $line['notes'] : null,
-                        'selected_options' => $line['selected_options'] ? json_encode($line['selected_options'], JSON_UNESCAPED_UNICODE) : null,
                     ]);
+                    $orderItemId = (int) $pdo->lastInsertId();
+                    foreach ($line['selected_options'] ?? [] as $position => $option) {
+                        DB::table('order_item_options')->insert([
+                            'order_item_id' => $orderItemId,
+                            'option_id' => $option['id'],
+                            'position' => $position,
+                            'group_name' => $option['group_name'],
+                            'name' => $option['name'],
+                            'price_delta' => $option['price_delta'],
+                        ]);
+                    }
                 }
 
                 $orderIngredientInsert = $pdo->prepare('INSERT INTO order_ingredients (order_id, ingredient_id, consumed_quantity, unit, unit_cost) VALUES (:order_id,:ingredient_id,:quantity,:unit,:unit_cost)');

@@ -36,7 +36,7 @@ trait CreatesRestaurantDatabase
         $pdo->exec('SET FOREIGN_KEY_CHECKS=0');
         try {
             $pdo->beginTransaction();
-            foreach (array_merge(['order_payment_attempts', 'product_options', 'product_option_groups', 'product_images', 'delivery_zones', 'business_hours', 'reservation_tables', 'reservation_table_settings', 'reservation_holds', 'reservation_payments', 'reservation_waitlists', 'reservation_audit_logs', 'customer_verification_codes', 'reservation_configurations', 'chatbot_messages', 'chatbot_conversations', 'chatbot_visitors'], $this->tables, ['sessions']) as $table) {
+            foreach (array_diff($pdo->query('SHOW TABLES')->fetchAll(PDO::FETCH_COLUMN), ['migrations']) as $table) {
                 if (DB::getSchemaBuilder()->hasTable($table)) {
                     $pdo->exec('DELETE FROM `'.$table.'`');
                 }

@@ -36,6 +36,44 @@ class MobileController extends Controller
         return response()->json($portal->catalog());
     }
 
+    public function sync(RestaurantPortal $portal): JsonResponse
+    {
+        $user = current_user();
+        $authenticated = ($user['role_code'] ?? null) === 'customer';
+
+        return response()->json([
+            'ok' => true,
+            'authenticated' => $authenticated,
+            'user' => $authenticated ? $user : null,
+            'catalog' => $portal->catalog(),
+            'account' => $authenticated ? $portal->account() : null,
+            'server_time' => now()->toIso8601String(),
+            'csrfToken' => session()->token(),
+        ])->header('Cache-Control', 'no-store, private');
+    }
+
+    public function favorite(Request $request, int $id, RestaurantPortal $portal): JsonResponse
+    {
+        $customer = $portal->customer();
+        $data = $request->validate(['favorited' => 'required|boolean']);
+        abort_unless(DB::table('products')->where('id', $id)->exists(), 404);
+        $visitorKey = hash('sha256', 'customer_'.$customer->id);
+
+        DB::transaction(function () use ($customer, $data, $visitorKey, $id): void {
+            DB::table('customers')->where('id', $customer->id)->lockForUpdate()->first();
+            $query = DB::table('storefront_favorites')->where('visitor_key', $visitorKey)->where('product_id', $id);
+            if ($data['favorited']) {
+                if (! $query->exists()) {
+                    DB::table('storefront_favorites')->insert(['visitor_key' => $visitorKey, 'product_id' => $id, 'created_at' => now()]);
+                }
+            } else {
+                $query->delete();
+            }
+        });
+
+        return response()->json(['ok' => true, 'favorited' => (bool) $data['favorited']]);
+    }
+
     public function login(Request $request, RestaurantPortal $portal): JsonResponse
     {
         $result = $portal->login($request->all());

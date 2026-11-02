@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Restaurant;
 
 use App\Http\Controllers\Controller;
+use App\Services\GoogleIdentityTokenVerifier;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -12,11 +14,45 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 use function App\Support\Desego\clear_remember_cookie;
+use function App\Support\Desego\current_user;
 use function App\Support\Desego\desego_db;
 use function App\Support\Desego\establish_authenticated_session;
 
 class GoogleAuthController extends Controller
 {
+    public function mobileChallenge(Request $request): JsonResponse
+    {
+        $clientId = (string) config('services.google.client_id');
+        abort_unless($clientId !== '', 503, 'El inicio de sesión con Google no está configurado.');
+        $nonce = Str::random(64);
+        $request->session()->put('google_mobile_nonce', $nonce);
+        $request->session()->put('google_mobile_expires', now()->addMinutes(5)->timestamp);
+
+        return response()->json(['ok' => true, 'clientId' => $clientId, 'nonce' => $nonce])->header('Cache-Control', 'no-store');
+    }
+
+    public function mobileLogin(Request $request, GoogleIdentityTokenVerifier $verifier): JsonResponse
+    {
+        $data = $request->validate(['id_token' => 'required|string|max:10000']);
+        $nonce = $request->session()->pull('google_mobile_nonce');
+        $expires = $request->session()->pull('google_mobile_expires', 0);
+        abort_unless(is_string($nonce) && $expires > now()->timestamp, 401, 'Vuelve a seleccionar tu cuenta de Google.');
+        $profile = $verifier->verify($data['id_token'], $nonce);
+        $existing = DB::table('users')->where('email', mb_strtolower($profile['email']))->first();
+        if ($existing) {
+            abort_unless(DB::table('roles')->where('id', $existing->role_id)->value('code') === 'customer', 403, 'La app está disponible para cuentas de clientes.');
+            abort_if(! empty($existing->google_id) && $existing->google_id !== $profile['sub'], 401, 'La cuenta de Google no coincide con el cliente registrado.');
+        }
+        $user = $this->resolveGoogleUser($profile);
+        clear_remember_cookie(desego_db());
+        establish_authenticated_session((int) $user->id, $user->password_hash);
+        $request->session()->regenerateToken();
+        $request->session()->put('csrf_token', $request->session()->token());
+        $request->session()->put('storefront_customer_id', DB::table('customers')->where('user_id', $user->id)->value('id'));
+
+        return response()->json(['ok' => true, 'user' => current_user(true), 'csrfToken' => $request->session()->token()])->header('Cache-Control', 'no-store');
+    }
+
     public function redirect(Request $request): RedirectResponse
     {
         $clientId = (string) config('services.google.client_id');
@@ -74,12 +110,34 @@ class GoogleAuthController extends Controller
         }
 
         $googleUser = $userInfoResponse->json();
+        $user = $this->resolveGoogleUser($googleUser);
+        $name = $user->name;
+
+        clear_remember_cookie(desego_db());
+        establish_authenticated_session((int) $user->id, $user->password_hash);
+        $request->session()->regenerateToken();
+
+        $customer = DB::table('customers')->where('user_id', $user->id)->first();
+        if ($customer) {
+            $request->session()->put('storefront_customer_id', $customer->id);
+        }
+        $request->session()->put('csrf_token', $request->session()->token());
+
+        $roleCode = DB::table('roles')->where('id', $user->role_id)->value('code');
+        $target = $roleCode === 'customer' ? '/cuenta' : '/admin';
+
+        return redirect($target)->with('success', '¡Bienvenido(a) a DeSego, '.$name.'!');
+    }
+
+    /** @param array<string, mixed> $googleUser */
+    private function resolveGoogleUser(array $googleUser): object
+    {
         $email = mb_strtolower((string) $googleUser['email']);
         $googleId = (string) ($googleUser['sub'] ?? '');
         $name = trim((string) ($googleUser['name'] ?: 'Cliente DeSego'));
         $avatar = (string) ($googleUser['picture'] ?? '');
 
-        $user = DB::transaction(function () use ($email, $googleId, $name, $avatar): object {
+        return DB::transaction(function () use ($email, $googleId, $name, $avatar): object {
             $existing = DB::table('users')->where('email', $email)->first();
 
             if ($existing) {
@@ -167,19 +225,5 @@ class GoogleAuthController extends Controller
             return DB::table('users')->where('id', $userId)->first();
         });
 
-        clear_remember_cookie(desego_db());
-        establish_authenticated_session((int) $user->id, $user->password_hash);
-        $request->session()->regenerateToken();
-
-        $customer = DB::table('customers')->where('user_id', $user->id)->first();
-        if ($customer) {
-            $request->session()->put('storefront_customer_id', $customer->id);
-        }
-        $request->session()->put('csrf_token', $request->session()->token());
-
-        $roleCode = DB::table('roles')->where('id', $user->role_id)->value('code');
-        $target = $roleCode === 'customer' ? '/cuenta' : '/admin';
-
-        return redirect($target)->with('success', '¡Bienvenido(a) a DeSego, '.$name.'!');
     }
 }

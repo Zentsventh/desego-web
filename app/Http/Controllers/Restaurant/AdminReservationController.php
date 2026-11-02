@@ -94,13 +94,31 @@ class AdminReservationController extends Controller
     {
         $this->checkPermission(['reservations.view', 'reservations.manage']);
 
-        $from = $request->query('from', now()->toDateString());
-        $to = $request->query('to', now()->addDays(7)->toDateString());
+        $request->merge([
+            'from' => $request->query('from', now('America/Lima')->toDateString()),
+            'to' => $request->query('to', now('America/Lima')->addDays(6)->toDateString()),
+        ]);
+        $dates = $request->validate([
+            'from' => 'required|date_format:Y-m-d',
+            'to' => 'required|date_format:Y-m-d|after_or_equal:from',
+        ]);
+
+        $fromDate = CarbonImmutable::createFromFormat('!Y-m-d', $dates['from'], 'America/Lima');
+        $toDate = CarbonImmutable::createFromFormat('!Y-m-d', $dates['to'], 'America/Lima');
+
+        if ($fromDate->diffInDays($toDate) > 30) {
+            throw ValidationException::withMessages([
+                'to' => 'El calendario admite rangos de hasta 31 días.',
+            ]);
+        }
+
+        $from = $fromDate->utc();
+        $to = $toDate->endOfDay()->utc();
 
         $reservations = DB::table('reservations as r')
             ->leftJoin('restaurant_tables as t', 't.id', '=', 'r.table_id')
-            ->whereDate('r.reservation_at', '>=', $from)
-            ->whereDate('r.reservation_at', '<=', $to)
+            ->where('r.reservation_at', '>=', $from)
+            ->where('r.reservation_at', '<=', $to)
             ->whereNotIn('r.status', ['Cancelada', 'CANCELLED', 'EXPIRED'])
             ->select([
                 'r.id',
@@ -117,7 +135,23 @@ class AdminReservationController extends Controller
                 'r.advance_amount',
             ])
             ->orderBy('r.reservation_at')
-            ->get();
+            ->get()
+            ->map(function ($r) {
+                return [
+                    'id' => (int) $r->id,
+                    'reservation_code' => $r->reservation_code,
+                    'customer_name' => $r->customer_name,
+                    'customer_phone' => $r->customer_phone,
+                    'guest_count' => (int) $r->guest_count,
+                    'table_id' => $r->table_id ? (int) $r->table_id : null,
+                    'table_label' => $r->table_label,
+                    'reservation_at' => CarbonImmutable::parse($r->reservation_at)->toIso8601String(),
+                    'duration_minutes' => (int) ($r->duration_minutes ?? 120),
+                    'status' => $r->status,
+                    'payment_status' => $r->payment_status,
+                    'advance_amount' => $r->advance_amount,
+                ];
+            });
 
         return response()->json([
             'ok' => true,
@@ -271,27 +305,85 @@ class AdminReservationController extends Controller
     {
         $user = $this->checkPermission('payments.manage');
         $data = $request->validate([
-            'reason' => 'required|string|max:300',
-            'amount' => 'nullable|numeric|min:0.01',
+            'reason' => 'required|string|max:255',
+            'amount' => 'nullable|numeric|decimal:0,2|min:0.01',
         ]);
 
         return DB::transaction(function () use ($id, $data, $user): JsonResponse {
             $res = DB::table('reservations')->where('id', $id)->lockForUpdate()->first();
             abort_unless($res, 404, 'Reserva no encontrada.');
 
-            $refundAmount = isset($data['amount']) ? (float) $data['amount'] : (float) $res->advance_amount;
+            if (! in_array($res->payment_status, ['PAID', 'PARTIALLY_REFUNDED'], true)) {
+                throw ValidationException::withMessages([
+                    'amount' => 'La reserva no tiene un pago confirmado pendiente de devolución.',
+                ]);
+            }
+
+            $payments = DB::table('reservation_payments')
+                ->where('reservation_id', $res->id)
+                ->whereIn('status', ['PAID', 'PARTIALLY_REFUNDED'])
+                ->orderBy('id')
+                ->lockForUpdate()
+                ->get();
+
+            $availableCents = $payments->sum(
+                fn (object $payment): int => max(
+                    0,
+                    (int) round((float) $payment->amount * 100) - (int) round((float) $payment->refund_amount * 100)
+                )
+            );
+
+            if ($availableCents <= 0) {
+                throw ValidationException::withMessages([
+                    'amount' => 'No existe un pago confirmado con saldo disponible para devolver.',
+                ]);
+            }
+
+            $refundCents = isset($data['amount'])
+                ? (int) round((float) $data['amount'] * 100)
+                : $availableCents;
+
+            if ($refundCents > $availableCents) {
+                throw ValidationException::withMessages([
+                    'amount' => 'El monto no puede superar el saldo pagado pendiente de devolución.',
+                ]);
+            }
+
+            $remainingRefundCents = $refundCents;
+            foreach ($payments as $payment) {
+                if ($remainingRefundCents <= 0) {
+                    break;
+                }
+
+                $paymentAmountCents = (int) round((float) $payment->amount * 100);
+                $alreadyRefundedCents = (int) round((float) $payment->refund_amount * 100);
+                $paymentAvailableCents = max(0, $paymentAmountCents - $alreadyRefundedCents);
+                $paymentRefundCents = min($remainingRefundCents, $paymentAvailableCents);
+
+                if ($paymentRefundCents <= 0) {
+                    continue;
+                }
+
+                $newRefundedCents = $alreadyRefundedCents + $paymentRefundCents;
+                $isFullyRefunded = $newRefundedCents >= $paymentAmountCents;
+
+                DB::table('reservation_payments')->where('id', $payment->id)->update([
+                    'status' => $isFullyRefunded ? 'REFUNDED' : 'PARTIALLY_REFUNDED',
+                    'refunded_at' => now(),
+                    'refund_amount' => number_format($newRefundedCents / 100, 2, '.', ''),
+                    'refund_reason' => $data['reason'],
+                    'refunded_by' => $user['id'] ?? null,
+                    'updated_at' => now(),
+                ]);
+
+                $remainingRefundCents -= $paymentRefundCents;
+            }
+
+            $isFullyRefunded = $refundCents === $availableCents;
+            $refundAmount = number_format($refundCents / 100, 2, '.', '');
 
             DB::table('reservations')->where('id', $res->id)->update([
-                'payment_status' => 'REFUNDED',
-                'updated_at' => now(),
-            ]);
-
-            DB::table('reservation_payments')->where('reservation_id', $res->id)->update([
-                'status' => 'REFUNDED',
-                'refunded_at' => now(),
-                'refund_amount' => $refundAmount,
-                'refund_reason' => $data['reason'],
-                'refunded_by' => $user['id'] ?? null,
+                'payment_status' => $isFullyRefunded ? 'REFUNDED' : 'PARTIALLY_REFUNDED',
                 'updated_at' => now(),
             ]);
 
@@ -309,7 +401,7 @@ class AdminReservationController extends Controller
 
             return response()->json([
                 'ok' => true,
-                'message' => "Devolución autorizada y registrada por S/ {$refundAmount}.",
+                'message' => ($isFullyRefunded ? 'Devolución completada' : 'Devolución parcial registrada')." por S/ {$refundAmount}.",
             ]);
         });
     }
@@ -325,9 +417,10 @@ class AdminReservationController extends Controller
             ->map(function ($table) {
                 // Verificar si tiene sesión activa de salón
                 $session = DB::table('dining_sessions')->where('active_table_id', $table->id)->first();
-                $cleaning = $session && $session->status === 'cleaning';
+                $isCleaning = $session && $session->status === 'cleaning';
+                $isDiningActive = $session && in_array($session->status, ['open', 'checkout', 'paid'], true);
 
-                // Próxima reserva confirmada
+                // Próxima reserva confirmada hoy o vigente
                 $nextReservation = DB::table('reservations as r')
                     ->where(function ($q) use ($table): void {
                         $q->where('r.table_id', $table->id)
@@ -338,17 +431,39 @@ class AdminReservationController extends Controller
                             });
                     })
                     ->whereIn('r.status', ['Confirmada', 'CONFIRMED', 'CHECKED_IN'])
-                    ->where('r.reservation_at', '>=', now()->subMinutes(15))
+                    ->whereRaw('DATE_ADD(r.reservation_at, INTERVAL COALESCE(r.duration_minutes, 120) MINUTE) >= ?', [now()])
                     ->orderBy('r.reservation_at')
-                    ->first(['r.id', 'r.reservation_code', 'r.customer_name', 'r.guest_count', 'r.reservation_at', 'r.arrival_deadline']);
+                    ->first(['r.id', 'r.reservation_code', 'r.customer_name', 'r.guest_count', 'r.reservation_at', 'r.duration_minutes', 'r.arrival_deadline', 'r.status']);
 
                 $status = $table->operational_status;
                 if (! $table->is_active) {
                     $status = 'disabled';
-                } elseif ($cleaning) {
+                } elseif ($table->operational_status === 'maintenance') {
+                    $status = 'maintenance';
+                } elseif ($isCleaning || $table->operational_status === 'cleaning') {
                     $status = 'cleaning';
-                } elseif ($nextReservation && CarbonImmutable::parse($nextReservation->reservation_at)->lessThanOrEqualTo(now()->addMinutes(30))) {
-                    $status = 'reserved';
+                } elseif ($isDiningActive || $table->operational_status === 'occupied') {
+                    $status = 'occupied';
+                } elseif ($nextReservation) {
+                    $resTime = CarbonImmutable::parse($nextReservation->reservation_at);
+                    $duration = (int) ($nextReservation->duration_minutes ?? 120);
+                    $resEndTime = $resTime->addMinutes($duration);
+                    if (now()->greaterThanOrEqualTo($resTime->subMinutes(45)) && now()->lessThan($resEndTime)) {
+                        $status = 'reserved';
+                    }
+                }
+
+                $formattedReservation = null;
+                if ($nextReservation) {
+                    $formattedReservation = [
+                        'id' => (int) $nextReservation->id,
+                        'reservation_code' => $nextReservation->reservation_code,
+                        'customer_name' => $nextReservation->customer_name,
+                        'guest_count' => (int) $nextReservation->guest_count,
+                        'reservation_at' => CarbonImmutable::parse($nextReservation->reservation_at)->toIso8601String(),
+                        'duration_minutes' => (int) ($nextReservation->duration_minutes ?? 120),
+                        'status' => $nextReservation->status,
+                    ];
                 }
 
                 return [
@@ -362,7 +477,7 @@ class AdminReservationController extends Controller
                     'is_active' => (bool) $table->is_active,
                     'is_online_reservable' => (bool) ($table->is_online_reservable ?? true),
                     'join_group' => $table->join_group,
-                    'next_reservation' => $nextReservation,
+                    'next_reservation' => $formattedReservation,
                     'active_session' => $session ? ['id' => $session->id, 'status' => $session->status] : null,
                 ];
             });

@@ -476,12 +476,12 @@ export default function Account({ account }) {
             )
         );
         localStorage.setItem('desego.open_cart', '1');
-        router.visit('/#carta');
+        router.visit('/carta');
     };
 
     const quickOrderProduct = (productId) => {
         localStorage.setItem('desego.reorder_product', String(productId));
-        router.visit('/#carta');
+        router.visit('/carta');
     };
 
     const openModifyOrder = (order) => {
@@ -611,7 +611,7 @@ export default function Account({ account }) {
                                 <span>Panel de control</span> <ArrowUpRight size={14} />
                             </Link>
                         )}
-                        <Link href="/#carta" className="dg-button">
+                        <Link href="/carta" className="dg-button">
                             <UtensilsCrossed size={15} /> Ver la carta
                         </Link>
                     </div>
@@ -713,7 +713,7 @@ export default function Account({ account }) {
                                 </div>
 
                                 <div className="dg-hero-actions">
-                                    <Link href="/#reservas" className="dg-btn-outline">
+                                    <Link href="/reservar" className="dg-btn-outline">
                                         <CalendarDays size={15} /> Reservar mesa
                                     </Link>
                                 </div>
@@ -813,7 +813,7 @@ export default function Account({ account }) {
                                     <div className="dg-frequent-box">
                                         <div className="dg-frequent-head">
                                             <h3>Tus platos frecuentes</h3>
-                                            <Link href="/#carta">Ver carta completa →</Link>
+                                            <Link href="/carta">Ver carta completa →</Link>
                                         </div>
                                         <div className="dg-frequent-grid">
                                             {account.frequent_products.map((fp) => (
@@ -1087,7 +1087,7 @@ export default function Account({ account }) {
                                 <p style={{ fontSize: '13px', maxWidth: '400px', margin: '8px auto 20px' }}>
                                     Explora nuestra carta oficial de pescados, mariscos, arroces y rondas marinas preparadas al momento.
                                 </p>
-                                <Link href="/#carta" className="dg-button" style={{ background: '#004797' }}>
+                                <Link href="/carta" className="dg-button" style={{ background: '#004797' }}>
                                     Descubrir la Carta <ArrowUpRight size={16} />
                                 </Link>
                             </div>
@@ -1251,7 +1251,7 @@ export default function Account({ account }) {
                                                         onClick={() => {
                                                             localStorage.setItem('desego.pending_coupon', item.redemption_code);
                                                             localStorage.setItem('desego.open_cart', '1');
-                                                            router.visit('/#carta');
+                                                            router.visit('/carta');
                                                         }}
                                                     >
                                                         Aplicar en Tienda <ArrowRight size={13} />
@@ -1316,7 +1316,7 @@ export default function Account({ account }) {
                     <section className="dg-account-section">
                         <div className="dg-account-section-head">
                             <h2>Mis reservas</h2>
-                            <Link href="/#reservas" className="dg-button" style={{ background: '#004797' }}>
+                            <Link href="/reservar" className="dg-button" style={{ background: '#004797' }}>
                                 <Plus size={15} /> Nueva reserva
                             </Link>
                         </div>
@@ -1399,7 +1399,7 @@ export default function Account({ account }) {
                                 <p style={{ fontSize: '13px', maxWidth: '380px', margin: '6px auto 18px' }}>
                                     Asegura tu mesa en nuestro salón de Huaycán con confirmación inmediata.
                                 </p>
-                                <Link href="/#reservas" className="dg-button" style={{ background: '#004797' }}>
+                                <Link href="/reservar" className="dg-button" style={{ background: '#004797' }}>
                                     Reservar mesa <ArrowUpRight size={15} />
                                 </Link>
                             </div>
@@ -1414,7 +1414,7 @@ export default function Account({ account }) {
                     <section className="dg-account-section">
                         <div className="dg-account-section-head">
                             <h2>Mis favoritos</h2>
-                            <Link href="/#carta" className="dg-btn-outline">
+                            <Link href="/carta" className="dg-btn-outline">
                                 Explorar carta <ArrowRight size={14} />
                             </Link>
                         </div>
@@ -1466,7 +1466,7 @@ export default function Account({ account }) {
                                 <p style={{ fontSize: '13px', maxWidth: '380px', margin: '6px auto 18px' }}>
                                     Haz clic en el corazón de cualquier plato de nuestra carta para tener acceso rápido en tus próximos pedidos.
                                 </p>
-                                <Link href="/#carta" className="dg-button" style={{ background: '#004797' }}>
+                                <Link href="/carta" className="dg-button" style={{ background: '#004797' }}>
                                     Explorar la carta <ArrowRight size={14} />
                                 </Link>
                             </div>
@@ -2504,10 +2504,10 @@ export default function Account({ account }) {
                     </nav>
 
                     <div className="dg-account-sheet-quick-actions">
-                        <Link href="/#carta" className="dg-btn-outline" onClick={() => setNavigationOpen(false)}>
+                        <Link href="/carta" className="dg-btn-outline" onClick={() => setNavigationOpen(false)}>
                             <UtensilsCrossed size={14} /> Ver carta digital
                         </Link>
-                        <Link href="/#reservas" className="dg-btn-outline" onClick={() => setNavigationOpen(false)}>
+                        <Link href="/reservar" className="dg-btn-outline" onClick={() => setNavigationOpen(false)}>
                             <CalendarDays size={14} /> Reservar mesa
                         </Link>
                     </div>

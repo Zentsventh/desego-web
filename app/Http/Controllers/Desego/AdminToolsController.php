@@ -236,8 +236,8 @@ class AdminToolsController extends Controller
                             'restaurant_address' => $settingsMap['restaurant_address'] ?? ($branch['address'] ?? 'UCV 19, Lote 13, Zona A, Huaycán, Ate'),
                             'restaurant_district' => $settingsMap['restaurant_district'] ?? ($branch['district'] ?? 'Ate'),
                             'restaurant_postal_code' => $settingsMap['restaurant_postal_code'] ?? '15479',
-                            'restaurant_latitude' => (float) ($settingsMap['restaurant_latitude'] ?? -12.0168500),
-                            'restaurant_longitude' => (float) ($settingsMap['restaurant_longitude'] ?? -76.8211200),
+                            'restaurant_latitude' => (float) ($settingsMap['restaurant_latitude'] ?? -12.009536180504373),
+                            'restaurant_longitude' => (float) ($settingsMap['restaurant_longitude'] ?? -76.82422937768825),
                             'restaurant_whatsapp' => $settingsMap['restaurant_whatsapp'] ?? '+51 922 119 238',
                             'restaurant_whatsapp_url' => $settingsMap['restaurant_whatsapp_url'] ?? 'https://wa.me/51922119238',
                             'restaurant_facebook' => $settingsMap['restaurant_facebook'] ?? 'https://facebook.com/desegocevicheria',
@@ -368,8 +368,8 @@ class AdminToolsController extends Controller
                 $address = trim((string) ($body['restaurant_address'] ?? ''));
                 $district = trim((string) ($body['restaurant_district'] ?? 'Ate'));
                 $postalCode = trim((string) ($body['restaurant_postal_code'] ?? '15479'));
-                $lat = filter_var($body['restaurant_latitude'] ?? -12.0168500, FILTER_VALIDATE_FLOAT);
-                $lng = filter_var($body['restaurant_longitude'] ?? -76.8211200, FILTER_VALIDATE_FLOAT);
+                $lat = filter_var($body['restaurant_latitude'] ?? -12.009536180504373, FILTER_VALIDATE_FLOAT);
+                $lng = filter_var($body['restaurant_longitude'] ?? -76.82422937768825, FILTER_VALIDATE_FLOAT);
                 $whatsapp = trim((string) ($body['restaurant_whatsapp'] ?? '+51 922 119 238'));
                 $whatsappDigits = preg_replace('/\D+/', '', $whatsapp) ?: '51922119238';
                 $whatsappUrl = trim((string) ($body['restaurant_whatsapp_url'] ?? '')) ?: ('https://wa.me/'.$whatsappDigits);
@@ -436,9 +436,9 @@ class AdminToolsController extends Controller
                 $pdo->beginTransaction();
                 try {
                     $upsert = $pdo->prepare(
-                        'INSERT INTO business_hours (day_of_week, day_name, open_time, close_time, is_closed, created_at, updated_at)
-                         VALUES (:dow, :name, :open_t, :close_t, :closed, NOW(), NOW())
-                         ON DUPLICATE KEY UPDATE day_name=VALUES(day_name), open_time=VALUES(open_time), close_time=VALUES(close_time), is_closed=VALUES(is_closed), updated_at=NOW()'
+                        'INSERT INTO business_hours (day_of_week, open_time, close_time, is_closed, created_at, updated_at)
+                         VALUES (:dow, :open_t, :close_t, :closed, NOW(), NOW())
+                         ON DUPLICATE KEY UPDATE open_time=VALUES(open_time), close_time=VALUES(close_time), is_closed=VALUES(is_closed), updated_at=NOW()'
                     );
                     $firstOpen = null;
                     $firstClose = null;
@@ -461,7 +461,6 @@ class AdminToolsController extends Controller
                         }
                         $upsert->execute([
                             'dow' => $dow,
-                            'name' => $dayNames[$dow],
                             'open_t' => $open.':00',
                             'close_t' => $close.':00',
                             'closed' => $closed,

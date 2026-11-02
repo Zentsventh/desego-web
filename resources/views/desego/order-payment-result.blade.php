@@ -19,7 +19,7 @@
 <body>
 <main>
     <img src="{{ asset('images/logodesego-1.png') }}" alt="DeSego Cevichería" width="800" height="300">
-    <h1>{{ $paid ? 'Pago confirmado' : 'Estado de tu pago' }}</h1>
+    <h1>{{ $paid ? 'Pago confirmado' : ($receipt->status === 'declined' ? 'Pago no autorizado' : ($receipt->status === 'review' ? 'Estado de tu pago' : 'Confirmando tu pago con Niubiz')) }}</h1>
     <p role="status">{{ $message }}</p>
     @if ($paid)
         <p>Operación #{{ $receipt->purchase_number }}<br><strong>S/ {{ number_format($receipt->amount_cents / 100, 2) }} · PEN</strong><br>Referencia Niubiz: {{ $receipt->provider_reference }}</p>
@@ -27,7 +27,12 @@
         <p><small>Guarda esta constancia de pago. Tu comprobante del pedido está disponible en tu cuenta.</small></p>
     @endif
     <a href="{{ url('/cuenta') }}">Volver a mi cuenta</a>
-    <button type="button" onclick="window.print()">Guardar constancia</button>
+    @if ($statusUrl)
+        <a href="{{ $statusUrl }}">Consultar estado en Niubiz</a>
+    @endif
+    @if ($paid)
+        <button type="button" onclick="window.print()">Guardar constancia</button>
+    @endif
 </main>
 </body>
 </html>

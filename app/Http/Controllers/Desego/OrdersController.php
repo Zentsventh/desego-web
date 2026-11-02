@@ -343,11 +343,11 @@ class OrdersController extends Controller
                 $actor = require_permission('orders.update');
                 $id = filter_var($body['id'] ?? null, FILTER_VALIDATE_INT);
                 $status = (string) ($body['status'] ?? '');
-                $allowed = ['Pendiente', 'Preparando', 'Listo', 'En reparto', 'Entregado'];
+                $allowed = ['Pendiente', 'Preparando', 'Listo', 'En reparto', 'Entregado', 'Cancelado'];
                 if (! $id || ! in_array($status, $allowed, true)) {
                     throw new OrderApiProblem('Estado o pedido no válido.', 422);
                 }
-                $stmt = $pdo->prepare('SELECT id, order_number, status, order_type FROM orders WHERE id = :id FOR UPDATE');
+                $stmt = $pdo->prepare('SELECT id, order_number, total, status, payment_status, order_type FROM orders WHERE id = :id FOR UPDATE');
                 $pdo->beginTransaction();
                 try {
                     $stmt->execute(['id' => $id]);
@@ -355,6 +355,39 @@ class OrdersController extends Controller
                     if (! $order || $order['status'] === 'Cancelado') {
                         throw new OrderApiProblem('El pedido no existe o ya fue cancelado.', 404);
                     }
+
+                    if ($status === 'Cancelado') {
+                        if ($order['status'] === 'Entregado') {
+                            throw new OrderApiProblem('No se puede cancelar un pedido ya entregado.', 409);
+                        }
+                        if ($order['payment_status'] === 'Pagado') {
+                            throw new OrderApiProblem('El pedido está pagado. Registra un reembolso antes de cancelarlo.', 409);
+                        }
+                        $restoreInventory = $order['status'] === 'Pendiente';
+                        if ($restoreInventory) {
+                            $stmtIng = $pdo->prepare('SELECT oi.ingredient_id, oi.consumed_quantity, oi.unit, oi.unit_cost, oi.restored_at, i.name, i.stock_quantity FROM order_ingredients oi INNER JOIN ingredients i ON i.id = oi.ingredient_id WHERE oi.order_id = :order_id ORDER BY oi.ingredient_id FOR UPDATE');
+                            $stmtIng->execute(['order_id' => $id]);
+                            $ingredients = $stmtIng->fetchAll();
+                            foreach ($ingredients as $ingredient) {
+                                if ($ingredient['restored_at'] !== null) {
+                                    continue;
+                                }
+                                $before = (float) $ingredient['stock_quantity'];
+                                $quantity = (float) $ingredient['consumed_quantity'];
+                                $after = round($before + $quantity, 3);
+                                $pdo->prepare('UPDATE ingredients SET stock_quantity = :stock, updated_at = NOW() WHERE id = :id')->execute(['stock' => number_format($after, 3, '.', ''), 'id' => $ingredient['ingredient_id']]);
+                                desego_add_adjustment_cost_layer($pdo, (int) $ingredient['ingredient_id'], $quantity, (float) $ingredient['unit_cost'], 'Restitución por cancelación de '.$order['order_number']);
+                                $pdo->prepare("INSERT INTO inventory_movements (ingredient_id, user_id, movement_type, quantity_delta, previous_quantity, new_quantity, unit_cost, reference, notes, created_at) VALUES (:ingredient_id, :user_id, 'entry', :delta, :previous, :new, :unit_cost, :reference, :notes, NOW())")
+                                    ->execute(['ingredient_id' => $ingredient['ingredient_id'], 'user_id' => (int) $actor['id'], 'delta' => number_format($quantity, 3, '.', ''), 'previous' => number_format($before, 3, '.', ''), 'new' => number_format($after, 3, '.', ''), 'unit_cost' => number_format((float) $ingredient['unit_cost'], 4, '.', ''), 'reference' => $order['order_number'], 'notes' => 'Restitución por cancelación de '.$order['order_number']]);
+                                $pdo->prepare('UPDATE order_ingredients SET restored_at = NOW() WHERE order_id = :order_id AND ingredient_id = :ingredient_id')->execute(['order_id' => $id, 'ingredient_id' => $ingredient['ingredient_id']]);
+                            }
+                        }
+                        $pdo->prepare("UPDATE orders SET status = 'Cancelado', cancelled_at = NOW(), updated_at = NOW() WHERE id = :id")->execute(['id' => $id]);
+                        $pdo->commit();
+                        audit_log($pdo, (int) $actor['id'], 'orders.cancelled', ['order_id' => (int) $id, 'reason' => 'Cancelación desde panel']);
+                        json_response(['ok' => true, 'message' => $order['order_number'].' ha sido cancelado.']);
+                    }
+
                     if ($order['order_type'] === 'Delivery' && in_array($status, ['En reparto', 'Entregado'], true)) {
                         throw new OrderApiProblem('Los estados En reparto y Entregado se gestionan desde el Centro de Delivery para validar asignaciones.', 409);
                     }
@@ -370,6 +403,27 @@ class OrdersController extends Controller
                     }
                     $sql = "UPDATE orders SET status = :status, completed_at = CASE WHEN :status2 = 'Entregado' THEN NOW() ELSE completed_at END, updated_at = NOW() WHERE id = :id";
                     $pdo->prepare($sql)->execute(['status' => $status, 'status2' => $status, 'id' => $id]);
+
+                    if (array_key_exists('payment_status', $body)) {
+                        $targetPayment = (string) $body['payment_status'];
+                        if ($targetPayment === 'Pagado' && $order['payment_status'] !== 'Pagado') {
+                            $session = $this->order_open_cash_session($pdo, false);
+                            $payMethod = (string) ($body['payment_method'] ?? 'Efectivo');
+                            if (! in_array($payMethod, $this->order_payment_methods(), true)) {
+                                $payMethod = 'Efectivo';
+                            }
+                            if ($session) {
+                                $pdo->prepare("INSERT INTO payments (order_id, cash_session_id, user_id, payment_type, method, amount, notes, created_at) VALUES (:order_id, :session_id, :user_id, 'payment', :method, :amount, 'Cobro registrado desde panel', NOW())")
+                                    ->execute(['order_id' => $id, 'session_id' => $session['id'], 'user_id' => (int) $actor['id'], 'method' => $payMethod, 'amount' => number_format((float) $order['total'], 2, '.', '')]);
+                            }
+                            $pdo->prepare("UPDATE orders SET payment_status = 'Pagado', payment_method = :method, paid_at = NOW(), updated_at = NOW() WHERE id = :id")
+                                ->execute(['method' => $payMethod, 'id' => $id]);
+                            loyalty_award_order_points($pdo, (int) $id, (int) $actor['id']);
+                        } elseif ($targetPayment === 'Pendiente' && $order['payment_status'] === 'Pagado') {
+                            $pdo->prepare("UPDATE orders SET payment_status = 'Pendiente', paid_at = NULL, updated_at = NOW() WHERE id = :id")->execute(['id' => $id]);
+                        }
+                    }
+
                     $pdo->commit();
                     audit_log($pdo, (int) $actor['id'], 'orders.status_changed', ['order_id' => (int) $id, 'status' => $status]);
                     json_response(['ok' => true, 'message' => $order['order_number'].' actualizado a '.$status.'.']);

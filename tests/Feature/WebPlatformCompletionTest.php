@@ -249,7 +249,7 @@ class WebPlatformCompletionTest extends TestCase
         $this->assertNotNull($orderItem);
         $this->assertEquals(38.5, (float) $orderItem->unit_price);
         $this->assertEquals('Poco ají limo y cebolla aparte', $orderItem->notes);
-        $this->assertStringContainsString('Porción extra de chifles', (string) $orderItem->selected_options);
+        $this->assertDatabaseHas('order_item_options', ['order_item_id' => $orderItem->id, 'name' => 'Porción extra de chifles', 'price_delta' => '3.50']);
     }
 
     public function test_delivery_zones_crud_and_live_geolocation_coverage_validation(): void

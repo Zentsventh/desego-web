@@ -514,6 +514,7 @@ function desego_backup_dump(PDO $pdo, string $databaseName, int $maxBytes): stri
         $show = $pdo->query('SHOW CREATE TABLE '.desego_sql_identifier($tableName))->fetch(PDO::FETCH_NUM);
         $create = (string) ($show[1] ?? '');
         $columns = $pdo->query('SHOW COLUMNS FROM '.desego_sql_identifier($tableName))->fetchAll(PDO::FETCH_ASSOC);
+        $columns = array_values(array_filter($columns, static fn (array $column): bool => ! preg_match('/\b(?:VIRTUAL|STORED) GENERATED\b/i', (string) $column['Extra'])));
         if ($create !== '' && $columns) {
             $allTables[] = ['name' => $tableName, 'create' => $create, 'columns' => $columns];
         }

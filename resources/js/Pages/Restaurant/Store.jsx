@@ -22,10 +22,15 @@ import {
     ShieldCheck,
     Star,
     ThumbsUp,
-    Truck,
 } from '../../Components/Restaurant/Icons';
 import { useCart } from '../../hooks/useCart';
 import { Checkout, foodImage, money } from '../../Components/Restaurant/ShopParts';
+import { searchProducts } from '../../lib/productSearch';
+import {
+    navigateToStoreSection,
+    STORE_SECTION_PATHS,
+    syncStoreSectionLocation,
+} from '../../lib/storeNavigation';
 import InteractiveMap from '../../Components/Restaurant/InteractiveMap';
 import ChatBot from '../../Components/Restaurant/ChatBot';
 import '../../../css/restaurant.css';
@@ -56,21 +61,19 @@ function currentLimaIsoDay() {
     }
 }
 
-/** Escena de ingredientes renderizada en WebGL; el contenido permanece en HTML. */
-function OceanScene({ vivid, paused }) {
+/** Reflejos de agua sobre el paisaje; la fotografía permanece como fondo sin WebGL. */
+function OceanScene({ paused }) {
     const canvasRef = useRef(null);
-    const palette = useRef(vivid);
     const motionPaused = useRef(paused);
     const invalidate = useRef(() => {});
     useEffect(() => {
-        palette.current = vivid;
         motionPaused.current = paused;
         invalidate.current();
-    }, [vivid, paused]);
+    }, [paused]);
     useEffect(() => {
         const canvas = canvasRef.current;
         const gl = canvas.getContext('webgl', {
-            alpha: false,
+            alpha: true,
             antialias: false,
             powerPreference: 'low-power',
         });
@@ -84,62 +87,21 @@ function OceanScene({ vivid, paused }) {
             uniform vec2 resolution;
             uniform vec2 pointer;
             uniform float time;
-            uniform float palette;
-            mat2 rot(float a){return mat2(cos(a),-sin(a),sin(a),cos(a));}
-            vec2 scene(vec3 p){
-                vec2 hit=vec2(20.,0.);
-                for(int i=0;i<7;i++){
-                    float f=float(i);
-                    float angle=f*2.399+time*.09;
-                    vec3 center=vec3(cos(angle)*(2.2+mod(f,2.)*.7),sin(angle*.8+f)*1.4, sin(angle)*1.2);
-                    center.xy+=pointer*.25;
-                    vec3 q=p-center;
-                    q.xy=rot(time*.12+f)*q.xy;
-                    q.yz=rot(f*.7)*q.yz;
-                    float radius=.30+mod(f,3.)*.09;
-                    float d;
-                    float material;
-                    if(mod(f,3.)<.5){
-                        vec3 b=abs(q)-vec3(radius*.85);
-                        d=length(max(b,0.))+min(max(b.x,max(b.y,b.z)),0.)-.09;
-                        material=2.;
-                    }else{
-                        q.y*=1.15;
-                        d=length(q)-radius;
-                        d+=sin(q.x*90.)*sin(q.y*90.)*sin(q.z*90.)*.002;
-                        material=mod(f,2.)<.5?1.:3.;
-                    }
-                    if(d<hit.x)hit=vec2(d,material);
-                }
-                return hit;
+            float wave(vec2 p){
+                return sin(p.x*1.8+p.y*2.1+time*.45)
+                    +sin(p.x*3.4-p.y*1.5-time*.32)*.45
+                    +sin(p.x*5.1+p.y*4.3+time*.22)*.2;
             }
             void main(){
-                vec2 uv=(gl_FragCoord.xy-.5*resolution)/resolution.y;
-                vec3 ro=vec3(0.,0.,7.5);
-                vec3 rd=normalize(vec3(uv,-1.75));
-                ro.xy+=pointer*.16;
-                vec3 bg=mix(vec3(.045,.06,.09),vec3(.025,.09,.19),palette);
-                vec3 color=bg+vec3(.04,.045,.06)*max(0.,1.-length(uv)*.7);
-                float t=0.; vec2 hit;
-                for(int step=0;step<48;step++){
-                    hit=scene(ro+rd*t);
-                    if(hit.x<.008||t>13.)break;
-                    t+=hit.x*.85;
-                }
-                if(t<13.&&hit.x<.02){
-                    vec3 p=ro+rd*t;
-                    vec2 e=vec2(.008,0.);
-                    vec3 n=normalize(vec3(scene(p+e.xyy).x-scene(p-e.xyy).x,scene(p+e.yxy).x-scene(p-e.yxy).x,scene(p+e.yyx).x-scene(p-e.yyx).x));
-                    vec3 light=normalize(vec3(-3.,5.,5.));
-                    float diffuse=max(dot(n,light),0.);
-                    float rim=pow(1.-max(dot(n,-rd),0.),3.);
-                    float spec=pow(max(dot(reflect(-light,n),-rd),0.),45.);
-                    vec3 base=hit.y<1.5?mix(vec3(.16,.23,.96),vec3(.64,.80,.12),palette):hit.y<2.5?vec3(.76,.82,.87):vec3(.48,.65,.12);
-                    color=base*(.23+diffuse*.85)+vec3(spec*.8)+vec3(.35,.45,.63)*rim*.5;
-                    color=mix(color,bg,smoothstep(8.,14.,t)*.5);
-                }
-                color+=sin(gl_FragCoord.x*1.7+gl_FragCoord.y*.9)*.002;
-                gl_FragColor=vec4(pow(color,vec3(.92)),1.);
+                vec2 uv=gl_FragCoord.xy/resolution;
+                float depth=max(.08,.78-uv.y);
+                vec2 p=vec2((uv.x-.5)*resolution.x/resolution.y,1.)/depth;
+                p+=pointer*.12;
+                float surface=wave(p*2.4);
+                float shimmer=pow(max(0.,1.-abs(surface)*2.),10.);
+                float sunlight=exp(-pow((uv.x-.76)*2.1,2.));
+                float alpha=shimmer*sunlight*(1.-smoothstep(.28,.76,uv.y))*.23;
+                gl_FragColor=vec4(vec3(.77,.96,1.)*alpha,alpha);
             }`;
         const shaders = [];
         function compile(type, source) {
@@ -178,13 +140,12 @@ function OceanScene({ vivid, paused }) {
         gl.enableVertexAttribArray(attribute);
         gl.vertexAttribPointer(attribute, 2, gl.FLOAT, false, 0, 0);
         const locations = Object.fromEntries(
-            ['resolution', 'pointer', 'time', 'palette'].map((name) => [
+            ['resolution', 'pointer', 'time'].map((name) => [
                 name,
                 gl.getUniformLocation(program, name),
             ])
         );
         const mouse = { x: 0, y: 0 };
-        const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
         let frame = 0,
             visible = true,
             disposed = false,
@@ -212,20 +173,19 @@ function OceanScene({ vivid, paused }) {
             if (disposed || !visible || document.hidden) {
                 return;
             }
-            if (!motionPaused.current && !reduced.matches) {
+            if (!motionPaused.current) {
                 sceneTime += Math.min((now - previousTime) * 0.001, 0.05);
             }
             previousTime = now;
             gl.uniform2f(locations.resolution, canvas.width, canvas.height);
             gl.uniform2f(
                 locations.pointer,
-                reduced.matches || motionPaused.current ? 0 : mouse.x,
-                reduced.matches || motionPaused.current ? 0 : mouse.y
+                motionPaused.current ? 0 : mouse.x,
+                motionPaused.current ? 0 : mouse.y
             );
             gl.uniform1f(locations.time, sceneTime);
-            gl.uniform1f(locations.palette, palette.current ? 1 : 0);
             gl.drawArrays(gl.TRIANGLES, 0, 6);
-            if (!motionPaused.current && !reduced.matches) {
+            if (!motionPaused.current) {
                 frame = requestAnimationFrame(render);
             }
         }
@@ -239,6 +199,7 @@ function OceanScene({ vivid, paused }) {
         resizeObserver.observe(canvas);
         const observer = new IntersectionObserver((entries) => {
             visible = entries[0].isIntersecting;
+            canvas.parentElement.dataset.sceneVisible = String(visible);
             if (visible) {
                 start();
             } else {
@@ -267,7 +228,7 @@ function OceanScene({ vivid, paused }) {
     return <canvas ref={canvasRef} className="im-canvas" aria-hidden="true" />;
 }
 
-export default function Store({ catalog, lastOrder }) {
+export default function Store({ catalog, lastOrder, canonicalUrl }) {
     const { auth } = usePage().props;
     const {
         products = [],
@@ -294,7 +255,7 @@ export default function Store({ catalog, lastOrder }) {
     const [onlyFavorites, setOnlyFavorites] = useState(false);
     const [query, setQuery] = useState('');
     const [favorites, setFavorites] = useState(() => {
-        if (serverFavorites?.length) {
+        if (auth?.user?.role_code === 'customer') {
             return serverFavorites.map(Number);
         }
         try {
@@ -313,8 +274,12 @@ export default function Store({ catalog, lastOrder }) {
     const [productReviews, setProductReviews] = useState([]);
     const [loadingReviews, setLoadingReviews] = useState(false);
 
-    const [vivid, setVivid] = useState(false);
-    const [scenePaused, setScenePaused] = useState(false);
+    const [scenePaused, setScenePaused] = useState(
+        () =>
+            typeof window !== 'undefined' &&
+            window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    );
+    const [sceneMotionEnabled, setSceneMotionEnabled] = useState(false);
     const [toast, setToast] = useState('');
 
     const detailDialog = useRef(null);
@@ -323,13 +288,63 @@ export default function Store({ catalog, lastOrder }) {
     const rootRef = useRef(null);
     const navigationRef = useRef(null);
     const menuButtonRef = useRef(null);
+    const menuToolsRef = useRef(null);
+    const menuResultsRef = useRef(null);
+    const previousMenuFiltersRef = useRef({ category, onlyFavorites });
     const todayIso = useMemo(() => currentLimaIsoDay(), []);
 
     useEffect(() => {
-        if (serverFavorites?.length) {
-            setFavorites(serverFavorites.map(Number));
+        const previousFilters = previousMenuFiltersRef.current;
+        previousMenuFiltersRef.current = { category, onlyFavorites };
+        if (previousFilters.category === category && previousFilters.onlyFavorites === onlyFavorites) {
+            return;
         }
-    }, [serverFavorites]);
+
+        const frame = requestAnimationFrame(() => {
+            const tools = menuToolsRef.current;
+            const results = menuResultsRef.current;
+            if (!tools || !results) {
+                return;
+            }
+
+            const categories = tools.querySelector('.im-categories');
+            const selected = categories?.querySelector('[aria-pressed="true"]');
+            if (selected) {
+                const categoryBounds = categories.getBoundingClientRect();
+                const selectedBounds = selected.getBoundingClientRect();
+                if (selectedBounds.left < categoryBounds.left || selectedBounds.right > categoryBounds.right) {
+                    categories.scrollBy({
+                        left: selectedBounds.left - categoryBounds.left - (categoryBounds.width - selectedBounds.width) / 2,
+                        behavior: 'auto',
+                    });
+                }
+            }
+
+            const header = rootRef.current?.querySelector('.im-header');
+            const offset = (header?.getBoundingClientRect().bottom || 0) + tools.offsetHeight + 16;
+            const resultsTop = results.getBoundingClientRect().top;
+            if (resultsTop < offset) {
+                window.scrollBy({
+                    top: resultsTop - offset,
+                    behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth',
+                });
+            }
+        });
+
+        return () => cancelAnimationFrame(frame);
+    }, [category, onlyFavorites]);
+
+    useEffect(() => {
+        if (auth?.user?.role_code === 'customer') {
+            const customerFavorites = serverFavorites.map(Number);
+            setFavorites(customerFavorites);
+            try {
+                localStorage.setItem('desego.favorites.v1', JSON.stringify(customerFavorites));
+            } catch {
+                // La cuenta sigue siendo la fuente de verdad si el almacenamiento local está bloqueado.
+            }
+        }
+    }, [auth?.user?.role_code, serverFavorites]);
 
     useEffect(() => {
         try {
@@ -350,41 +365,16 @@ export default function Store({ catalog, lastOrder }) {
     }, [products]);
 
     function scrollToSection(sectionId, event) {
-        if (event) {
-            event.preventDefault();
-        }
         setNavigationOpen(false);
-        if (sectionId === 'inicio') {
-            window.history.replaceState(null, '', window.location.pathname);
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            return;
-        }
-        const target = document.getElementById(sectionId);
-        if (target) {
-            window.history.replaceState(null, '', `#${sectionId}`);
-            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
+        navigateToStoreSection(sectionId, event);
     }
 
     useEffect(() => {
-        const handleInitialOrHashScroll = () => {
-            const rawHash = (window.location.hash || '').replace(/^#/, '').trim();
-            if (!rawHash) {
-                return;
-            }
-            const target = document.getElementById(rawHash);
-            if (target) {
-                requestAnimationFrame(() => {
-                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                });
-            }
-        };
-
-        const timer = setTimeout(handleInitialOrHashScroll, 80);
-        window.addEventListener('hashchange', handleInitialOrHashScroll);
+        const timer = setTimeout(syncStoreSectionLocation, 80);
+        window.addEventListener('popstate', syncStoreSectionLocation);
         return () => {
             clearTimeout(timer);
-            window.removeEventListener('hashchange', handleInitialOrHashScroll);
+            window.removeEventListener('popstate', syncStoreSectionLocation);
         };
     }, []);
 
@@ -452,21 +442,16 @@ export default function Store({ catalog, lastOrder }) {
     );
 
     const filteredProducts = useMemo(() => {
-        const q = query.trim().toLocaleLowerCase('es');
-        return orderedProducts.filter((product) => {
+        const matchingProducts = orderedProducts.filter((product) => {
             if (category !== 'all' && product.category !== category) {
                 return false;
             }
             if (onlyFavorites && !favorites.includes(Number(product.id))) {
                 return false;
             }
-            if (!q) {
-                return true;
-            }
-            return `${product.code || ''} ${product.name} ${product.description || ''} ${product.included_items || ''}`
-                .toLocaleLowerCase('es')
-                .includes(q);
+            return true;
         });
+        return searchProducts(matchingProducts, query);
     }, [orderedProducts, category, onlyFavorites, favorites, query]);
 
     useEffect(() => () => clearTimeout(toastTimer.current), []);
@@ -562,6 +547,11 @@ export default function Store({ catalog, lastOrder }) {
     function toggleFavorite(product, ev) {
         ev?.stopPropagation();
         const pid = Number(product.id);
+        if (!Number.isInteger(pid) || pid < 1) {
+            showToast('No se pudo guardar este producto en favoritos.');
+            return;
+        }
+
         const exists = favorites.includes(pid);
         const next = exists
             ? favorites.filter((id) => id !== pid)
@@ -569,19 +559,35 @@ export default function Store({ catalog, lastOrder }) {
         setFavorites(next);
         try {
             localStorage.setItem('desego.favorites.v1', JSON.stringify(next));
-        } catch {}
+        } catch {
+            if (auth?.user?.role_code !== 'customer') {
+                showToast('Tu navegador no permitió guardar este favorito.');
+                return;
+            }
+        }
 
-        if (auth?.user) {
+        if (auth?.user?.role_code === 'customer') {
             router.post(
                 `/cuenta/favoritos/${pid}/toggle`,
                 {},
-                { preserveScroll: true, preserveState: true }
+                {
+                    preserveScroll: true,
+                    preserveState: true,
+                    onError: () => {
+                        setFavorites(favorites);
+                        showToast('No se pudo actualizar el favorito. Inténtalo de nuevo.');
+                    },
+                }
             );
         }
         showToast(
-            exists
-                ? `${product.name} se quitó de favoritos.`
-                : `${product.name} guardado en tus favoritos.`
+            `${product.name} ${
+                exists
+                    ? 'se quitó de favoritos.'
+                    : auth?.user?.role_code === 'customer'
+                      ? 'se guardó en tus favoritos.'
+                      : 'se guardó en este dispositivo.'
+            }`
         );
     }
 
@@ -639,8 +645,7 @@ export default function Store({ catalog, lastOrder }) {
     function moveScene(event) {
         if (
             scenePaused ||
-            event.pointerType !== 'mouse' ||
-            window.matchMedia('(prefers-reduced-motion: reduce)').matches
+            event.pointerType !== 'mouse'
         ) {
             return;
         }
@@ -728,8 +733,8 @@ export default function Store({ catalog, lastOrder }) {
             },
             geo: {
                 '@type': 'GeoCoordinates',
-                latitude: social.latitude ?? -12.0125,
-                longitude: social.longitude ?? -76.8285,
+                latitude: social.latitude ?? -12.009536180504373,
+                longitude: social.longitude ?? -76.82422937768825,
             },
             sameAs: [
                 social.facebook || 'https://facebook.com/desegocevicheria',
@@ -746,9 +751,10 @@ export default function Store({ catalog, lastOrder }) {
     return (
         <div
             ref={rootRef}
-            className={`dg-site im-store ${vivid ? 'im-vivid' : ''} ${scenePaused ? 'im-paused' : ''}`}
+            className={`dg-site im-store ${scenePaused ? 'im-paused' : ''} ${sceneMotionEnabled ? 'im-motion-enabled' : ''}`}
         >
             <Head title="DeSego Cevichería · Pescados, mariscos y cocina marina en Huaycán, Ate">
+                {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
                 <link rel="icon" type="image/png" sizes="48x48" href="/images/favicon_desego.png" />
                 <link rel="icon" type="image/png" href="/favicon.png" />
                 <link rel="shortcut icon" href="/favicon.ico" />
@@ -790,7 +796,7 @@ export default function Store({ catalog, lastOrder }) {
             </Head>
 
             <a
-                href="#carta"
+                href={STORE_SECTION_PATHS.carta}
                 className="im-skip"
                 onClick={(e) => scrollToSection('carta', e)}
             >
@@ -799,7 +805,7 @@ export default function Store({ catalog, lastOrder }) {
 
             <header className="im-header">
                 <a
-                    href="#inicio"
+                    href={STORE_SECTION_PATHS.inicio}
                     onClick={(e) => scrollToSection('inicio', e)}
                     className="im-brand"
                     aria-label="DeSego Cevichería, inicio"
@@ -814,18 +820,18 @@ export default function Store({ catalog, lastOrder }) {
                 </a>
 
                 <nav className="im-desktop-nav" aria-label="Accesos principales">
-                    <a href="#carta" onClick={(e) => scrollToSection('carta', e)}>
+                    <a href={STORE_SECTION_PATHS.carta} onClick={(e) => scrollToSection('carta', e)}>
                         La carta
                     </a>
-                    <a href="#esencia" onClick={(e) => scrollToSection('esencia', e)}>
+                    <a href={STORE_SECTION_PATHS.esencia} onClick={(e) => scrollToSection('esencia', e)}>
                         Nuestra esencia
                     </a>
                     {services.reservations_enabled !== false && (
-                        <a href="#reservas" onClick={(e) => scrollToSection('reservas', e)}>
+                        <a href={STORE_SECTION_PATHS.reservas} onClick={(e) => scrollToSection('reservas', e)}>
                             Reservas
                         </a>
                     )}
-                    <a href="#contacto" onClick={(e) => scrollToSection('contacto', e)}>
+                    <a href={STORE_SECTION_PATHS.contacto} onClick={(e) => scrollToSection('contacto', e)}>
                         Ubicación y horarios
                     </a>
                 </nav>
@@ -857,7 +863,7 @@ export default function Store({ catalog, lastOrder }) {
 
                     {services.reservations_enabled !== false && (
                         <a
-                            href="#reservas"
+                            href={STORE_SECTION_PATHS.reservas}
                             onClick={(e) => scrollToSection('reservas', e)}
                             className="im-pill im-pill-primary"
                         >
@@ -907,7 +913,7 @@ export default function Store({ catalog, lastOrder }) {
                     ].map(([id, label], index) => (
                         <a
                             key={id}
-                            href={`#${id}`}
+                            href={STORE_SECTION_PATHS[id]}
                             onClick={(e) => scrollToSection(id, e)}
                         >
                             <small>0{index + 1}</small>
@@ -948,7 +954,7 @@ export default function Store({ catalog, lastOrder }) {
                         </h1>
                         <div className="im-hero-actions">
                             <a
-                                href="#carta"
+                                href={STORE_SECTION_PATHS.carta}
                                 onClick={(e) => scrollToSection('carta', e)}
                                 className="im-btn-brand"
                             >
@@ -971,7 +977,7 @@ export default function Store({ catalog, lastOrder }) {
                             </button>
                             {services.reservations_enabled !== false && (
                                 <a
-                                    href="#reservas"
+                                    href={STORE_SECTION_PATHS.reservas}
                                     onClick={(e) => scrollToSection('reservas', e)}
                                     className="im-btn-tonal"
                                 >
@@ -981,40 +987,6 @@ export default function Store({ catalog, lastOrder }) {
                             )}
                         </div>
                     </div>
-
-                    <aside className="im-hero-aside" aria-label="Resumen del restaurante">
-                        <div className="im-hero-card">
-                            <div className="im-hero-card-head">
-                                <span
-                                    className={`im-hero-live-pill ${isOpenNow ? 'is-open' : 'is-closed'}`}
-                                >
-                                    <span className="im-status-dot" />
-                                    {isOpenNow ? 'Atendiendo ahora' : 'Cocina marina tradicional'}
-                                </span>
-                                <span className="im-hero-card-tag">PEN · S/</span>
-                            </div>
-                            <p>
-                                Pescados, mariscos, ceviches frescos, arroces marinos, frituras y rondas preparadas al momento con el sabor auténtico de nuestra costa.
-                            </p>
-                            <div className="im-hero-meta-list">
-                                <div>
-                                    <Clock3 size={15} />
-                                    <span>Lun a Dom: 9:00 a. m. – 5:00 p. m.</span>
-                                </div>
-                                <div>
-                                    <MapPin size={15} />
-                                    <span>
-                                        {social.address ||
-                                            'UCV 19, Lote 13, Zona A, Huaycán, Ate'}
-                                    </span>
-                                </div>
-                                <div>
-                                    <Truck size={15} />
-                                    <span>Delivery a domicilio, recojo en local y salón</span>
-                                </div>
-                            </div>
-                        </div>
-                    </aside>
                 </section>
 
                 <section
@@ -1027,27 +999,23 @@ export default function Store({ catalog, lastOrder }) {
                     }}
                     aria-label="Experiencia interactiva de cocina marina"
                 >
-                    <OceanScene vivid={vivid} paused={scenePaused} />
+                    <div className="im-ocean-landscape" aria-hidden="true" />
+                    <OceanScene paused={scenePaused} />
+                    <div className="im-ocean-wash" aria-hidden="true" />
                     <div className="im-scene-top">
                         <span>01 / EL ORIGEN DEL ANTOJO</span>
                         <div className="im-scene-controls">
                             <button
                                 type="button"
                                 onClick={() => {
-                                    setScenePaused(!scenePaused);
+                                    setSceneMotionEnabled(true);
+                                    setScenePaused((paused) => !paused);
                                     stageRef.current.style.setProperty('--pointer-x', '0deg');
                                     stageRef.current.style.setProperty('--pointer-y', '0deg');
                                 }}
                                 aria-pressed={scenePaused}
                             >
                                 {scenePaused ? 'Reanudar escena' : 'Pausar escena'}
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setVivid(!vivid)}
-                                aria-pressed={vivid}
-                            >
-                                <span className="im-palette-dot" /> Cambiar ambiente
                             </button>
                         </div>
                     </div>
@@ -1059,20 +1027,20 @@ export default function Store({ catalog, lastOrder }) {
                     <div className="im-floating-plate">
                         <div className="im-plate-inner">
                             <img
-                                src="/assets/images/hero_ceviche_plate.png"
-                                alt="Ceviche peruano con limón, cebolla morada, choclo y camote"
+                                src="/assets/images/hero-ceviche-coastal.png"
+                                alt="Ceviche peruano servido en un plato tendido de porcelana, con pescado fresco, cebolla morada, choclo y camote"
                                 fetchPriority="high"
                             />
                         </div>
-                        <span className="im-plate-ring" />
+                        <span className="im-water-ripple im-water-ripple-one" aria-hidden="true" />
+                        <span className="im-water-ripple im-water-ripple-two" aria-hidden="true" />
                     </div>
-                    <span className="im-scene-caption">
-                        FRESCURA QUE
-                        <br />
-                        SE SIENTE.
-                    </span>
+                    <div className="im-scene-signature">
+                        <img src="/assets/desego-logo.png" alt="Desego Cevichería" width="800" height="300" />
+                        <span>Frescura que se siente.</span>
+                    </div>
                     <a
-                        href="#carta"
+                        href={STORE_SECTION_PATHS.carta}
                         onClick={(e) => scrollToSection('carta', e)}
                         className="im-scene-cta"
                     >
@@ -1106,7 +1074,7 @@ export default function Store({ catalog, lastOrder }) {
                                 </p>
                             </div>
                             <a
-                                href="#carta"
+                                href={STORE_SECTION_PATHS.carta}
                                 onClick={(e) => scrollToSection('carta', e)}
                                 className="im-promo-cta"
                             >
@@ -1166,7 +1134,7 @@ export default function Store({ catalog, lastOrder }) {
                                     <h3>Los favoritos de nuestra barra marina</h3>
                                 </div>
                                 <a
-                                    href="#carta"
+                                    href={STORE_SECTION_PATHS.carta}
                                     onClick={(e) => scrollToSection('carta', e)}
                                     className="im-link-brand"
                                 >
@@ -1189,11 +1157,6 @@ export default function Store({ catalog, lastOrder }) {
                                             />
                                         </button>
                                         <div className="im-popular-body">
-                                            {dish.code && (
-                                                <span className="im-popular-code">
-                                                    {dish.code}
-                                                </span>
-                                            )}
                                             <button
                                                 type="button"
                                                 className="im-popular-title"
@@ -1239,7 +1202,7 @@ export default function Store({ catalog, lastOrder }) {
                             En DeSego Cevichería preparamos cada plato al momento con el auténtico carácter de la cocina marina peruana en Huaycán, Ate. Ceviches frescos, arroces al wok, frituras doradas y rondas pensadas para compartir en familia o entre amigos.
                         </p>
                         <a
-                            href="#carta"
+                            href={STORE_SECTION_PATHS.carta}
                             onClick={(e) => scrollToSection('carta', e)}
                             className="im-btn-brand"
                         >
@@ -1298,8 +1261,8 @@ export default function Store({ catalog, lastOrder }) {
                         </div>
                     </div>
 
-                    <div className="im-menu-tools">
-                        <div className="im-categories" aria-label="Categorías de la carta">
+                    <div className="im-menu-tools" ref={menuToolsRef}>
+                        <div className="im-categories" role="group" aria-label="Categorías de la carta">
                             {['all', ...categories].map((value) => (
                                 <button
                                     key={value}
@@ -1333,7 +1296,7 @@ export default function Store({ catalog, lastOrder }) {
                                 <input
                                     type="search"
                                     aria-label="Buscar en la carta"
-                                    placeholder="Buscar plato o código (ej. PF001)"
+                                    placeholder="Buscar plato, ingrediente o categoría"
                                     value={query}
                                     onChange={(event) => setQuery(event.target.value)}
                                 />
@@ -1353,7 +1316,7 @@ export default function Store({ catalog, lastOrder }) {
                         </div>
                     </div>
 
-                    <div className="im-menu-results" role="status">
+                    <div className="im-menu-results" role="status" ref={menuResultsRef}>
                         <span>
                             Mostrando <strong>{filteredProducts.length}</strong>{' '}
                             {filteredProducts.length === 1
@@ -1393,33 +1356,12 @@ export default function Store({ catalog, lastOrder }) {
                                                 alt={product.name}
                                                 loading="lazy"
                                             />
-                                            {product.code && (
-                                                <span className="im-product-code-tag">
-                                                    {product.code}
-                                                </span>
-                                            )}
                                             <span
                                                 className="im-product-explore"
                                                 aria-hidden="true"
                                             >
                                                 <ArrowUpRight size={18} />
                                             </span>
-                                        </button>
-                                        <button
-                                            type="button"
-                                            className={`im-product-fav ${isFav ? 'is-fav' : ''}`}
-                                            onClick={(ev) => toggleFavorite(product, ev)}
-                                            aria-label={
-                                                isFav
-                                                    ? `Quitar ${product.name} de favoritos`
-                                                    : `Guardar ${product.name} en favoritos`
-                                            }
-                                            aria-pressed={isFav}
-                                        >
-                                            <Heart
-                                                size={16}
-                                                fill={isFav ? 'currentColor' : 'none'}
-                                            />
                                         </button>
                                     </div>
 
@@ -1504,6 +1446,15 @@ export default function Store({ catalog, lastOrder }) {
                                                 </button>
                                             </div>
                                         </div>
+                                        <button
+                                            type="button"
+                                            className={`im-favorite-action ${isFav ? 'is-favorite' : ''}`}
+                                            onClick={(event) => toggleFavorite(product, event)}
+                                            aria-pressed={isFav}
+                                        >
+                                            <Heart size={16} fill={isFav ? 'currentColor' : 'none'} />
+                                            <span>{isFav ? 'Quitar de favoritos' : 'Agregar a favoritos'}</span>
+                                        </button>
                                     </div>
                                 </article>
                             );
@@ -1568,7 +1519,7 @@ export default function Store({ catalog, lastOrder }) {
                         {services.reservations_enabled !== false && (
                             <a
                                 className="im-btn-brand"
-                                href="#reservas"
+                                href={STORE_SECTION_PATHS.reservas}
                                 onClick={(e) => scrollToSection('reservas', e)}
                             >
                                 <span>Reservar una mesa</span>
@@ -1653,7 +1604,7 @@ export default function Store({ catalog, lastOrder }) {
                                     <span>
                                         {social.address ||
                                             'UCV 19, Lote 13, Zona A, Huaycán, Ate'}{' '}
-                                        · Lima, Perú (CP {social.postal_code || '15479'})
+                                        · Lima, Perú
                                     </span>
                                 </p>
                             </div>
@@ -1743,8 +1694,8 @@ export default function Store({ catalog, lastOrder }) {
                             <InteractiveMap
                                 mode="restaurant"
                                 height={430}
-                                restaurantLat={social.latitude ?? -12.0125}
-                                restaurantLng={social.longitude ?? -76.8285}
+                                restaurantLat={social.latitude ?? -12.009536180504373}
+                                restaurantLng={social.longitude ?? -76.82422937768825}
                                 restaurantName={social.name || 'DeSego Cevichería'}
                                 restaurantAddress={
                                     social.address || 'UCV 19, Lote 13, Zona A, Huaycán, Ate'
@@ -1760,7 +1711,7 @@ export default function Store({ catalog, lastOrder }) {
                     <div>
                         <span className="im-eyebrow">EL MAR NOS VUELVE A ENCONTRAR.</span>
                         <a
-                            href="#carta"
+                            href={STORE_SECTION_PATHS.carta}
                             onClick={(e) => scrollToSection('carta', e)}
                             className="im-footer-cta"
                         >
@@ -1770,7 +1721,7 @@ export default function Store({ catalog, lastOrder }) {
                     </div>
                     <div className="im-footer-quick-actions">
                         <a
-                            href="#carta"
+                            href={STORE_SECTION_PATHS.carta}
                             onClick={(e) => scrollToSection('carta', e)}
                             className="im-btn-brand"
                         >
@@ -1793,8 +1744,7 @@ export default function Store({ catalog, lastOrder }) {
                     <div className="im-footer-address">
                         <strong>{social.name || 'DeSego Cevichería'}</strong>
                         <span>
-                            {social.address || 'UCV 19, Lote 13, Zona A, Huaycán, Ate'} (CP{' '}
-                            {social.postal_code || '15479'}) ·{' '}
+                            {social.address || 'UCV 19, Lote 13, Zona A, Huaycán, Ate'} ·{' '}
                             {social.schedule || 'Lunes a Domingo: 9:00 a. m. – 5:00 p. m.'}
                         </span>
                     </div>
@@ -1835,13 +1785,13 @@ export default function Store({ catalog, lastOrder }) {
                         <Link href={auth?.user ? '/cuenta' : '/ingresar'}>
                             Mi cuenta <ArrowUpRight size={13} />
                         </Link>
-                        <a href="#carta" onClick={(e) => scrollToSection('carta', e)}>
+                        <a href={STORE_SECTION_PATHS.carta} onClick={(e) => scrollToSection('carta', e)}>
                             La carta <ArrowUpRight size={13} />
                         </a>
-                        <a href="#contacto" onClick={(e) => scrollToSection('contacto', e)}>
+                        <a href={STORE_SECTION_PATHS.contacto} onClick={(e) => scrollToSection('contacto', e)}>
                             Ubicación <ArrowUpRight size={13} />
                         </a>
-                        <a href="#inicio" onClick={(e) => scrollToSection('inicio', e)}>
+                        <a href={STORE_SECTION_PATHS.inicio} onClick={(e) => scrollToSection('inicio', e)}>
                             Volver arriba ↑
                         </a>
                     </div>
@@ -1895,11 +1845,6 @@ export default function Store({ catalog, lastOrder }) {
                                     src={activeGalleryImg || foodImage(selectedProduct)}
                                     alt={selectedProduct.name}
                                 />
-                                {selectedProduct.code && (
-                                    <span className="im-product-code-tag">
-                                        {selectedProduct.code}
-                                    </span>
-                                )}
                             </div>
                             {detailGallery.length > 1 && (
                                 <div className="im-detail-thumbs">

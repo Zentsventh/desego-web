@@ -27,18 +27,18 @@ class AuthenticationSecurityTest extends TestCase
     public function test_wrong_password_returns_form_errors_instead_of_an_http_error(): void
     {
         $user = $this->admin();
-        $this->from('/ingresar?staff=1')->post('/ingresar', ['email' => $user->email, 'password' => 'wrong-password'])
-            ->assertRedirect('/ingresar?staff=1')->assertSessionHasErrors('email')->assertSessionMissing('user_id');
+        $this->from('/admin')->post('/admin', ['email' => $user->email, 'password' => 'wrong-password'])
+            ->assertRedirect('/admin')->assertSessionHasErrors('email')->assertSessionMissing('user_id');
     }
 
     public function test_successful_staff_login_establishes_a_session_and_logout_removes_it(): void
     {
         $user = $this->admin();
-        $this->post('/ingresar', ['email' => $user->email, 'password' => 'password', 'remember' => true])
+        $this->post('/admin', ['email' => $user->email, 'password' => 'password', 'remember' => true])
             ->assertRedirect('/admin')->assertSessionHas('user_id', $user->id)->assertSessionHas('auth_password_fingerprint')->assertCookie('DESEGO_REMEMBER');
         $this->get('/admin')->assertOk();
-        $this->post('/salir')->assertRedirect('/')->assertSessionMissing('user_id')->assertSessionMissing('auth_password_fingerprint');
-        $this->get('/admin')->assertRedirect('/ingresar?staff=1');
+        $this->post('/salir')->assertRedirect('/admin')->assertSessionMissing('user_id')->assertSessionMissing('auth_password_fingerprint');
+        $this->get('/admin')->assertOk()->assertInertia(fn (Assert $page) => $page->component('Restaurant/Auth')->where('staff', true));
     }
 
     public function test_public_registration_cannot_select_a_staff_role_through_either_legacy_alias(): void
@@ -58,14 +58,14 @@ class AuthenticationSecurityTest extends TestCase
     public function test_remember_cookie_restores_a_session_and_cannot_be_replayed_after_logout(): void
     {
         $user = $this->admin();
-        $response = $this->post('/ingresar', ['email' => $user->email, 'password' => 'password', 'remember' => true])->assertRedirect('/admin');
+        $response = $this->post('/admin', ['email' => $user->email, 'password' => 'password', 'remember' => true])->assertRedirect('/admin');
         $cookie = $response->getCookie('DESEGO_REMEMBER')->getValue();
         $this->flushSession();
         $restored = $this->withCookie('DESEGO_REMEMBER', $cookie)->get('/admin')->assertOk()
             ->assertSessionHas('user_id', $user->id)->assertSessionHas('auth_password_fingerprint');
         $rotatedCookie = $restored->getCookie('DESEGO_REMEMBER')->getValue();
-        $this->withCookie('DESEGO_REMEMBER', $rotatedCookie)->post('/salir')->assertRedirect('/');
-        $this->withCookie('DESEGO_REMEMBER', $rotatedCookie)->get('/admin')->assertRedirect('/ingresar?staff=1');
+        $this->withCookie('DESEGO_REMEMBER', $rotatedCookie)->post('/salir')->assertRedirect('/admin');
+        $this->withCookie('DESEGO_REMEMBER', $rotatedCookie)->get('/admin')->assertOk()->assertInertia(fn (Assert $page) => $page->component('Restaurant/Auth')->where('staff', true));
     }
 
     public function test_login_limit_is_shared_across_web_mobile_and_legacy_aliases(): void
@@ -79,6 +79,50 @@ class AuthenticationSecurityTest extends TestCase
         $this->from('/ingresar')->post('/ingresar', ['email' => 'unknown@example.test', 'password' => 'wrong-password'])
             ->assertRedirect('/ingresar')->assertSessionHasErrors('email');
         $this->postJson('/api/auth.php?action=logout')->assertOk();
+    }
+
+    public function test_customer_and_staff_web_logins_are_separate_and_only_accept_their_role(): void
+    {
+        $customerRoleId = DB::table('roles')->where('code', 'customer')->value('id')
+            ?? DB::table('roles')->insertGetId([
+                'code' => 'customer',
+                'name' => 'Cliente',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        $customer = User::factory()->create([
+            'role_id' => $customerRoleId,
+        ]);
+        $staff = $this->admin();
+
+        $this->from('/ingresar')->post('/ingresar', [
+            'email' => $staff->email,
+            'password' => 'password',
+        ])->assertRedirect('/ingresar')->assertSessionHasErrors('email')->assertSessionMissing('user_id');
+
+        $this->from('/admin')->post('/admin', [
+            'email' => $customer->email,
+            'password' => 'password',
+        ])->assertRedirect('/admin')->assertSessionHasErrors('email')->assertSessionMissing('user_id');
+
+        $this->post('/ingresar', [
+            'email' => $customer->email,
+            'password' => 'password',
+        ])->assertRedirect('/cuenta')->assertSessionHas('user_id', $customer->id);
+    }
+
+    public function test_staff_login_is_rendered_at_admin_and_legacy_urls_redirect_there(): void
+    {
+        $this->get('/ingresar')->assertInertia(fn (Assert $page) => $page
+            ->component('Restaurant/Auth')
+            ->where('staff', false));
+
+        $this->get('/admin')->assertInertia(fn (Assert $page) => $page
+            ->component('Restaurant/Auth')
+            ->where('staff', true));
+
+        $this->get('/ingresar?staff=1')->assertRedirect('/admin');
+        $this->get('/panel/ingresar')->assertRedirect('/admin');
     }
 
     public function test_recovery_limit_is_shared_across_aliases_and_preserves_the_web_form(): void
@@ -128,9 +172,9 @@ class AuthenticationSecurityTest extends TestCase
     {
         $user = $this->admin();
         $otherUser = $this->admin();
-        $this->post('/ingresar', ['email' => $user->email, 'password' => 'password', 'remember' => true])->assertRedirect('/admin');
+        $this->post('/admin', ['email' => $user->email, 'password' => 'password', 'remember' => true])->assertRedirect('/admin');
         $oldSession = session()->all();
-        $this->post('/ingresar', ['email' => $otherUser->email, 'password' => 'password'])->assertRedirect('/admin');
+        $this->post('/admin', ['email' => $otherUser->email, 'password' => 'password'])->assertRedirect('/admin');
         $otherSession = session()->all();
         config(['desego.mail.from_email' => 'noreply@example.test', 'desego.mail.app_url' => 'http://localhost', 'desego.mail.allow_local_debug_link' => false]);
         $resetUrl = null;
@@ -149,7 +193,7 @@ class AuthenticationSecurityTest extends TestCase
             ->assertRedirect('/ingresar')->assertSessionMissing('user_id');
         $this->assertTrue(Hash::check('ReplacementSecret123', $user->fresh()->password_hash));
         $this->assertDatabaseMissing('remember_tokens', ['user_id' => $user->id, 'revoked_at' => null]);
-        $this->withSession($oldSession)->get('/admin')->assertRedirect('/ingresar?staff=1')->assertSessionMissing('user_id');
+        $this->withSession($oldSession)->get('/admin')->assertOk()->assertInertia(fn (Assert $page) => $page->component('Restaurant/Auth')->where('staff', true))->assertSessionMissing('user_id');
         $this->withSession($otherSession)->get('/admin')->assertOk();
         $this->from('/restablecer-contrasena')->post('/restablecer-contrasena', ['token' => $query['token'], 'password' => 'AnotherSecret123', 'password_confirmation' => 'AnotherSecret123'])
             ->assertRedirect('/restablecer-contrasena')->assertSessionHasErrors('request');

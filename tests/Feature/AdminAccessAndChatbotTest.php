@@ -3,8 +3,10 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\Concerns\CreatesRestaurantDatabase;
@@ -141,6 +143,7 @@ class AdminAccessAndChatbotTest extends TestCase
     {
         $admin = $this->administrator();
         $this->postJson('/api/mobile/login', ['email' => $admin->email, 'password' => 'password'])->assertForbidden()->assertSessionMissing('user_id');
+        $this->assertDatabaseMissing('customers', ['user_id' => $admin->id]);
         $this->loginAs($admin);
         $this->getJson('/api/mobile/session')->assertOk()->assertJson(['authenticated' => false, 'user' => null]);
         $this->getJson('/api/mobile/dashboard')->assertForbidden();
@@ -436,6 +439,152 @@ class AdminAccessAndChatbotTest extends TestCase
             'author_id' => $admin->id,
             'message' => 'Estimada María, hemos validado tu caso y fue completado con éxito.',
             'is_internal' => 0,
+        ]);
+    }
+
+    public function test_admin_can_upload_image_using_image_or_file_key(): void
+    {
+        Storage::fake('public');
+        $this->loginAs($this->administrator());
+
+        $fileUpload = UploadedFile::fake()->image('plato_ceviche.jpg', 600, 400);
+        $res1 = $this->postJson('/admin/subir-imagen', ['file' => $fileUpload])
+            ->assertOk()
+            ->assertJsonPath('ok', true);
+        $this->assertStringContainsString('/uploads/products/', $res1->json('url'));
+
+        $imageUpload = UploadedFile::fake()->image('plato_jalea.png', 600, 400);
+        $res2 = $this->postJson('/admin/subir-imagen', ['image' => $imageUpload])
+            ->assertOk()
+            ->assertJsonPath('ok', true);
+        $this->assertStringContainsString('/uploads/products/', $res2->json('url'));
+    }
+
+    public function test_admin_can_update_order_status_to_cancelled_or_paid_via_order_status_action(): void
+    {
+        $admin = $this->administrator();
+        $this->loginAs($admin);
+        $orderId = DB::table('orders')->insertGetId([
+            'order_number' => 'ORD-TEST-999',
+            'created_by' => $admin->id,
+            'customer_name' => 'Cliente Prueba',
+            'order_type' => 'Mesa',
+            'table_label' => 'Mesa 1',
+            'status' => 'Pendiente',
+            'payment_status' => 'Pendiente',
+            'total' => 45.00,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        // 1. Mark as paid
+        $this->post('/admin/acciones/orders', [
+            'action' => 'status',
+            'id' => $orderId,
+            'status' => 'Preparando',
+            'payment_status' => 'Pagado',
+            'payment_method' => 'Efectivo',
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('orders', [
+            'id' => $orderId,
+            'status' => 'Preparando',
+            'payment_status' => 'Pagado',
+        ]);
+
+        // 2. Mark as cancelado
+        $unpaidOrderId = DB::table('orders')->insertGetId([
+            'order_number' => 'ORD-TEST-888',
+            'created_by' => $admin->id,
+            'customer_name' => 'Cliente Cancelar',
+            'order_type' => 'Mesa',
+            'table_label' => 'Mesa 2',
+            'status' => 'Pendiente',
+            'payment_status' => 'Pendiente',
+            'total' => 30.00,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->post('/admin/acciones/orders', [
+            'action' => 'status',
+            'id' => $unpaidOrderId,
+            'status' => 'Cancelado',
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('orders', [
+            'id' => $unpaidOrderId,
+            'status' => 'Cancelado',
+        ]);
+        $this->assertNotNull(DB::table('orders')->where('id', $unpaidOrderId)->value('cancelled_at'));
+    }
+
+    public function test_admin_can_set_or_keep_reservation_status_as_pendiente(): void
+    {
+        $this->loginAs($this->administrator());
+        $tableId = DB::table('restaurant_tables')->value('id') ?? DB::table('restaurant_tables')->insertGetId([
+            'label' => 'Mesa 1',
+            'table_number' => 1,
+            'capacity' => 4,
+            'zone' => 'Salón',
+            'is_active' => 1,
+            'operational_status' => 'available',
+        ]);
+
+        $resId = DB::table('reservations')->insertGetId([
+            'reservation_code' => 'RES-TEST-123',
+            'table_id' => $tableId,
+            'customer_name' => 'Reserva Prueba',
+            'customer_phone' => '999888777',
+            'guest_count' => 2,
+            'status' => 'Pendiente',
+            'payment_status' => 'Pendiente',
+            'reservation_at' => now()->addDay()->format('Y-m-d 14:00:00'),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->post('/admin/acciones/reservations', [
+            'action' => 'reservation.status',
+            'id' => $resId,
+            'status' => 'Pendiente',
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('reservations', [
+            'id' => $resId,
+            'status' => 'Pendiente',
+        ]);
+    }
+
+    public function test_admin_can_create_support_ticket_with_reservations_and_loyalty_categories(): void
+    {
+        $admin = $this->administrator();
+        $this->loginAs($admin);
+
+        $this->post('/admin/acciones/communications', [
+            'action' => 'support.create',
+            'subject' => 'Consulta sobre mesa y reserva',
+            'category' => 'reservations',
+            'priority' => 'normal',
+            'message' => 'Necesito reubicar a comensales en la terraza.',
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('support_tickets', [
+            'subject' => 'Consulta sobre mesa y reserva',
+            'category' => 'reservations',
+        ]);
+
+        $this->post('/admin/acciones/communications', [
+            'action' => 'support.create',
+            'subject' => 'Canje de puntos Club DeSego',
+            'category' => 'loyalty',
+            'priority' => 'high',
+            'message' => 'Ajuste de puntos para cliente VIP.',
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('support_tickets', [
+            'subject' => 'Canje de puntos Club DeSego',
+            'category' => 'loyalty',
         ]);
     }
 }

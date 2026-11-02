@@ -162,9 +162,10 @@ class ReservationAvailabilityService
             ->where('status', 'ACTIVE')
             ->where('expires_at', '>', $nowUtc)
             ->when($exceptHoldToken, fn ($q) => $q->where('hold_token', '<>', $exceptHoldToken))
-            ->where(function ($q) use ($tableId): void {
-                $q->whereJsonContains('table_ids', (int) $tableId)
-                    ->orWhereJsonContains('table_ids', (string) $tableId);
+            ->whereExists(function ($q) use ($tableId): void {
+                $q->selectRaw('1')->from('reservation_hold_tables')
+                    ->whereColumn('reservation_hold_tables.hold_id', 'reservation_holds.id')
+                    ->where('reservation_hold_tables.table_id', $tableId);
             })
             ->where(function ($q) use ($newStartUtc, $newEnd, $cleaningMinutes): void {
                 $q->where('reservation_at', '<', $newEnd)
@@ -398,7 +399,6 @@ class ReservationAvailabilityService
                 'customer_name' => $data['customer_name'],
                 'customer_phone' => $data['phone'],
                 'customer_email' => $data['email'] ?? null,
-                'table_ids' => json_encode($tableIds),
                 'guest_count' => (int) $data['people'],
                 'reservation_at' => $startUtc,
                 'duration_minutes' => $durationMinutes,
@@ -410,6 +410,8 @@ class ReservationAvailabilityService
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
+
+            DB::table('reservation_hold_tables')->insert(array_map(fn (int $tableId): array => ['hold_id' => $holdId, 'table_id' => $tableId], $tableIds));
 
             audit_log(desego_db(), null, 'reservations.hold_created', [
                 'hold_id' => $holdId,
@@ -480,7 +482,7 @@ class ReservationAvailabilityService
             }
 
             $nowUtc = CarbonImmutable::now('UTC');
-            $tableIds = json_decode((string) $hold->table_ids, true) ?: [];
+            $tableIds = DB::table('reservation_hold_tables')->where('hold_id', $hold->id)->pluck('table_id')->map(fn ($id): int => (int) $id)->all();
             sort($tableIds);
 
             // Bloquear mesas determinísticamente
@@ -593,19 +595,21 @@ class ReservationAvailabilityService
                 ]);
             }
 
-            // Registrar el pago de la reserva
-            $paymentId = DB::table('reservation_payments')->insertGetId([
-                'reservation_id' => $reservationId,
-                'amount' => $hold->advance_amount,
-                'currency' => 'PEN',
-                'provider' => $provider,
-                'external_reference' => $externalReference ?: 'REF-'.bin2hex(random_bytes(6)),
-                'status' => 'PAID',
-                'paid_at' => now(),
-                'raw_response' => json_encode($rawResponse),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+            $paymentId = null;
+            if ((float) $hold->advance_amount > 0) {
+                $paymentId = DB::table('reservation_payments')->insertGetId([
+                    'reservation_id' => $reservationId,
+                    'amount' => $hold->advance_amount,
+                    'currency' => 'PEN',
+                    'provider' => $provider,
+                    'external_reference' => $externalReference ?: 'REF-'.bin2hex(random_bytes(6)),
+                    'status' => 'PAID',
+                    'paid_at' => now(),
+                    'raw_response' => json_encode($rawResponse),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
 
             // Marcar hold como convertido
             DB::table('reservation_holds')->where('id', $hold->id)->update([

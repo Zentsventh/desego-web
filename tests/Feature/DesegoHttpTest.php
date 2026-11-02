@@ -8,7 +8,7 @@ class DesegoHttpTest extends TestCase
 {
     public function test_administration_and_store_render_with_laravel_csrf_tokens(): void
     {
-        $this->get('/admin/legacy')->assertRedirect('/ingresar?staff=1');
+        $this->get('/admin/legacy')->assertRedirect('/admin');
         $this->get('/ingresar')->assertOk()->assertSee('csrf-token', false);
         $this->get('/tienda')->assertRedirect('/');
         $this->get('/index.php')->assertRedirect('/admin');

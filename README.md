@@ -39,6 +39,17 @@ composer require laravel/boost --dev
 php artisan boost:install
 ```
 
+## Pruebas de pagos Niubiz
+
+Las reservas con anticipo usan el checkout web de Niubiz y solo se confirman después de verificar la autorización del proveedor. Para probarlo:
+
+1. Configura `NIUBIZ_ENV=sandbox`, `NIUBIZ_MERCHANT_ID=456879856` (comercio oficial de prueba en soles con liquidación manual), `NIUBIZ_USER` y `NIUBIZ_PASSWORD` en `.env`. Mantén las credenciales del servidor fuera del navegador, del repositorio y de los registros.
+2. Usa la sección de pruebas que aparece en el checkout para confirmar el código de comercio y consultar la información oficial.
+3. La página oficial de [datos de prueba de Niubiz](https://desarrolladores.niubiz.com.pe/docs/data-para-pruebas) publica códigos de comercio y credenciales sandbox, pero no publica una tarjeta ni un OTP de prueba. Solicita esos datos directamente a Niubiz; no uses números de tarjeta inventados ni eludas la pasarela.
+4. Las credenciales de producción y el código de comercio de producción deben configurarse por separado antes de habilitar `NIUBIZ_ENV=production`.
+
+La integración sigue la [documentación oficial de Botón de Pago Web](https://desarrolladores.niubiz.com.pe/docs/bot%C3%B3n-de-pago-1) y envía la confirmación de captura manual indicada por Niubiz. La [API de autorización e-commerce](https://desarrolladores.niubiz.com.pe/docs/api-de-autorizaci%C3%B3n-copy) tiene requisitos PCI DSS y de aprobación de seguridad; confirma con Niubiz que la cuenta esté habilitada para ese endpoint antes de producción.
+
 Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
 
 ## Contributing

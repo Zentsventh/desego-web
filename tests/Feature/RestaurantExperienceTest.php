@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\Concerns\CreatesRestaurantDatabase;
@@ -33,8 +34,36 @@ class RestaurantExperienceTest extends TestCase
 
     public function test_professional_store_receives_real_catalog_props(): void
     {
-        $this->get('/')->assertOk()->assertInertia(fn (Assert $page) => $page->component('Restaurant/Store')->has('catalog.products', 6)->has('catalog.categories', 4)->where('catalog.delivery_fee', 5)->where('auth.user', null));
-        $this->get('/admin/')->assertRedirect('/ingresar?staff=1');
+        $this->get('/')->assertOk()->assertInertia(fn (Assert $page) => $page->component('Restaurant/Store')->has('catalog.products', 6)->has('catalog.categories', 4)->where('catalog.delivery_fee', 5)->where('catalog.social.latitude', -12.009536180504373)->where('catalog.social.longitude', -76.82422937768825)->where('auth.user', null));
+        $this->get('/admin/')->assertOk()->assertInertia(fn (Assert $page) => $page->component('Restaurant/Auth')->where('staff', true));
+    }
+
+    public function test_store_sections_have_clean_routes_and_canonical_urls(): void
+    {
+        foreach ([
+            'store.menu' => '/carta',
+            'store.essence' => '/nuestra-esencia',
+            'store.reservations' => '/reservar',
+            'store.location' => '/ubicacion',
+        ] as $routeName => $path) {
+            $this->get(route($routeName))->assertOk()->assertInertia(fn (Assert $page) => $page
+                ->component('Restaurant/Store')
+                ->where('canonicalUrl', fn (string $url): bool => str_ends_with($url, $path)));
+        }
+    }
+
+    public function test_guest_storefront_shows_niubiz_when_provider_is_configured(): void
+    {
+        config([
+            'services.niubiz.user' => 'test-user',
+            'services.niubiz.password' => 'test-password',
+            'services.niubiz.merchant_id' => '123456789',
+            'services.niubiz.env' => 'sandbox',
+        ]);
+
+        $this->get('/')->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->where('auth.user', null)
+            ->where('catalog.payment_methods', fn (Collection $methods): bool => $methods->contains('Niubiz')));
     }
 
     public function test_staff_dashboard_has_current_data_and_no_customer_can_enter(): void
@@ -58,7 +87,7 @@ class RestaurantExperienceTest extends TestCase
     public function test_tools_keeps_the_staff_session_and_uses_the_current_admin_panel(): void
     {
         $user = $this->admin();
-        $this->post('/ingresar', ['email' => $user->email, 'password' => 'password'])->assertRedirect('/admin');
+        $this->post('/admin', ['email' => $user->email, 'password' => 'password'])->assertRedirect('/admin');
         $this->get('/admin/herramientas')->assertOk()->assertSessionHas('user_id', $user->id)
             ->assertInertia(fn (Assert $page) => $page->component('Restaurant/Admin')
                 ->where('section', 'herramientas')->where('title', 'Herramientas')
@@ -78,7 +107,7 @@ class RestaurantExperienceTest extends TestCase
 
     public function test_tools_rejects_guests_and_customers(): void
     {
-        $this->get('/admin/herramientas')->assertRedirect('/ingresar?staff=1');
+        $this->get('/admin/herramientas')->assertRedirect('/admin');
         $this->registerCustomer();
         $this->get('/admin/herramientas')->assertForbidden();
     }

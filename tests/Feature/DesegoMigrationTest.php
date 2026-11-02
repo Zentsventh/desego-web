@@ -40,6 +40,8 @@ class DesegoMigrationTest extends TestCase
                 $pdo->exec($statement);
             }
             config(['database.connections.reference' => array_merge($config, ['database' => $reference])]);
+            $this->artisan('migrate:install', ['--database' => 'reference'])->assertExitCode(0);
+            DB::connection('reference')->table('migrations')->insert(['migration' => LegacyDesegoMigration::NAME, 'batch' => 1]);
             $this->artisan('migrate', ['--database' => 'reference', '--force' => true])->assertExitCode(0);
             $this->assertSame($this->schemaDefinition($pdo), $this->schemaDefinition(DB::connection()->getPdo()));
             $this->assertTrue(LegacyDesegoMigration::nativeBaselinePrecedesLegacy());
@@ -94,7 +96,7 @@ class DesegoMigrationTest extends TestCase
         $report = VerifyDesego::inspect(DB::connection()->getPdo(), $this->tables);
         $this->assertCount(61, $report['tables']);
         $this->assertSame(431, array_sum(array_column($report['tables'], 'rows')));
-        $this->assertSame(124, $report['foreign_keys']);
+        $this->assertSame(123, $report['foreign_keys']);
         $this->assertSame([], $report['orphans']);
         $this->assertDatabaseHas('allergens', ['name' => 'Crustáceos']);
         $this->assertDatabaseHas('products', ['id' => 1]);
@@ -260,9 +262,9 @@ class DesegoMigrationTest extends TestCase
     {
         $report = app(DatabaseIntegrityAudit::class)->inspect(DB::connection()->getPdo());
         $this->assertTrue($report['healthy'], json_encode($report['issues']));
-        $this->assertSame(76, $report['summary']['tables']);
-        $this->assertSame(76, $report['summary']['primary_keys']);
-        $this->assertSame(136, $report['summary']['foreign_keys']);
+        $this->assertSame(92, $report['summary']['tables']);
+        $this->assertSame(92, $report['summary']['primary_keys']);
+        $this->assertSame(155, $report['summary']['foreign_keys']);
         $this->assertSame(0, $report['summary']['orphan_constraints']);
         $path = tempnam(storage_path('framework'), 'desego-audit-');
         try {
@@ -312,6 +314,14 @@ class DesegoMigrationTest extends TestCase
         foreach (app(SqlDump::class)->statements(file_get_contents(database_path('desego/reference-data.sql'))) as $statement) {
             $pdo->exec($statement);
         }
+        $normalizationMigrations = [
+            '2026_11_01_194719_normalize_reservation_and_dining_relations.php',
+            '2026_11_01_194720_strengthen_restaurant_database_integrity.php',
+            '2026_11_01_194953_normalize_business_hours_and_configuration.php',
+            '2026_11_01_195023_remove_derived_workforce_and_purchase_columns.php',
+        ];
+        $previousMigrations = array_values(array_filter(glob(database_path('migrations/*.php')), fn (string $path): bool => ! in_array(basename($path), $normalizationMigrations, true)));
+        $this->artisan('migrate', ['--realpath' => true, '--path' => $previousMigrations, '--force' => true])->assertExitCode(0);
         $before = VerifyDesego::inspect($pdo, $this->tables);
         $schema = $this->schemaDefinition($pdo);
         $queries = DB::connection()->pretend(function (): void {
@@ -323,12 +333,14 @@ class DesegoMigrationTest extends TestCase
         }
         $this->artisan('migrate', ['--force' => true])->assertExitCode(0);
         $this->assertTrue(LegacyDesegoMigration::skipNativeMigration(LegacyDesegoMigration::NATIVE_MIGRATIONS[0]));
-        $this->assertSame($before, VerifyDesego::inspect($pdo, $this->tables));
-        $this->assertSame($schema, $this->schemaDefinition($pdo));
+        $upgraded = VerifyDesego::inspect($pdo, $this->tables);
+        $this->assertSame($before['tables'], $upgraded['tables']);
+        $this->assertSame([], $upgraded['orphans']);
+        $this->assertNotSame($schema, $this->schemaDefinition($pdo));
         $this->artisan('migrate:rollback', ['--force' => true])->assertExitCode(0);
         $this->assertSame($before, VerifyDesego::inspect($pdo, $this->tables));
         $this->assertSame($schema, $this->schemaDefinition($pdo));
         $this->artisan('migrate', ['--force' => true])->assertExitCode(0);
-        $this->assertSame($before, VerifyDesego::inspect($pdo, $this->tables));
+        $this->assertSame($upgraded, VerifyDesego::inspect($pdo, $this->tables));
     }
 }

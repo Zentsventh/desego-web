@@ -249,6 +249,12 @@ class CustomerAccountTest extends TestCase
             'product_id' => $productId,
         ]);
 
+        $this->get('/carta')->assertInertia(fn (Assert $page) => $page
+            ->where('catalog.favorite_ids', [$productId]));
+
+        $this->get('/cuenta')->assertInertia(fn (Assert $page) => $page
+            ->where('account.favorites.0.id', $productId));
+
         // Toggle off
         $this->post('/cuenta/favoritos/'.$productId.'/toggle')
             ->assertRedirect()
@@ -258,6 +264,9 @@ class CustomerAccountTest extends TestCase
             'visitor_key' => $visitorKey,
             'product_id' => $productId,
         ]);
+
+        $this->get('/carta')->assertInertia(fn (Assert $page) => $page
+            ->where('catalog.favorite_ids', []));
     }
 
     public function test_customer_can_save_preferences(): void

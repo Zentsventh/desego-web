@@ -12,7 +12,11 @@ function RoleEditor({ role, permissions, duplicate, close }) {
         description: role?.description || '',
         permissions: permissions.filter(permission => role?.permission_ids?.includes(permission.id)).map(permission => permission.code),
     });
-    const groups = useMemo(() => Object.groupBy(permissions, permission => permission.module), [permissions]);
+    const groups = useMemo(() => permissions.reduce((acc, permission) => {
+        const key = permission.module || 'Otros';
+        (acc[key] ??= []).push(permission);
+        return acc;
+    }, {}), [permissions]);
     useEffect(() => {
         const listener = event => { if (event.key === 'Escape') { close(); } };
         document.addEventListener('keydown', listener);

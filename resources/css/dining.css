@@ -317,21 +317,94 @@
     font-size: 13px;
 }
 
+.dining-section-title .dining-eyebrow {
+    margin-bottom: 4px;
+    color: var(--dn-brand);
+    font-size: 11px;
+}
+
+.dining-catalog-count {
+    flex-shrink: 0;
+    padding: 6px 11px;
+    border: 1px solid var(--dn-hairline);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.72);
+    color: var(--dn-brand) !important;
+    font-size: 12px !important;
+    font-weight: 700;
+}
+
+.dining-catalog-search {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    max-width: 520px;
+    min-height: 46px;
+    margin-bottom: 12px;
+    padding: 0 14px;
+    border: 1px solid var(--dn-hairline);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.88);
+    color: var(--dn-muted);
+}
+
+.dining-catalog-search:focus-within {
+    border-color: var(--dn-brand);
+    box-shadow: 0 0 0 3px rgba(0, 71, 151, 0.1);
+}
+
+.dining-client .dining-catalog-search input {
+    min-height: 44px;
+    margin: 0;
+    padding: 8px 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+.dining-catalog-categories {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    margin: 0 -2px 14px;
+    padding: 2px 2px 6px;
+    scrollbar-width: thin;
+}
+
+.dining-client .dining-catalog-categories button {
+    flex: 0 0 auto;
+    min-height: 38px;
+    padding: 7px 13px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.84);
+    color: var(--dn-muted);
+    font-size: 12px;
+}
+
+.dining-client .dining-catalog-categories button[aria-pressed='true'] {
+    border-color: transparent;
+    background: linear-gradient(135deg, var(--dn-brand-mid), var(--dn-brand));
+    color: #fff;
+    box-shadow: 0 6px 14px -8px rgba(0, 71, 151, 0.75);
+}
+
 .dining-client-products {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
 }
 
 .dining-client-products article {
     overflow: hidden;
     border: 1px solid var(--dn-hairline);
-    border-radius: 22px;
-    background: rgba(255, 255, 255, 0.82);
-    transition: transform var(--dn-ease), box-shadow var(--dn-ease);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 8px 22px -18px rgba(0, 43, 94, 0.5);
+    transition: transform var(--dn-ease), box-shadow var(--dn-ease), border-color var(--dn-ease);
 }
 
 .dining-client-products article:hover {
+    border-color: rgba(0, 71, 151, 0.3);
     transform: translateY(-3px);
     box-shadow: var(--dn-shadow);
 }
@@ -340,11 +413,12 @@
     position: relative;
     display: block;
     width: 100%;
-    height: 190px;
+    height: 112px;
     padding: 0 !important;
     border: 0 !important;
     border-radius: 0 !important;
     overflow: hidden;
+    background: #e7eff9;
 }
 
 .dining-dish-photo img {
@@ -362,30 +436,55 @@
     position: absolute;
     right: 10px;
     bottom: 10px;
-    padding: 6px 12px;
+    padding: 5px 9px;
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.9);
     color: var(--dn-brand);
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 700;
     backdrop-filter: blur(8px);
 }
 
 .dining-client-products article > div {
-    padding: 16px;
+    padding: 11px 12px 12px;
+}
+
+.dining-client-products .dining-eyebrow {
+    margin-bottom: 4px;
+    font-size: 9px;
 }
 
 .dining-client-products h3 {
-    margin: 0 0 6px;
-    font-size: 18px;
+    display: -webkit-box;
+    overflow: hidden;
+    margin: 0 0 5px;
+    font-size: 15px;
+    line-height: 1.3;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+
+.dining-product-unavailable {
+    display: inline-block;
+    margin-bottom: 5px;
+    padding: 3px 7px;
+    border-radius: 999px;
+    background: #fff1f2;
+    color: #be123c;
+    font-size: 10px;
+    font-weight: 700;
 }
 
 .dining-client-products p {
-    min-height: 44px;
-    margin: 0 0 12px;
+    display: -webkit-box;
+    overflow: hidden;
+    min-height: 0;
+    margin: 0 0 8px;
     color: var(--dn-muted);
-    font-size: 14px;
-    line-height: 1.5;
+    font-size: 12px;
+    line-height: 1.4;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
 }
 
 .dining-client-products footer {
@@ -397,28 +496,37 @@
 
 .dining-client-products footer strong {
     color: var(--dn-brand);
-    font-size: 18px;
+    font-size: 15px;
 }
 
 .dining-quantity {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 6px;
 }
 
-.dining-quantity button {
+.dining-client .dining-quantity button {
     display: grid;
     place-items: center;
-    width: 40px;
+    width: 38px;
     min-height: 40px;
-    padding: 0;
-    border-radius: 12px;
+    padding: 0 !important;
+    border-radius: 12px !important;
 }
 
 .dining-quantity span {
-    min-width: 20px;
+    min-width: 16px;
     text-align: center;
     font-weight: 700;
+}
+
+.dining-catalog-empty {
+    grid-column: 1 / -1;
+    padding: 22px 14px;
+    border: 1px dashed var(--dn-hairline);
+    border-radius: 16px;
+    color: var(--dn-muted);
+    text-align: center;
 }
 
 .dining-bill article {
@@ -1557,6 +1665,88 @@
     display: none;
 }
 
+@media (max-width: 639px) {
+    .dining-client-catalog,
+    .dining-bill {
+        padding: 18px 12px;
+        border-radius: 22px;
+    }
+
+    .dining-section-title {
+        margin-bottom: 12px;
+    }
+
+    .dining-section-title h2 {
+        font-size: 21px;
+    }
+
+    .dining-client-products {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 9px;
+    }
+
+    .dining-client-products article {
+        border-radius: 15px;
+    }
+
+    .dining-dish-photo {
+        height: 88px;
+    }
+
+    .dining-dish-photo span {
+        right: 6px;
+        bottom: 6px;
+        padding: 4px 7px;
+        font-size: 9px;
+    }
+
+    .dining-client-products article > div {
+        padding: 9px 9px 10px;
+    }
+
+    .dining-client-products h3 {
+        font-size: 13px;
+    }
+
+    .dining-client-products p {
+        margin-bottom: 7px;
+        font-size: 11px;
+    }
+
+    .dining-client-products footer {
+        gap: 4px;
+    }
+
+    .dining-client-products footer strong {
+        font-size: 13px;
+        white-space: nowrap;
+    }
+
+    .dining-quantity {
+        gap: 3px;
+    }
+
+    .dining-client .dining-quantity button {
+        width: 34px;
+        min-height: 36px;
+        border-radius: 10px !important;
+    }
+
+    .dining-quantity span {
+        min-width: 12px;
+        font-size: 12px;
+    }
+
+    .dining-catalog-search {
+        min-height: 42px;
+    }
+
+    .dining-client .dining-catalog-search input {
+        min-height: 40px;
+        font-size: 13px;
+    }
+}
+
 @media (prefers-reduced-motion: reduce) {
     .dining-client *,
     .dining-floor-module * {
@@ -1705,4 +1895,3 @@
         max-width: 135px !important;
     }
 }
-

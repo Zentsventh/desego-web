@@ -63,7 +63,8 @@ class NiubizDiningPayment
             $orders = DB::table('orders')->where('dining_session_id', $visit->id)->where('status', '<>', 'Cancelado')->where('payment_status', 'Pendiente')->when($data['scope'] === 'mine', fn ($query) => $query->where('dining_member_id', $member->id))->lockForUpdate()->get();
             abort_if($orders->isEmpty(), 409, 'No tienes consumo pendiente en esta selección.');
             $id = (string) Str::uuid();
-            DB::table('dining_payment_attempts')->insert(['id' => $id, 'dining_session_id' => $visit->id, 'dining_member_id' => $member->id, 'purchase_number' => (string) random_int(100000000000, 999999999999), 'status' => 'creating', 'amount_cents' => (int) round($orders->sum('total') * 100), 'order_ids' => json_encode($orders->pluck('id')->all(), JSON_THROW_ON_ERROR), 'cash_session_id' => $cash->id, 'actor_id' => $cash->opened_by, 'expires_at' => now()->addMinutes(10), 'created_at' => now(), 'updated_at' => now()]);
+            DB::table('dining_payment_attempts')->insert(['id' => $id, 'dining_session_id' => $visit->id, 'dining_member_id' => $member->id, 'purchase_number' => (string) random_int(100000000000, 999999999999), 'status' => 'creating', 'amount_cents' => (int) round($orders->sum('total') * 100), 'cash_session_id' => $cash->id, 'actor_id' => $cash->opened_by, 'expires_at' => now()->addMinutes(10), 'created_at' => now(), 'updated_at' => now()]);
+            DB::table('dining_payment_attempt_orders')->insert($orders->map(fn (object $order): array => ['attempt_id' => $id, 'order_id' => $order->id])->all());
             DB::table('dining_sessions')->where('id', $visit->id)->update(['status' => 'checkout', 'updated_at' => now()]);
 
             return DB::table('dining_payment_attempts')->where('id', $id)->first();
@@ -135,16 +136,17 @@ class NiubizDiningPayment
                 $declined = ! $response->serverError() && filled($response->json('data.ACTION_CODE')) && $response->json('data.ACTION_CODE') !== '000';
                 DB::table('dining_payment_attempts')->where('id', $id)->update(['status' => $declined ? 'declined' : 'unknown', 'updated_at' => now()]);
 
-                return ['paid' => false, 'message' => $declined ? 'El banco rechazó el pago. Puedes intentar con otro medio.' : 'El resultado requiere verificación con Niubiz. No vuelvas a pagar hasta que caja lo confirme.'];
+                return ['paid' => false, 'message' => $declined ? 'El banco rechazó el pago. Puedes intentar con otra tarjeta.' : 'No se pudo verificar la respuesta de Niubiz. Por favor intenta nuevamente o consulta al restaurante.'];
             }
         }
 
         return DB::transaction(function () use ($attempt, $order): array {
             $visit = DB::table('dining_sessions')->where('id', $attempt->dining_session_id)->lockForUpdate()->first();
             DB::table('dining_payment_attempts')->where('id', $attempt->id)->lockForUpdate()->first();
-            $orders = DB::table('orders')->whereIn('id', json_decode($attempt->order_ids, true, 512, JSON_THROW_ON_ERROR))->lockForUpdate()->get();
-            abort_unless($orders->every(fn (object $item): bool => $item->payment_status === 'Pendiente' && $item->status !== 'Cancelado'), 409, 'La cuenta cambió. Caja debe conciliar el pago aprobado.');
-            foreach ($orders as $item) {
+            $orderIds = DB::table('dining_payment_attempt_orders')->where('attempt_id', $attempt->id)->pluck('order_id');
+            $orders = DB::table('orders')->whereIn('id', $orderIds)->where('dining_session_id', $attempt->dining_session_id)->lockForUpdate()->get();
+            $pendingOrders = $orders->filter(fn (object $item): bool => $item->payment_status === 'Pendiente' && $item->status !== 'Cancelado');
+            foreach ($pendingOrders as $item) {
                 DB::table('payments')->insert(['order_id' => $item->id, 'cash_session_id' => $attempt->cash_session_id, 'user_id' => $attempt->actor_id, 'payment_type' => 'payment', 'method' => 'Tarjeta', 'amount' => $item->total, 'notes' => 'Niubiz '.$attempt->purchase_number, 'created_at' => now()]);
                 DB::table('orders')->where('id', $item->id)->update(['payment_status' => 'Pagado', 'payment_method' => 'Tarjeta', 'cash_session_id' => $attempt->cash_session_id, 'paid_at' => now(), 'updated_at' => now()]);
                 loyalty_award_order_points(desego_db(), $item->id, $attempt->actor_id);

@@ -399,13 +399,13 @@ class PurchasingController extends Controller
                         throw new PurchasingProblem('Ingresa alguna cantidad mayor que cero.');
                     }
                     $receiptTemp = 'TMP-RC-'.bin2hex(random_bytes(6));
-                    $r = $pdo->prepare('INSERT INTO purchase_receipts (receipt_number,purchase_order_id,supplier_id,supplier_invoice,notes,received_by,received_at) VALUES (:number,:order,:supplier,:invoice,:notes,:user,NOW())');
-                    $r->execute(['number' => $receiptTemp, 'order' => $id, 'supplier' => $order['supplier_id'], 'invoice' => $invoice !== '' ? $invoice : null, 'notes' => $notes !== '' ? $notes : null, 'user' => $actor['id']]);
+                    $r = $pdo->prepare('INSERT INTO purchase_receipts (receipt_number,purchase_order_id,supplier_invoice,notes,received_by,received_at) VALUES (:number,:order,:invoice,:notes,:user,NOW())');
+                    $r->execute(['number' => $receiptTemp, 'order' => $id, 'invoice' => $invoice !== '' ? $invoice : null, 'notes' => $notes !== '' ? $notes : null, 'user' => $actor['id']]);
                     $receiptId = (int) $pdo->lastInsertId();
                     $receiptNumber = 'RC-'.gmdate('Y').'-'.str_pad((string) $receiptId, 6, '0', STR_PAD_LEFT);
                     $pdo->prepare('UPDATE purchase_receipts SET receipt_number=:number WHERE id=:id')->execute(['number' => $receiptNumber, 'id' => $receiptId]);
                     $movement = $pdo->prepare("INSERT INTO inventory_movements (ingredient_id,user_id,movement_type,quantity_delta,previous_quantity,new_quantity,unit_cost,reference,notes,created_at) VALUES (:ingredient,:user,'entry',:delta,:before,:after,:cost,:reference,:notes,NOW())");
-                    $receiptItemInsert = $pdo->prepare('INSERT INTO purchase_receipt_items (receipt_id,purchase_order_item_id,ingredient_id,quantity,unit_cost,line_total,stock_before,stock_after,created_at) VALUES (:receipt,:order_item,:ingredient,:quantity,:cost,:total,:before,:after,NOW())');
+                    $receiptItemInsert = $pdo->prepare('INSERT INTO purchase_receipt_items (receipt_id,purchase_order_item_id,quantity,unit_cost,line_total,stock_before,stock_after,created_at) VALUES (:receipt,:order_item,:quantity,:cost,:total,:before,:after,NOW())');
                     $orderItemUpdate = $pdo->prepare('UPDATE purchase_order_items SET received_quantity=:received WHERE id=:id');
                     $stockUpdate = $pdo->prepare('UPDATE ingredients SET stock_quantity=:stock,cost_per_unit=:cost,updated_at=NOW() WHERE id=:id');
                     $layerInsert = $pdo->prepare("INSERT INTO inventory_cost_layers (ingredient_id,layer_type,receipt_item_id,quantity_received,quantity_remaining,unit_cost,notes,received_at) VALUES (:ingredient,'purchase',:receipt_item,:quantity,:remaining,:cost,:notes,NOW())");
@@ -423,7 +423,7 @@ class PurchasingController extends Controller
                         $newCost = $after > 0 ? round((($before * $oldCost) + ($qty * $unitCost)) / $after, 4) : $unitCost;
                         $stockUpdate->execute(['stock' => number_format($after, 3, '.', ''), 'cost' => number_format($newCost, 4, '.', ''), 'id' => $line['ingredient_id']]);
                         $orderItemUpdate->execute(['received' => number_format((float) $line['received_quantity'] + $qty, 3, '.', ''), 'id' => $line['id']]);
-                        $receiptItemInsert->execute(['receipt' => $receiptId, 'order_item' => $line['id'], 'ingredient' => $line['ingredient_id'], 'quantity' => number_format($qty, 3, '.', ''), 'cost' => number_format($unitCost, 4, '.', ''), 'total' => number_format(round($qty * $unitCost, 2), 2, '.', ''), 'before' => number_format($before, 3, '.', ''), 'after' => number_format($after, 3, '.', '')]);
+                        $receiptItemInsert->execute(['receipt' => $receiptId, 'order_item' => $line['id'], 'quantity' => number_format($qty, 3, '.', ''), 'cost' => number_format($unitCost, 4, '.', ''), 'total' => number_format(round($qty * $unitCost, 2), 2, '.', ''), 'before' => number_format($before, 3, '.', ''), 'after' => number_format($after, 3, '.', '')]);
                         $receiptItemId = (int) $pdo->lastInsertId();
                         $layerInsert->execute(['ingredient' => $line['ingredient_id'], 'receipt_item' => $receiptItemId, 'quantity' => number_format($qty, 3, '.', ''), 'remaining' => number_format($qty, 3, '.', ''), 'cost' => number_format($unitCost, 4, '.', ''), 'notes' => 'Recepción '.$receiptNumber.' / orden '.$order['order_number']]);
                         $movement->execute(['ingredient' => $line['ingredient_id'], 'user' => $actor['id'], 'delta' => number_format($qty, 3, '.', ''), 'before' => number_format($before, 3, '.', ''), 'after' => number_format($after, 3, '.', ''), 'cost' => number_format($unitCost, 4, '.', ''), 'reference' => $order['order_number'], 'notes' => 'Recepción '.$receiptNumber.($invoice !== '' ? ' · Doc. proveedor '.$invoice : '')]);
