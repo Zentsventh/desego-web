@@ -4,6 +4,7 @@ set -Eeuo pipefail
 REPOSITORY_PATH="/home/zentdev/repositories/desego-web"
 DOCUMENT_ROOT="/home/zentdev/public_html/desego"
 LOCK_PATH="/home/zentdev/.desego-deploy.lock"
+LAST_DEPLOYED_PATH="/home/zentdev/.desego-deploy-last-commit"
 LOG_PATH="/home/zentdev/logs/desego-deploy.log"
 PHP_BIN="/usr/local/bin/ea-php84"
 
@@ -41,7 +42,30 @@ if [[ "${1:-}" == "--auto" ]]; then
         exit 1
     fi
 
+    if ! git diff --quiet "$current_commit" "$remote_commit" -- composer.json composer.lock && ! command -v composer >/dev/null 2>&1; then
+        echo "Composer dependencies changed, but Composer is unavailable. Install it before allowing this update."
+        exit 1
+    fi
+
     git merge --ff-only origin/main
+elif [[ "${1:-}" != "--deploy" ]]; then
+    echo "Usage: deploy-cpanel.sh --auto|--deploy"
+    exit 2
+fi
+
+current_commit="$(git rev-parse HEAD)"
+last_deployed_commit="$(cat "$LAST_DEPLOYED_PATH" 2>/dev/null || true)"
+composer_lock_changed=false
+
+if [[ -n "$last_deployed_commit" ]] && git cat-file -e "$last_deployed_commit^{commit}" 2>/dev/null; then
+    if ! git diff --quiet "$last_deployed_commit" "$current_commit" -- composer.json composer.lock; then
+        composer_lock_changed=true
+    fi
+fi
+
+if [[ "$composer_lock_changed" == "true" ]] && ! command -v composer >/dev/null 2>&1; then
+    echo "composer.json or composer.lock changed, but Composer is unavailable on this hosting account."
+    exit 1
 fi
 
 if [[ ! -x "$PHP_BIN" ]]; then
@@ -63,7 +87,12 @@ if [[ ! -f vendor/autoload.php ]]; then
     exit 1
 fi
 
+if [[ "$composer_lock_changed" == "true" ]]; then
+    composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader --no-progress
+fi
+
 "$PHP_BIN" artisan optimize
 /bin/cp -R public/. "$DOCUMENT_ROOT/"
 
-printf '[%s] Deployment completed at commit %s.\n' "$(date --iso-8601=seconds)" "$(git rev-parse --short HEAD)"
+printf '%s\n' "$current_commit" > "$LAST_DEPLOYED_PATH"
+printf '[%s] Deployment completed at commit %s.\n' "$(date --iso-8601=seconds)" "${current_commit:0:7}"
