@@ -1,0 +1,180 @@
+{
+  "_ShopParts-Dq3iDcBI.js": {
+    "file": "assets/ShopParts-Dq3iDcBI.js",
+    "name": "ShopParts",
+    "imports": [
+      "_rolldown-runtime-XKyaHtl9.js",
+      "_vendor-react-DUEik32K.js"
+    ]
+  },
+  "_dining-DfISia0h.js": {
+    "file": "assets/dining-DfISia0h.js",
+    "name": "dining",
+    "css": [
+      "assets/dining-ZR4uRvbj.css"
+    ]
+  },
+  "_dining-ZR4uRvbj.css": {
+    "file": "assets/dining-ZR4uRvbj.css",
+    "src": "_dining-ZR4uRvbj.css"
+  },
+  "_productSearch-DDhW1cYY.js": {
+    "file": "assets/productSearch-DDhW1cYY.js",
+    "name": "productSearch"
+  },
+  "_restaurant-account-Bpm__bgW.css": {
+    "file": "assets/restaurant-account-Bpm__bgW.css",
+    "src": "_restaurant-account-Bpm__bgW.css"
+  },
+  "_restaurant-mobile-DEKa-mLe.css": {
+    "file": "assets/restaurant-mobile-DEKa-mLe.css",
+    "src": "_restaurant-mobile-DEKa-mLe.css"
+  },
+  "_rolldown-runtime-XKyaHtl9.js": {
+    "file": "assets/rolldown-runtime-XKyaHtl9.js",
+    "name": "rolldown-runtime"
+  },
+  "_vendor-react-DUEik32K.js": {
+    "file": "assets/vendor-react-DUEik32K.js",
+    "name": "vendor-react",
+    "imports": [
+      "_rolldown-runtime-XKyaHtl9.js"
+    ]
+  },
+  "resources/css/app.css": {
+    "file": "assets/app-BBk6vltF.css",
+    "name": "app",
+    "names": [
+      "app.css"
+    ],
+    "src": "resources/css/app.css",
+    "isEntry": true
+  },
+  "resources/js/Pages/Admin/Index.jsx": {
+    "file": "assets/Index-BLjKMKzi.js",
+    "name": "Index",
+    "src": "resources/js/Pages/Admin/Index.jsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "_rolldown-runtime-XKyaHtl9.js",
+      "_vendor-react-DUEik32K.js"
+    ]
+  },
+  "resources/js/Pages/Restaurant/Account.jsx": {
+    "file": "assets/Account-yKeG2Sy2.js",
+    "name": "Account",
+    "src": "resources/js/Pages/Restaurant/Account.jsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "_rolldown-runtime-XKyaHtl9.js",
+      "_vendor-react-DUEik32K.js",
+      "_ShopParts-Dq3iDcBI.js"
+    ],
+    "css": [
+      "assets/restaurant-mobile-DEKa-mLe.css",
+      "assets/restaurant-account-Bpm__bgW.css"
+    ]
+  },
+  "resources/js/Pages/Restaurant/Admin.jsx": {
+    "file": "assets/Admin-6uhjYTUS.js",
+    "name": "Admin",
+    "src": "resources/js/Pages/Restaurant/Admin.jsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "_rolldown-runtime-XKyaHtl9.js",
+      "_vendor-react-DUEik32K.js",
+      "_ShopParts-Dq3iDcBI.js",
+      "_dining-DfISia0h.js"
+    ],
+    "css": [
+      "assets/Admin-qLM6FcAu.css"
+    ]
+  },
+  "resources/js/Pages/Restaurant/Auth.jsx": {
+    "file": "assets/Auth-CZTf3fYv.js",
+    "name": "Auth",
+    "src": "resources/js/Pages/Restaurant/Auth.jsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "_rolldown-runtime-XKyaHtl9.js",
+      "_vendor-react-DUEik32K.js",
+      "_ShopParts-Dq3iDcBI.js"
+    ],
+    "css": [
+      "assets/restaurant-mobile-DEKa-mLe.css",
+      "assets/restaurant-account-Bpm__bgW.css"
+    ]
+  },
+  "resources/js/Pages/Restaurant/Store.jsx": {
+    "file": "assets/Store-DHTJn0GW.js",
+    "name": "Store",
+    "src": "resources/js/Pages/Restaurant/Store.jsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "_rolldown-runtime-XKyaHtl9.js",
+      "_vendor-react-DUEik32K.js",
+      "_ShopParts-Dq3iDcBI.js",
+      "_productSearch-DDhW1cYY.js"
+    ],
+    "css": [
+      "assets/Store-DpbzZtWB.css",
+      "assets/restaurant-mobile-DEKa-mLe.css"
+    ]
+  },
+  "resources/js/Pages/Restaurant/Table.jsx": {
+    "file": "assets/Table-CM5ipKPr.js",
+    "name": "Table",
+    "src": "resources/js/Pages/Restaurant/Table.jsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "_rolldown-runtime-XKyaHtl9.js",
+      "_vendor-react-DUEik32K.js",
+      "_ShopParts-Dq3iDcBI.js",
+      "_dining-DfISia0h.js",
+      "_productSearch-DDhW1cYY.js"
+    ]
+  },
+  "resources/js/Pages/Restaurant/TablePayment.jsx": {
+    "file": "assets/TablePayment-Ct3wnePV.js",
+    "name": "TablePayment",
+    "src": "resources/js/Pages/Restaurant/TablePayment.jsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "_rolldown-runtime-XKyaHtl9.js",
+      "_vendor-react-DUEik32K.js",
+      "_dining-DfISia0h.js"
+    ]
+  },
+  "resources/js/Pages/Store/Home.jsx": {
+    "file": "assets/Home-D1sE9Xon.js",
+    "name": "Home",
+    "src": "resources/js/Pages/Store/Home.jsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "_rolldown-runtime-XKyaHtl9.js",
+      "_vendor-react-DUEik32K.js"
+    ]
+  },
+  "resources/js/app.jsx": {
+    "file": "assets/app-BUfm3XyN.js",
+    "name": "app",
+    "src": "resources/js/app.jsx",
+    "isEntry": true,
+    "imports": [
+      "_vendor-react-DUEik32K.js"
+    ],
+    "dynamicImports": [
+      "resources/js/Pages/Admin/Index.jsx",
+      "resources/js/Pages/Restaurant/Account.jsx",
+      "resources/js/Pages/Restaurant/Admin.jsx",
+      "resources/js/Pages/Restaurant/Auth.jsx",
+      "resources/js/Pages/Restaurant/Store.jsx",
+      "resources/js/Pages/Restaurant/Table.jsx",
+      "resources/js/Pages/Restaurant/TablePayment.jsx",
+      "resources/js/Pages/Store/Home.jsx"
+    ],
+    "css": [
+      "assets/app-BBk6vltF.css"
+    ]
+  }
+}
