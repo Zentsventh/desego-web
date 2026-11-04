@@ -1,0 +1,5 @@
+---
+deployment:
+  tasks:
+    - export REPOSITORYPATH=/home/zentdev/repositories/desego-web
+    - /bin/bash $REPOSITORYPATH/deploy-cpanel.sh --deploy
