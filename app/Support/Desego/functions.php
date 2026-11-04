@@ -468,92 +468,25 @@ function desego_sql_value(PDO $pdo, mixed $value): string
 
 function desego_backup_dump(PDO $pdo, string $databaseName, int $maxBytes): string
 {
-    if ($databaseName === '') {
-        throw new RuntimeException('No se ha identificado la base de datos que se copiará.');
+    if ($databaseName === '' || $pdo->query('SELECT DATABASE()')->fetchColumn() !== $databaseName) {
+        throw new RuntimeException('La base de datos del respaldo no coincide con la conexion activa.');
     }
-    $out = 'SET @DESEGO_BACKUP_TIMESTAMP = '.$pdo->quote(gmdate('Y-m-d H:i:s')).";\n";
-    $out .= "SET NAMES utf8mb4;\nSET time_zone = '+00:00';\nSET FOREIGN_KEY_CHECKS=0;\nSET SQL_MODE='NO_AUTO_VALUE_ON_ZERO';\n\n";
-    $tablesRaw = $pdo->query("SHOW FULL TABLES WHERE Table_type = 'BASE TABLE'")->fetchAll(PDO::FETCH_NUM);
-    $tableNames = [];
-    foreach ($tablesRaw as $tableInfo) {
-        $name = (string) ($tableInfo[0] ?? '');
-        if ($name !== '') {
-            $tableNames[] = $name;
-        }
+    $stream = fopen('php://temp/maxmemory:1048576', 'w+b');
+    if ($stream === false) {
+        throw new RuntimeException('No se pudo abrir el archivo temporal del respaldo.');
     }
-    $dependencies = array_fill_keys($tableNames, []);
-    $depsStmt = $pdo->query('SELECT TABLE_NAME, REFERENCED_TABLE_NAME FROM information_schema.KEY_COLUMN_USAGE WHERE TABLE_SCHEMA = DATABASE() AND REFERENCED_TABLE_NAME IS NOT NULL');
-    foreach ($depsStmt->fetchAll(PDO::FETCH_ASSOC) as $dep) {
-        $child = (string) $dep['TABLE_NAME'];
-        $parent = (string) $dep['REFERENCED_TABLE_NAME'];
-        if (isset($dependencies[$child], $dependencies[$parent]) && $child !== $parent) {
-            $dependencies[$child][$parent] = true;
+    try {
+        (new DatabaseSnapshot)->write($pdo, $stream, $maxBytes);
+        rewind($stream);
+        $sql = stream_get_contents($stream);
+        if ($sql === false) {
+            throw new RuntimeException('No se pudo leer el respaldo generado.');
         }
-    }
-    // Topological order: referenced parent tables before child tables. Cyclic leftovers are appended after acyclic tables.
-    $orderedNames = [];
-    $remaining = $dependencies;
-    while ($remaining) {
-        $progress = false;
-        foreach ($remaining as $name => $parents) {
-            $unresolved = array_diff_key($parents, array_flip($orderedNames));
-            if (! $unresolved) {
-                $orderedNames[] = $name;
-                unset($remaining[$name]);
-                $progress = true;
-            }
-        }
-        if (! $progress) {
-            foreach (array_keys($remaining) as $name) {
-                $orderedNames[] = $name;
-            } break;
-        }
-    }
-    $allTables = [];
-    foreach ($orderedNames as $tableName) {
-        $show = $pdo->query('SHOW CREATE TABLE '.desego_sql_identifier($tableName))->fetch(PDO::FETCH_NUM);
-        $create = (string) ($show[1] ?? '');
-        $columns = $pdo->query('SHOW COLUMNS FROM '.desego_sql_identifier($tableName))->fetchAll(PDO::FETCH_ASSOC);
-        $columns = array_values(array_filter($columns, static fn (array $column): bool => ! preg_match('/\b(?:VIRTUAL|STORED) GENERATED\b/i', (string) $column['Extra'])));
-        if ($create !== '' && $columns) {
-            $allTables[] = ['name' => $tableName, 'create' => $create, 'columns' => $columns];
-        }
-    }
-    $tables = $allTables;
 
-    // Drop child tables first; create parent tables first. Foreign-key checks are disabled during row restoration.
-    foreach (array_reverse($tables) as $table) {
-        $out .= 'DROP TABLE IF EXISTS '.desego_sql_identifier($table['name']).";\n";
-        if (strlen($out) > $maxBytes) {
-            throw new RuntimeException('El backup supera el límite de tamaño configurado.');
-        }
+        return $sql;
+    } finally {
+        fclose($stream);
     }
-    $out .= "\n";
-    foreach ($tables as $table) {
-        $out .= $table['create'].";\n\n";
-        if (strlen($out) > $maxBytes) {
-            throw new RuntimeException('El backup supera el límite de tamaño configurado.');
-        }
-    }
-    foreach ($tables as $table) {
-        $names = array_map(static fn (array $column): string => desego_sql_identifier((string) $column['Field']), $table['columns']);
-        $select = $pdo->query('SELECT * FROM '.desego_sql_identifier($table['name']));
-        while ($row = $select->fetch(PDO::FETCH_ASSOC)) {
-            $values = [];
-            foreach ($table['columns'] as $column) {
-                $field = (string) $column['Field'];
-                $values[] = desego_sql_value($pdo, $row[$field] ?? null);
-            }
-            $out .= 'INSERT INTO '.desego_sql_identifier($table['name']).' ('.implode(', ', $names).') VALUES ('.implode(', ', $values).");\n";
-            if (strlen($out) > $maxBytes) {
-                throw new RuntimeException('El backup supera el límite para la interfaz web. Ejecuta scripts/backup_daily.php desde CLI o aumenta max_dump_bytes si el servidor tiene memoria suficiente.');
-            }
-        }
-        $out .= "\n";
-    }
-    $out .= "SET FOREIGN_KEY_CHECKS=1;\n";
-
-    return $out;
 }
 
 function desego_backup_decrypt(string $fileContents, string $key): string
@@ -679,6 +612,7 @@ function desego_backup_create(PDO $pdo, ?int $userId, string $kind = 'manual'): 
     $insert = $pdo->prepare("INSERT INTO backup_history (file_name, secondary_file_name, backup_kind, status, size_bytes, sha256_hash, is_encrypted, verification_status, verified_at, created_by, created_at) VALUES (:file_name, :secondary_file_name, :kind, 'completed', :size_bytes, :sha256_hash, 1, 'pending', NULL, :created_by, UTC_TIMESTAMP())");
     $insert->execute(['file_name' => $fileName, 'secondary_file_name' => $secondaryFile, 'kind' => $kind, 'size_bytes' => strlen($contents), 'sha256_hash' => $hash, 'created_by' => $userId]);
     $id = (int) $pdo->lastInsertId();
+    desego_backup_verify($pdo, $id);
     audit_log($pdo, $userId, 'backup.created', ['backup_id' => $id, 'kind' => $kind, 'size_bytes' => strlen($contents), 'sha256_prefix' => substr($hash, 0, 12), 'redundant_copy' => $secondaryFile !== null]);
 
     return ['id' => $id, 'file_name' => $fileName, 'size_bytes' => strlen($contents), 'sha256_hash' => $hash, 'secondary_copy' => $secondaryFile !== null, 'created_at' => gmdate('Y-m-d H:i:s')];

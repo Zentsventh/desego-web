@@ -91,9 +91,11 @@ export default function ReservationForm() {
         acc[zone].push(table);
         return acc;
     }, {});
-    const configuredAdvance = Number(hold?.advance_amount ?? availability?.advance_amount ?? 10);
+    const configuredAdvance = Number(availability?.advance_amount ?? 10);
     const requiresAdvance = configuredAdvance > 0;
     const configuredTolerance = Number(availability?.tolerance_minutes ?? 15);
+    const estimatedTableCount = formData.table_ids.length > 0 ? formData.table_ids.length : Math.max(1, Math.ceil(formData.people / 4));
+    const estimatedAdvance = configuredAdvance * estimatedTableCount;
 
     const changeSchedule = (field, value) => {
         setAvailability(null);
@@ -276,7 +278,7 @@ export default function ReservationForm() {
                         <p>
                             Selecciona tus mesas preferidas o deja la selección libre para asignación óptima.{' '}
                             {requiresAdvance
-                                ? `Incluye anticipo de ${money(configuredAdvance)} descontable al 100% de tu consumo.`
+                                ? `Anticipo de ${money(configuredAdvance)} por mesa (estimado ${money(estimatedAdvance)} para ${estimatedTableCount} ${estimatedTableCount === 1 ? 'mesa' : 'mesas'}), descontable al 100% de tu consumo.`
                                 : 'Reserva directa sin costo de anticipo.'}
                         </p>
 
@@ -387,8 +389,8 @@ export default function ReservationForm() {
 
                     <div className="im-reservation-policy-card">
                         <div className="im-policy-item">
-                            <strong>{requiresAdvance ? `Anticipo de ${money(configuredAdvance)}` : 'Reserva directa'}</strong>
-                            <p>{requiresAdvance ? 'Descontable al 100% de tu consumo final en el local.' : 'Sujeta a confirmación y puntualidad en recepción.'}</p>
+                            <strong>{requiresAdvance ? `Anticipo de ${money(configuredAdvance)} por mesa (${money(estimatedAdvance)})` : 'Reserva directa'}</strong>
+                            <p>{requiresAdvance ? `S/ 10.00 por cada mesa asignada (${estimatedTableCount} ${estimatedTableCount === 1 ? 'mesa' : 'mesas'}). Descontable al 100% de tu consumo final en el local.` : 'Sujeta a confirmación y puntualidad en recepción.'}</p>
                         </div>
                         <div className="im-policy-item">
                             <strong>Tolerancia de {configuredTolerance} minutos</strong>
@@ -404,7 +406,7 @@ export default function ReservationForm() {
                         {submitting
                             ? 'Bloqueando mesa…'
                             : requiresAdvance
-                              ? `Continuar al pago de ${money(configuredAdvance)}`
+                              ? `Continuar al pago de ${money(estimatedAdvance)}`
                               : 'Revisar y confirmar reserva'}
                         <span className="im-circle-arrow"><ArrowUpRight size={27} /></span>
                     </button>

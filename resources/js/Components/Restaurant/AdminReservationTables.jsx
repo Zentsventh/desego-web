@@ -14,11 +14,22 @@ import {
 
 const TIME_ZONE = 'America/Lima';
 
-function formatReservationTime(value) {
+function formatReservationTime(value, isToday = true) {
     if (!value) return '';
     const raw = String(value);
     const date = new Date(raw.includes('T') ? raw : `${raw.replace(' ', 'T')}Z`);
     if (Number.isNaN(date.getTime())) return '';
+
+    if (!isToday) {
+        return new Intl.DateTimeFormat('es-PE', {
+            timeZone: TIME_ZONE,
+            day: 'numeric',
+            month: 'short',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true,
+        }).format(date);
+    }
 
     return new Intl.DateTimeFormat('es-PE', {
         timeZone: TIME_ZONE,
@@ -219,7 +230,10 @@ export default function AdminReservationTables({ tables: initialTables = [], can
             return { label: 'Reservada', bg: 'rgba(217, 119, 6, 0.15)', text: '#b45309', dot: '#f59e0b' };
         }
         if (table.next_reservation) {
-            return { label: 'Próx. reserva', bg: 'rgba(14, 116, 144, 0.12)', text: '#0e7490', dot: '#06b6d4' };
+            if (table.next_reservation.is_today) {
+                return { label: 'Próx. reserva', bg: 'rgba(14, 116, 144, 0.12)', text: '#0e7490', dot: '#06b6d4' };
+            }
+            return { label: 'Libre hoy', bg: 'rgba(22, 163, 74, 0.12)', text: '#15803d', dot: '#22c55e' };
         }
         return { label: 'Libre', bg: 'rgba(22, 163, 74, 0.12)', text: '#15803d', dot: '#22c55e' };
     };
@@ -547,29 +561,29 @@ export default function AdminReservationTables({ tables: initialTables = [], can
                                             {table.next_reservation ? (
                                                 <div
                                                     style={{
-                                                        background: 'rgba(245, 158, 11, 0.08)',
-                                                        border: '1px solid rgba(245, 158, 11, 0.22)',
+                                                        background: table.next_reservation.is_today !== false ? 'rgba(245, 158, 11, 0.08)' : 'rgba(0, 71, 151, 0.04)',
+                                                        border: `1px solid ${table.next_reservation.is_today !== false ? 'rgba(245, 158, 11, 0.22)' : 'rgba(0, 71, 151, 0.12)'}`,
                                                         borderRadius: '8px',
                                                         padding: '7px 9px',
                                                         fontSize: '11.5px',
-                                                        color: '#92400e',
+                                                        color: table.next_reservation.is_today !== false ? '#92400e' : '#1e3a8a',
                                                     }}
                                                 >
                                                     <div className="flex items-center justify-between gap-1">
                                                         <strong className="truncate">
                                                             {table.next_reservation.customer_name}
                                                         </strong>
-                                                        <span className="text-amber-800 font-semibold shrink-0">
+                                                        <span className={table.next_reservation.is_today !== false ? 'text-amber-800 font-semibold shrink-0' : 'text-blue-800 font-semibold shrink-0'}>
                                                             {table.next_reservation.guest_count} pax
                                                         </span>
                                                     </div>
-                                                    <div className="flex items-center justify-between gap-1 mt-1 text-amber-700 text-xs">
+                                                    <div className={`flex items-center justify-between gap-1 mt-1 ${table.next_reservation.is_today !== false ? 'text-amber-700' : 'text-blue-700'} text-xs`}>
                                                         <span className="flex items-center gap-1 font-semibold">
                                                             <Clock3 size={11} />
-                                                            {formatReservationTime(table.next_reservation.reservation_at)}
+                                                            {formatReservationTime(table.next_reservation.reservation_at, table.next_reservation.is_today)}
                                                         </span>
                                                         {table.next_reservation.reservation_code && (
-                                                            <span className="font-mono text-[10px] text-amber-600 bg-amber-100/60 px-1.5 py-0.5 rounded">
+                                                            <span className={`font-mono text-[10px] ${table.next_reservation.is_today !== false ? 'text-amber-600 bg-amber-100/60' : 'text-blue-600 bg-blue-100/60'} px-1.5 py-0.5 rounded`}>
                                                                 {table.next_reservation.reservation_code}
                                                             </span>
                                                         )}

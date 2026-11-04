@@ -67,7 +67,9 @@ class AdminReservationController extends Controller
             ]);
 
         if ($date) {
-            $query->whereDate('r.reservation_at', $date);
+            $from = CarbonImmutable::createFromFormat('!Y-m-d', $date, 'America/Lima')->utc();
+            $to = $from->addDay()->subSecond();
+            $query->whereBetween('r.reservation_at', [$from, $to]);
         }
 
         if ($status) {
@@ -435,6 +437,29 @@ class AdminReservationController extends Controller
                     ->orderBy('r.reservation_at')
                     ->first(['r.id', 'r.reservation_code', 'r.customer_name', 'r.guest_count', 'r.reservation_at', 'r.duration_minutes', 'r.arrival_deadline', 'r.status']);
 
+                $nowLima = CarbonImmutable::now('America/Lima');
+                $isTodayReservation = false;
+                $formattedReservation = null;
+
+                if ($nextReservation) {
+                    $resTimeUtc = CarbonImmutable::parse($nextReservation->reservation_at);
+                    $resTimeLima = $resTimeUtc->setTimezone('America/Lima');
+                    $isTodayReservation = $resTimeLima->toDateString() === $nowLima->toDateString();
+
+                    $formattedReservation = [
+                        'id' => (int) $nextReservation->id,
+                        'reservation_code' => $nextReservation->reservation_code,
+                        'customer_name' => $nextReservation->customer_name,
+                        'guest_count' => (int) $nextReservation->guest_count,
+                        'reservation_at' => $resTimeUtc->toIso8601String(),
+                        'duration_minutes' => (int) ($nextReservation->duration_minutes ?? 120),
+                        'status' => $nextReservation->status,
+                        'is_today' => $isTodayReservation,
+                        'date' => $resTimeLima->toDateString(),
+                        'time' => $resTimeLima->format('H:i'),
+                    ];
+                }
+
                 $status = $table->operational_status;
                 if (! $table->is_active) {
                     $status = 'disabled';
@@ -444,26 +469,13 @@ class AdminReservationController extends Controller
                     $status = 'cleaning';
                 } elseif ($isDiningActive || $table->operational_status === 'occupied') {
                     $status = 'occupied';
-                } elseif ($nextReservation) {
+                } elseif ($nextReservation && $isTodayReservation) {
                     $resTime = CarbonImmutable::parse($nextReservation->reservation_at);
                     $duration = (int) ($nextReservation->duration_minutes ?? 120);
                     $resEndTime = $resTime->addMinutes($duration);
                     if (now()->greaterThanOrEqualTo($resTime->subMinutes(45)) && now()->lessThan($resEndTime)) {
                         $status = 'reserved';
                     }
-                }
-
-                $formattedReservation = null;
-                if ($nextReservation) {
-                    $formattedReservation = [
-                        'id' => (int) $nextReservation->id,
-                        'reservation_code' => $nextReservation->reservation_code,
-                        'customer_name' => $nextReservation->customer_name,
-                        'guest_count' => (int) $nextReservation->guest_count,
-                        'reservation_at' => CarbonImmutable::parse($nextReservation->reservation_at)->toIso8601String(),
-                        'duration_minutes' => (int) ($nextReservation->duration_minutes ?? 120),
-                        'status' => $nextReservation->status,
-                    ];
                 }
 
                 return [

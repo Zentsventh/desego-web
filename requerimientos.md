@@ -6,14 +6,14 @@
 - **Ámbito:** Sistema web de administración y aplicación móvil.
 - **Origen:** Hoja de cálculo de módulos y requerimientos.
 - **Tipo:** Requerimientos funcionales (RF).
-- **Módulos registrados:** 68 (67 originales y 1 ampliación)
-- **Requerimientos registrados:** 481 (460 originales y 21 ampliaciones)
-- **Estado de implementación:** Parcial; revisión técnica de web y panel detallada al final de este documento. La existencia de una pantalla o un controlador no certifica todos los RF del módulo.
+- **Módulos registrados:** 69 (67 originales y 2 ampliaciones)
+- **Requerimientos registrados:** 505 (460 originales y 45 ampliaciones)
+- **Estado de implementación:** Parcial; este documento distingue capacidades comprobadas en el código, alcance existente y brechas pendientes. La existencia de una pantalla o un controlador no certifica por sí sola un requerimiento.
 
 ### Alcance vigente
 
-- Prioridad: tienda web y panel de administración web.
-- La aplicación móvil se orienta exclusivamente al cliente. Su actualización visual y las funcionalidades nativas se dejan para una etapa posterior.
+- Alcance vigente: tienda web, panel de administración y aplicación Android nativa para clientes.
+- La app permite consultar el catálogo, mantener carrito local, autenticarse, administrar parte de la cuenta, comprar, reservar y usar flujos de mesa QR. No es una app operativa para empleados.
 - Los módulos móviles de caja (31), toma de pedidos por empleados (32), cocina (34) y administración de usuarios (67) quedan diferidos. Se conservan sus RF originales por trazabilidad.
 - La autenticación y sesión de `/api/mobile` solo admiten clientes; el dashboard administrativo no está disponible desde ese acceso. El personal utiliza el panel web y sus permisos.
 
@@ -39,6 +39,7 @@
 - [INTEGRACIONES](#integraciones) — 3 módulos
 - [ADMINISTRACIÓN](#administracion) — 5 módulos
 - [ASISTENCIA VIRTUAL](#asistencia-virtual) — 1 módulo
+- [PLATAFORMA MÓVIL Y DATOS](#plataforma-movil-y-datos) — 1 módulo
 
 ## Convenciones
 
@@ -47,8 +48,9 @@
 - **APP**: funcionalidad definida para la aplicación móvil.
 - **APP - mismo que WEB**: indica relación funcional con la versión web; se conservan los requerimientos específicos de la app.
 - Los códigos originales se mantienen tal como aparecen en el Excel, sin renumerarlos.
-- Las ampliaciones continúan desde el módulo 68 y `RF461`.
-- El chatbot amplía la FAQ automática de `RF322`. El chat humano, los tickets y la app nativa conservan sus requerimientos originales y no se consideran implementados por incorporar el asistente web.
+- Las ampliaciones continúan desde los módulos 68–69 y `RF461`.
+- El chatbot amplía la FAQ automática de `RF322`. El chat humano y los tickets conservan sus requerimientos originales y no se consideran implementados por incorporar el asistente web.
+- El módulo 69 registra el contrato móvil, el almacenamiento local, la sincronización y las reglas de integridad y exportación de datos observadas en el proyecto.
 
 ---
 
@@ -962,10 +964,39 @@
 
 **Validación técnica:** `tests/Feature/ChatbotTest.php` cubre proveedores, cadena de claves, espera tras errores de cuota, contexto guardado, respuestas locales, catálogo actualizado, disponibilidad, aislamiento de sesiones, errores, validación y límite de solicitudes. `tests/Feature/AdminAccessAndChatbotTest.php` cubre acceso al historial, gestión de roles, asignación de usuarios y restricción móvil. Se comprobaron respuestas reales de las cuatro credenciales configuradas sin registrar sus valores. Las pruebas automatizadas simulan los proveedores. El almacenamiento del navegador conserva la vista durante la sesión de la pestaña; los mensajes registrados en la base de datos permanecen disponibles para seguimiento. Las respuestas locales usan la consulta actual y no interpretan todo el historial como un modelo de IA.
 
+## PLATAFORMA MÓVIL Y DATOS
+
+### 69. Aplicación Android, API móvil y protección de datos
+
+Estos requisitos describen el comportamiento actual del cliente Android nativo y la conexión con el sistema web. “Implementado en código” no sustituye pruebas en un dispositivo ni certifica la operación en producción.
+
+| ID | Requerimiento funcional | Estado revisado |
+| --- | --- | --- |
+| `RF487` | Exponer operaciones de la app mediante respuestas JSON en `/api/mobile/*`, con sesión Laravel y protección CSRF para solicitudes que modifican datos. | Implementado en código. API versionada y especificación OpenAPI pendientes. |
+| `RF488` | Admitir cuentas de clientes en la app y reservar el panel de personal y sus permisos para la web. | Implementado en código; las rutas móviles rechazan el acceso administrativo. |
+| `RF489` | Mantener MySQL del servidor como fuente oficial para cuentas, catálogo, precios, inventario, pedidos, pagos y reservas compartidos con la web. | Implementado mediante el backend Laravel. Android no accede directamente a MySQL. |
+| `RF490` | Ofrecer en Android tienda de cliente con catálogo, carrito, checkout, direcciones, cuenta, favoritos, reseñas, fidelización, reservas y atención en mesa con QR. | Parcialmente implementado; consultar brechas de la revisión móvil al final. |
+| `RF491` | Permitir elegir “Recordarme” en el inicio por contraseña; con la opción activa guardar cookies cifradas en Android Keystore y utilizar el token persistente del servidor, renovable por hasta 14 días. | Implementado en código. Compilación Android en entorno JDK pendiente. |
+| `RF492` | Aplicar persistencia coherente a registro e ingreso nativo con Google; validar identidad, audiencia, emisor, firma, email verificado y desafío de un solo uso antes de crear sesión. | Implementado en código; el inicio Google y el registro activan persistencia por defecto. |
+| `RF493` | Cerrar sesión invalidando la sesión remota, revocando el token persistente y eliminando del dispositivo la identidad y los datos privados de esa cuenta. | Implementado en código; se debe comprobar en dispositivo y contra el hosting. |
+| `RF494` | Mantener una base SQLite privada de la app para instantáneas locales del catálogo y cuenta, carrito, estado local y operaciones pendientes, separando los datos por cuenta. | Implementado parcialmente. Los datos de cuenta en SQLite no tienen cifrado a nivel de base de datos. |
+| `RF495` | Mostrar el catálogo guardado y el carrito local si no hay red; indicar que los datos pueden estar desactualizados. | Implementado parcialmente; el catálogo también incluye una semilla local inicial. |
+| `RF496` | Poner en cola favoritos y cambios básicos de perfil cuando no haya red; reenviarlos al recuperar conexión solo si la sesión remota pertenece a la misma cuenta. | Implementado en código para favoritos y perfil básico; el resto de mutaciones no se sincroniza offline. |
+| `RF497` | Confirmar una mutación pendiente únicamente cuando el servidor responde correctamente y conservar los errores recuperables para que puedan revisarse. | Implementado parcialmente mediante la bandeja local de sincronización; falta una pantalla completa de resolución de conflictos. |
+| `RF498` | No confirmar pedidos, reservas ni pagos offline; recalcular y validar cantidades, precios, promociones, disponibilidad y totales en el servidor. | Implementado en código para checkout y flujos remotos. |
+| `RF499` | Resolver reservas contra disponibilidad del servidor y mantener las operaciones que comprometen una mesa sujetas a confirmación remota. | Implementado en flujos online; reservas offline no disponibles. |
+| `RF500` | Separar el acceso a mesa QR de la sesión de cuenta, usar un token de participante por visita y una clave idempotente para impedir pedidos duplicados por reintentos. | Implementado en código para el flujo de mesa. |
+| `RF501` | Abrir pagos Niubiz desde un intento firmado y registrar el resultado solo tras validar la respuesta del proveedor. | Implementado en los flujos disponibles; requiere credenciales y pruebas del comercio en el entorno de destino. |
+| `RF502` | Usar InnoDB, `utf8mb4`, claves primarias, índices, relaciones y restricciones de dominio para preservar integridad en MySQL/MariaDB. | Implementado en esquema y migraciones; la auditoría debe ejecutarse sobre cada instalación. |
+| `RF503` | Detener migraciones de integridad si los datos existentes no cumplen las nuevas restricciones y reportar la causa antes de modificar el esquema. | Implementado con verificaciones previas en migraciones. |
+| `RF504` | Generar una exportación SQL portable desde el servidor después de auditar relaciones e integridad, incluyendo esquema, datos y restricciones con codificación `utf8mb4`. | Implementado mediante `php artisan desego:export`; importar primero en una base de prueba del hosting. |
+| `RF505` | Crear respaldos cifrados verificables y exigir confirmación explícita y respaldo previo para una restauración destructiva. | Implementado mediante los comandos de respaldo y restauración; retención y copia externa deben configurarse en producción. |
+
 ## Revisión de web y panel: implementación y brechas
 
 | Área | Resultado de la revisión |
 | --- | --- |
+| Tienda web y cuenta de cliente | La web comparte catálogo y cuenta de cliente con Android mediante Laravel/MySQL. Hay flujos de carrito, pedidos, direcciones, reservas, favoritos, reseñas y fidelización; los datos privados dependen de sesión y permisos del servidor. La verificación por RF de impuestos, comprobantes y todas las variantes de checkout sigue abierta. |
 | Roles y usuarios, RF026–RF033 y RF481 | Gestión separada de usuarios y roles, creación y edición, duplicación, matriz, historial de cambios, asignación y activación/desactivación. Corregido el acceso que exigía el permiso inexistente `roles.view`. El conjunto exacto de roles preestablecidos de RF028 conserva una diferencia: el rol cliente se crea al registrarse y Dueño puede definirse como rol personalizado. |
 | Caja y personal | Corregidos los permisos inexistentes `cash.view` y `staff.view`, y los nombres de acciones enviados por los formularios de caja y personal. No se certifican nómina, desempeño ni ausencias por esta corrección. |
 | Catálogo, ingredientes e inventario | Gestión de categorías, ingredientes y alérgenos accesible desde el panel, con asociación de alérgenos a ingredientes, stock inicial según permisos y activación/desactivación de categorías y alérgenos. Corregidos el listado principal de productos, las acciones de creación/edición y el envío de ajustes al endpoint de inventario. Pendientes de desarrollo o verificación individual: imágenes administrables, subcategorías, variantes, bundles, orden manual y stock independiente por sucursal. |
@@ -973,18 +1004,23 @@
 | Clientes y reservas | Fechas y horas pasadas bloqueadas, selección visual de varias mesas con capacidad conjunta, grupos de unión configurables y asignación visible en confirmación, cuenta y panel. La vista de mesas es esquemática; no representa un plano físico medido. La eliminación de cuentas, validación de email/teléfono y recordatorios automáticos requieren trabajo adicional. |
 | Proveedores, promociones y fidelización | Corregidas las acciones de altas y edición, código de empleado/recompensa, fechas de vigencia y tipo/importe de recompensa. Se corrigió un parámetro SQL sobrante que impedía crear promociones. La vigencia se edita en hora de Perú y se convierte al formato UTC esperado por el servidor. El personal puede vincularse a una cuenta con rol y a una sucursal. Niveles, beneficios por nivel y promociones por producto/sucursal u horario siguen pendientes de validación o ampliación. |
 | Soporte y chatbot | Historial persistente del bot, búsqueda administrativa, permisos de lectura y cadena de IA implementados. La atención humana, adjuntos, SLA y notificaciones externas son funciones distintas y conservan su propia validación pendiente. |
-| App de clientes | Login y sesión separados de administración. Diseño y funciones nativas de cliente diferidos; los RF móviles operativos del personal quedan fuera del alcance vigente. |
-| Pagos y facturación | Hay flujos internos y una integración Niubiz para atención en mesa. No equivale a completar Stripe/MercadoPago/PayPal, pagos parciales, 3D Secure ni emisión electrónica SUNAT. Esas integraciones necesitan implementación y pruebas propias con el proveedor elegido. |
+| App Android para clientes | Aplicación nativa Kotlin/Compose con catálogo, carrito, cuenta, favoritos, checkout, reservas y mesa QR. Comparte el backend Laravel y MySQL de la web. La app de caja/cocina/personal queda fuera del alcance actual. El funcionamiento offline es parcial y no confirma pedidos ni pagos. |
+| Sesión móvil | Sesión Laravel con cookies y CSRF; “Recordarme” persiste cookies cifradas en Android y habilita el token renovable del servidor. Registro y Google usan persistencia por defecto. La compilación Kotlin y las pruebas en dispositivos reales siguen pendientes de un entorno Android con JDK/SDK. |
+| API y sincronización móvil | Endpoints JSON bajo `/api/mobile/*`, sin versión `/v1` ni contrato OpenAPI. Sincronización actual descarga una instantánea completa; el cliente encola favoritos y perfil básico. API versionada, sincronización incremental y resolución completa de conflictos quedan pendientes. |
+| Base de datos y despliegue | MySQL/MariaDB es la fuente central; migraciones agregan restricciones y verificaciones previas. El exportador `desego:export` audita la base antes de producir SQL portable; `desego:backup` y `desego:restore` manejan respaldos cifrados. La importación debe probarse en una base vacía de cPanel antes de producción. |
+| Pagos y facturación | Existen flujos Niubiz para pedidos/reservas/mesa según configuración. Esto no equivale a completar Stripe/MercadoPago/PayPal, pagos parciales, 3D Secure ni emisión electrónica SUNAT. Esas integraciones necesitan implementación y pruebas propias con el proveedor elegido. |
 | Mapas, zonas y repartidores | Faltan o requieren ampliación los polígonos de cobertura, seguimiento GPS, documentos de repartidores, asignación automática y liquidaciones. La tarifa general y los datos de entrega existentes no sustituyen esos RF. |
 | Reseñas, favoritos y búsqueda | Hay controladores y vistas de cliente, pero fotos, respuestas a reseñas, listas compartidas, búsqueda guardada, autocompletado y filtros avanzados requieren revisión funcional específica. |
-| Notificaciones, autenticación e integraciones | Pendientes de integración real: email/SMS y push, verificación de identidad, login social, 2FA, OAuth2 y automatizaciones externas. La configuración local de correo en modo log no acredita entrega de mensajes. |
-| Reportes, analítica, auditoría, backups y sucursales | Existen controladores y comandos, con cobertura parcial. Forecasting, conversión, rentabilidad, exportaciones, auditoría integral y aislamiento de sucursales requieren pruebas por RF. Los backups automáticos y la redundancia deben verificarse también en la configuración del servidor. |
+| Notificaciones, autenticación e integraciones | Google está integrado para la app y web con validación de identidad; la autenticación Android conserva sesión persistente según RF491–RF493. Email/SMS y push, verificación general de email/teléfono, 2FA, OAuth2 para terceros y automatizaciones externas siguen pendientes. La configuración de correo en modo log no acredita entrega. |
+| Reportes, analítica, auditoría, backups y sucursales | Existen controladores y comandos, con cobertura parcial. Forecasting, conversión, rentabilidad, exportaciones, auditoría integral y aislamiento de sucursales requieren pruebas por RF. El respaldo manual/verificable existe; horarios automáticos, redundancia y almacenamiento externo dependen de configuración operativa del servidor. |
+| Seguridad de datos móviles | Las cookies de sesión están cifradas con Android Keystore; la base SQLite que guarda perfiles/cuentas no tiene cifrado propio. Prioridad pendiente: cifrar datos privados locales, definir retención/borrado y probar revocación de sesión en reinstalación y cambio de dispositivo. |
+| Escalado y operación | `.env.production` usa sesiones/cache de archivos y cola sincrónica. Adecuado para despliegue de una instancia con almacenamiento persistente; para varias instancias o trabajos asíncronos se debe migrar a almacenes compartidos (Redis/DB) y operar workers. |
 | SEO | Debe verificarse individualmente sitemap, robots, metadatos, Schema.org, Open Graph y rendimiento; no se declara completado por renderizar la tienda. |
 
-Los RF pendientes de esta tabla siguen siendo trabajo abierto. Esta revisión no declara completados los 486 requerimientos y no cambia su definición original para hacerla coincidir con la implementación actual.
+Los RF pendientes de esta tabla siguen siendo trabajo abierto. Esta revisión no declara completados los 505 requerimientos y no cambia su definición original para hacerla coincidir con la implementación actual.
 
 ---
 
 ## Notas de trazabilidad
 
-Este archivo conserva los 67 módulos y 460 RF de la fuente original y añade el módulo 68 con los RF461–RF480 del chatbot web, RF481 al módulo 4 y RF482–RF486 al módulo 21 para las reservas con selección de mesas. Los CSV de `resources/desego/original-docs/` se conservan como copia de los requerimientos originales. Las prioridades y responsables de las brechas indicadas deben definirse durante la planificación del proyecto.
+Este archivo conserva los 67 módulos y 460 RF de la fuente original. Añade el módulo 68 con RF461–RF480 (chatbot web), RF481 al módulo 4 (usuarios y roles), RF482–RF486 al módulo 21 (reservas con selección de mesas) y el módulo 69 con RF487–RF505 (app, API y datos). Total actual: 69 módulos y 505 RF, de los cuales 45 son ampliaciones. Los CSV de `resources/desego/original-docs/` se conservan como copia de los requerimientos originales. Las prioridades y responsables de las brechas indicadas deben definirse durante la planificación del proyecto.

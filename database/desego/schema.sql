@@ -533,7 +533,7 @@ CREATE TABLE `products` (
   `name` varchar(100) NOT NULL,
   `description` varchar(500) DEFAULT NULL,
   `price` decimal(10,2) NOT NULL DEFAULT 0.00,
-  `emoji` varchar(16) NOT NULL DEFAULT '?️',
+  `emoji` varchar(16) NOT NULL DEFAULT '',
   `status` enum('available','unavailable') NOT NULL DEFAULT 'available',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()

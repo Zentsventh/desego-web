@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\User;
 use App\Services\DiningService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\Concerns\CreatesRestaurantDatabase;
 use Tests\TestCase;
@@ -194,6 +195,26 @@ class DiningExperienceTest extends TestCase
         $member = $this->join($this->tableToken())['member_token'];
 
         $this->postJson('/api/mobile/dining/payments', ['scope' => 'mine', 'email' => 'ana@example.test', 'phone' => '999111222', 'address' => 'Av. Mar 123', 'city' => 'Lima', 'postal_code' => '15001'], ['X-Dining-Token' => $member])->assertStatus(503);
+    }
+
+    public function test_zero_balance_cannot_open_a_card_payment_attempt(): void
+    {
+        Http::preventStrayRequests();
+        config(['dining.niubiz.merchant_id' => 'test', 'dining.niubiz.password' => 'test']);
+        $admin = User::factory()->create(['role_id' => DB::table('roles')->where('code', 'admin')->value('id')]);
+        $joined = $this->join($this->tableToken());
+        $sessionId = $joined['visit']['id'];
+        DB::table('cash_sessions')->insert(['opened_by' => $admin->id, 'opened_at' => now()]);
+        DB::table('orders')->insert([
+            'created_by' => $admin->id, 'created_at' => now(), 'updated_at' => now(),
+            'dining_session_id' => $sessionId,
+            'dining_member_id' => DB::table('dining_members')->where('dining_session_id', $sessionId)->value('id'),
+            'subtotal' => 0, 'total' => 0,
+        ]);
+
+        $this->postJson('/api/mobile/dining/payments', ['scope' => 'mine', 'email' => 'ana@example.test', 'phone' => '999111222', 'address' => 'Av. Mar 123', 'city' => 'Lima', 'postal_code' => '15001'], ['X-Dining-Token' => $joined['member_token']])->assertStatus(409);
+        $this->assertDatabaseCount('dining_payment_attempts', 0);
+        Http::assertNothingSent();
     }
 
     public function test_commission_free_table_payment_with_yape_plin_can_be_verified_from_the_3d_floor(): void

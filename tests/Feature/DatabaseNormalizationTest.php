@@ -216,14 +216,14 @@ class DatabaseNormalizationTest extends TestCase
         }
         config(['desego.seeding.admin_password' => 'initial-test-password', 'desego.seeding.admin_email' => 'initial@example.test']);
         $this->seed(DatabaseSeeder::class);
-        $this->assertDatabaseCount('products', 35);
+        $this->assertDatabaseCount('products', 55);
         $this->assertDatabaseCount('ingredients', 0);
         $this->assertDatabaseCount('inventory_movements', 0);
         $this->assertDatabaseCount('orders', 0);
         $this->assertDatabaseCount('business_hours', 7);
         $hash = DB::table('users')->where('email', 'initial@example.test')->value('password_hash');
         $this->assertTrue(Hash::check('initial-test-password', $hash));
-        $productId = DB::table('products')->where('code', 'PF001')->value('id');
+        $productId = DB::table('products')->where('code', 'EN001')->value('id');
         DB::table('products')->where('id', $productId)->update(['price' => 99, 'status' => 'unavailable']);
         DB::table('restaurant_tables')->where('table_number', 1)->update(['capacity' => 8, 'is_active' => false]);
         DB::table('business_hours')->where('day_of_week', 1)->update(['open_time' => '10:00:00']);
@@ -232,7 +232,7 @@ class DatabaseNormalizationTest extends TestCase
         DB::table('role_permissions')->where('role_id', $adminRoleId)->delete();
         config(['desego.seeding.admin_password' => 'different-test-password']);
         $this->seed(DatabaseSeeder::class);
-        $this->assertDatabaseCount('products', 35);
+        $this->assertDatabaseCount('products', 55);
         $this->assertDatabaseCount('users', 1);
         $this->assertDatabaseHas('products', ['id' => $productId, 'price' => 99, 'status' => 'unavailable']);
         $this->assertDatabaseHas('restaurant_tables', ['table_number' => 1, 'capacity' => 8, 'is_active' => false]);

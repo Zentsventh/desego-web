@@ -20,7 +20,7 @@ return new class extends Migration
             $table->increments('id')->startingValue(49);
             $table->unsignedSmallInteger('table_number');
             $table->string('label', 40);
-            $table->string('zone', 80)->default('Salón principal');
+            $table->string('zone', 80)->default('');
             $table->unsignedTinyInteger('capacity')->default(4);
             $table->enum('operational_status', ['available', 'occupied', 'maintenance'])->default('available');
             $table->boolean('is_active')->default(1);

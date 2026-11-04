@@ -23,7 +23,7 @@ return new class extends Migration
             $table->string('name', 100);
             $table->string('description', 500)->nullable();
             $table->decimal('price', 10, 2)->default(0.00);
-            $table->string('emoji', 16)->default('?️');
+            $table->string('emoji', 16)->default('');
             $table->enum('status', ['available', 'unavailable'])->default('available');
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate();

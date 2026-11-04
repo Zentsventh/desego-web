@@ -17,6 +17,7 @@ use function App\Support\Desego\clear_remember_cookie;
 use function App\Support\Desego\current_user;
 use function App\Support\Desego\desego_db;
 use function App\Support\Desego\establish_authenticated_session;
+use function App\Support\Desego\issue_remember_token;
 
 class GoogleAuthController extends Controller
 {
@@ -49,6 +50,10 @@ class GoogleAuthController extends Controller
         $request->session()->regenerateToken();
         $request->session()->put('csrf_token', $request->session()->token());
         $request->session()->put('storefront_customer_id', DB::table('customers')->where('user_id', $user->id)->value('id'));
+
+        if ($request->boolean('remember', true)) {
+            issue_remember_token(desego_db(), (int) $user->id);
+        }
 
         return response()->json(['ok' => true, 'user' => current_user(true), 'csrfToken' => $request->session()->token()])->header('Cache-Control', 'no-store');
     }

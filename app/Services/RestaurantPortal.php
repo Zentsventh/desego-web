@@ -390,6 +390,18 @@ class RestaurantPortal
                 ->update(['customer_id' => $customer->id]);
         }
 
+        if (! empty($customer->phone)) {
+            $cleanPhone = preg_replace('/[^0-9]/', '', (string) $customer->phone);
+            $normalizedPhone = strlen($cleanPhone) >= 9 ? substr($cleanPhone, -9) : $cleanPhone;
+            DB::table('reservations')
+                ->whereNull('customer_id')
+                ->where(function ($q) use ($customer, $normalizedPhone): void {
+                    $q->where('customer_phone', $customer->phone)
+                        ->orWhereRaw("RIGHT(REGEXP_REPLACE(customer_phone, '[^0-9]', ''), 9) = ?", [$normalizedPhone]);
+                })
+                ->update(['customer_id' => $customer->id]);
+        }
+
         $orderStats = DB::table('orders')
             ->where('customer_id', $customer->id)
             ->where('status', '<>', 'Cancelado')
@@ -1205,7 +1217,7 @@ class RestaurantPortal
         if (! in_array($record->status, $cancellable, true) || CarbonImmutable::parse($record->reservation_at, 'UTC')->isPast()) {
             throw ValidationException::withMessages(['reservation' => 'Esta reserva ya no se puede cancelar.']);
         }
-        if (in_array($record->status, ['CONFIRMED', 'PENDING_PAYMENT'], true)) {
+        if (in_array($record->status, ['CONFIRMED', 'Confirmada', 'PENDING_PAYMENT'], true)) {
             return app(ReservationAvailabilityService::class)->cancelReservation($id, 'Cancelada por el cliente desde Mi Cuenta', false, null);
         }
         DB::table('reservations')->where('id', $id)->update([

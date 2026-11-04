@@ -157,7 +157,11 @@ Route::prefix('api/mobile')->group(function (): void {
     Route::get('/account', [MobileController::class, 'account']);
     Route::post('/profile', [MobileController::class, 'profile']);
     Route::post('/addresses', [MobileController::class, 'address']);
-    Route::delete('/addresses/{id}', [MobileController::class, 'deleteAddress']);
+    Route::post('/addresses/{id}/default', [MobileController::class, 'defaultAddress'])->whereNumber('id');
+    Route::delete('/addresses/{id}', [MobileController::class, 'deleteAddress'])->whereNumber('id');
+    Route::post('/password', [MobileController::class, 'changePassword'])->middleware('throttle:10,1');
+    Route::post('/loyalty/redeem', [MobileController::class, 'redeemReward'])->middleware('throttle:15,1');
+    Route::post('/reviews', [MobileController::class, 'submitReview'])->middleware('throttle:15,1');
     Route::post('/reservations', [MobileController::class, 'reserve']);
     Route::post('/orders/{id}/cancel', [MobileController::class, 'cancelOrder']);
     Route::post('/reservations/{id}/cancel', [MobileController::class, 'cancelReservation']);

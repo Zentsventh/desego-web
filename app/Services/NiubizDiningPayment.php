@@ -62,8 +62,10 @@ class NiubizDiningPayment
             }
             $orders = DB::table('orders')->where('dining_session_id', $visit->id)->where('status', '<>', 'Cancelado')->where('payment_status', 'Pendiente')->when($data['scope'] === 'mine', fn ($query) => $query->where('dining_member_id', $member->id))->lockForUpdate()->get();
             abort_if($orders->isEmpty(), 409, 'No tienes consumo pendiente en esta selección.');
+            $amountCents = (int) round($orders->sum('total') * 100);
+            abort_if($amountCents <= 0, 409, 'No hay un importe pendiente para cobrar con tarjeta.');
             $id = (string) Str::uuid();
-            DB::table('dining_payment_attempts')->insert(['id' => $id, 'dining_session_id' => $visit->id, 'dining_member_id' => $member->id, 'purchase_number' => (string) random_int(100000000000, 999999999999), 'status' => 'creating', 'amount_cents' => (int) round($orders->sum('total') * 100), 'cash_session_id' => $cash->id, 'actor_id' => $cash->opened_by, 'expires_at' => now()->addMinutes(10), 'created_at' => now(), 'updated_at' => now()]);
+            DB::table('dining_payment_attempts')->insert(['id' => $id, 'dining_session_id' => $visit->id, 'dining_member_id' => $member->id, 'purchase_number' => (string) random_int(100000000000, 999999999999), 'status' => 'creating', 'amount_cents' => $amountCents, 'cash_session_id' => $cash->id, 'actor_id' => $cash->opened_by, 'expires_at' => now()->addMinutes(10), 'created_at' => now(), 'updated_at' => now()]);
             DB::table('dining_payment_attempt_orders')->insert($orders->map(fn (object $order): array => ['attempt_id' => $id, 'order_id' => $order->id])->all());
             DB::table('dining_sessions')->where('id', $visit->id)->update(['status' => 'checkout', 'updated_at' => now()]);
 

@@ -25,8 +25,13 @@ class DatabaseIntegrityAudit
             unset($entry);
         }
         $foreignKeys = [];
-        $sql = 'SELECT k.TABLE_NAME, k.CONSTRAINT_NAME, k.COLUMN_NAME, k.REFERENCED_TABLE_NAME, k.REFERENCED_COLUMN_NAME, r.DELETE_RULE, r.UPDATE_RULE FROM information_schema.KEY_COLUMN_USAGE k JOIN information_schema.REFERENTIAL_CONSTRAINTS r ON r.CONSTRAINT_SCHEMA=k.CONSTRAINT_SCHEMA AND r.TABLE_NAME=k.TABLE_NAME AND r.CONSTRAINT_NAME=k.CONSTRAINT_NAME WHERE k.TABLE_SCHEMA=DATABASE() AND k.REFERENCED_TABLE_NAME IS NOT NULL ORDER BY k.TABLE_NAME,k.CONSTRAINT_NAME,k.ORDINAL_POSITION';
+        $referentialRules = [];
+        foreach ($this->rows($pdo, 'SELECT TABLE_NAME, CONSTRAINT_NAME, DELETE_RULE, UPDATE_RULE FROM information_schema.REFERENTIAL_CONSTRAINTS WHERE CONSTRAINT_SCHEMA=DATABASE()') as $rule) {
+            $referentialRules[$rule['TABLE_NAME']][$rule['CONSTRAINT_NAME']] = $rule;
+        }
+        $sql = 'SELECT TABLE_NAME, CONSTRAINT_NAME, COLUMN_NAME, REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME FROM information_schema.KEY_COLUMN_USAGE WHERE TABLE_SCHEMA=DATABASE() AND REFERENCED_TABLE_NAME IS NOT NULL ORDER BY TABLE_NAME,CONSTRAINT_NAME,ORDINAL_POSITION';
         foreach ($this->rows($pdo, $sql) as $key) {
+            $key += $referentialRules[$key['TABLE_NAME']][$key['CONSTRAINT_NAME']];
             $entry = &$foreignKeys[$key['TABLE_NAME']][$key['CONSTRAINT_NAME']];
             $entry['columns'][] = $key['COLUMN_NAME'];
             $entry['parent_table'] = $key['REFERENCED_TABLE_NAME'];
@@ -157,7 +162,32 @@ class DatabaseIntegrityAudit
         if ($foreignKeyChecks !== 1) {
             $issues[] = 'La conexion tiene FOREIGN_KEY_CHECKS desactivado';
         }
-        $checkConstraints = (int) $pdo->query("SELECT COUNT(*) FROM information_schema.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA=DATABASE() AND CONSTRAINT_TYPE='CHECK'")->fetchColumn();
+        $checks = [];
+        foreach ($this->rows($pdo, 'SELECT TABLE_NAME, CONSTRAINT_NAME, CHECK_CLAUSE FROM information_schema.CHECK_CONSTRAINTS WHERE CONSTRAINT_SCHEMA=DATABASE()') as $check) {
+            $checks[$check['TABLE_NAME']][$check['CONSTRAINT_NAME']] = $check['CHECK_CLAUSE'];
+        }
+        foreach (DatabaseIntegrityRules::checks() as $name => [$table, $expression]) {
+            $actual = $checks[$table][$name] ?? null;
+            if ($actual === null) {
+                $issues[] = 'Falta restriccion CHECK: '.$table.'.'.$name;
+            } elseif (DatabaseIntegrityRules::normalizedExpression($actual) !== DatabaseIntegrityRules::normalizedExpression($expression)) {
+                $issues[] = 'Definicion CHECK inesperada: '.$table.'.'.$name;
+            }
+            if (isset($columns[$table]) && $pdo->query('SELECT 1 FROM '.$this->identifier($table).' WHERE NOT ('.$expression.') LIMIT 1')->fetchColumn() !== false) {
+                $issues[] = 'Datos incompatibles con CHECK: '.$table.'.'.$name;
+            }
+        }
+        foreach (DatabaseIntegrityRules::PAYMENT_RELATIONS as $name => [$table, $column, $parent]) {
+            $key = $foreignKeys[$table][$name] ?? null;
+            if ($key === null || $key['columns'] !== [$column] || $key['parent_table'] !== $parent || $key['parent_columns'] !== ['id'] || ! in_array($key['on_delete'], ['RESTRICT', 'NO ACTION'], true)) {
+                $issues[] = 'Relacion de pago ausente o incompatible: '.$table.'.'.$name;
+            }
+        }
+        $checkEnforcement = $pdo->query("SHOW SESSION VARIABLES LIKE 'check_constraint_checks'")->fetch(PDO::FETCH_ASSOC);
+        if ($checkEnforcement !== false && ! in_array(strtoupper((string) $checkEnforcement['Value']), ['ON', '1'], true)) {
+            $issues[] = 'La conexion tiene CHECK_CONSTRAINT_CHECKS desactivado';
+        }
+        $checkConstraints = array_sum(array_map('count', $checks));
 
         return [
             'database' => $pdo->query('SELECT DATABASE()')->fetchColumn(),

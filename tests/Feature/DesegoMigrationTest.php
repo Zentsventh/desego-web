@@ -57,10 +57,14 @@ class DesegoMigrationTest extends TestCase
     private function schemaDefinition(PDO $pdo): array
     {
         $filter = implode(', ', array_map(static fn ($name) => $pdo->quote($name), $this->tables));
+        $relationRules = [];
+        foreach ($pdo->query('SELECT TABLE_NAME, CONSTRAINT_NAME, DELETE_RULE, UPDATE_RULE FROM information_schema.REFERENTIAL_CONSTRAINTS WHERE CONSTRAINT_SCHEMA=DATABASE()')->fetchAll(PDO::FETCH_ASSOC) as $rule) {
+            $relationRules[$rule['TABLE_NAME']][$rule['CONSTRAINT_NAME']] = ['DELETE_RULE' => $rule['DELETE_RULE'], 'UPDATE_RULE' => $rule['UPDATE_RULE']];
+        }
         $queries = [
             'columns' => 'SELECT TABLE_NAME, COLUMN_NAME, ORDINAL_POSITION, COLUMN_TYPE, IS_NULLABLE, COLUMN_DEFAULT, EXTRA, CHARACTER_SET_NAME, COLLATION_NAME, COLUMN_COMMENT FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME IN ('.$filter.') ORDER BY TABLE_NAME, ORDINAL_POSITION',
             'indexes' => 'SELECT TABLE_NAME, INDEX_NAME, NON_UNIQUE, SEQ_IN_INDEX, COLUMN_NAME, SUB_PART, INDEX_TYPE FROM information_schema.STATISTICS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME IN ('.$filter.') ORDER BY TABLE_NAME, INDEX_NAME, SEQ_IN_INDEX',
-            'relations' => 'SELECT k.TABLE_NAME, k.CONSTRAINT_NAME, k.COLUMN_NAME, k.REFERENCED_TABLE_NAME, k.REFERENCED_COLUMN_NAME, r.DELETE_RULE, r.UPDATE_RULE FROM information_schema.KEY_COLUMN_USAGE k JOIN information_schema.REFERENTIAL_CONSTRAINTS r ON r.CONSTRAINT_SCHEMA=k.CONSTRAINT_SCHEMA AND r.CONSTRAINT_NAME=k.CONSTRAINT_NAME AND r.TABLE_NAME=k.TABLE_NAME WHERE k.TABLE_SCHEMA=DATABASE() AND k.TABLE_NAME IN ('.$filter.') ORDER BY k.TABLE_NAME, k.CONSTRAINT_NAME, k.ORDINAL_POSITION',
+            'relations' => 'SELECT TABLE_NAME, CONSTRAINT_NAME, COLUMN_NAME, REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME FROM information_schema.KEY_COLUMN_USAGE WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME IN ('.$filter.') AND REFERENCED_TABLE_NAME IS NOT NULL ORDER BY TABLE_NAME, CONSTRAINT_NAME, ORDINAL_POSITION',
             'checks' => 'SELECT TABLE_NAME, CONSTRAINT_NAME, CHECK_CLAUSE FROM information_schema.CHECK_CONSTRAINTS WHERE CONSTRAINT_SCHEMA=DATABASE() AND TABLE_NAME IN ('.$filter.') ORDER BY TABLE_NAME, CONSTRAINT_NAME',
             'tables' => 'SELECT TABLE_NAME, ENGINE, TABLE_COLLATION FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME IN ('.$filter.') ORDER BY TABLE_NAME',
         ];
@@ -70,6 +74,9 @@ class DesegoMigrationTest extends TestCase
             $rows = array_values(array_filter($rows, fn ($row) => ! (($section === 'columns' && $row['TABLE_NAME'] === 'customers' && $row['COLUMN_NAME'] === 'user_id') || ($section === 'indexes' && $row['INDEX_NAME'] === 'uq_customers_user') || ($section === 'relations' && $row['CONSTRAINT_NAME'] === 'fk_customers_user'))));
             $positions = [];
             foreach ($rows as &$row) {
+                if ($section === 'relations') {
+                    $row += $relationRules[$row['TABLE_NAME']][$row['CONSTRAINT_NAME']];
+                }
                 if ($section === 'columns') {
                     $positions[$row['TABLE_NAME']] = ($positions[$row['TABLE_NAME']] ?? 0) + 1;
                     $row['ORDINAL_POSITION'] = $positions[$row['TABLE_NAME']];
@@ -225,6 +232,7 @@ class DesegoMigrationTest extends TestCase
         try {
             $created = $this->postJson('/api/admin-tools.php', ['action' => 'create_backup'])->assertOk();
             $backup = $created->json('backup');
+            $this->assertDatabaseHas('backup_history', ['id' => $backup['id'], 'verification_status' => 'valid']);
             $this->assertStringStartsWith('DSGBK1', file_get_contents($directory.'/'.$backup['file_name']));
             $this->get('/api/admin-tools.php?view=download&id='.$backup['id'])->assertOk()->assertDownload($backup['file_name']);
             $later = User::factory()->create();
@@ -262,9 +270,10 @@ class DesegoMigrationTest extends TestCase
     {
         $report = app(DatabaseIntegrityAudit::class)->inspect(DB::connection()->getPdo());
         $this->assertTrue($report['healthy'], json_encode($report['issues']));
-        $this->assertSame(92, $report['summary']['tables']);
-        $this->assertSame(92, $report['summary']['primary_keys']);
-        $this->assertSame(155, $report['summary']['foreign_keys']);
+        $this->assertSame(93, $report['summary']['tables']);
+        $this->assertSame(93, $report['summary']['primary_keys']);
+        $this->assertSame(158, $report['summary']['foreign_keys']);
+        $this->assertSame(29, $report['summary']['check_constraints']);
         $this->assertSame(0, $report['summary']['orphan_constraints']);
         $path = tempnam(storage_path('framework'), 'desego-audit-');
         try {
@@ -319,6 +328,7 @@ class DesegoMigrationTest extends TestCase
             '2026_11_01_194720_strengthen_restaurant_database_integrity.php',
             '2026_11_01_194953_normalize_business_hours_and_configuration.php',
             '2026_11_01_195023_remove_derived_workforce_and_purchase_columns.php',
+            '2026_11_03_174142_harden_payment_integrity_and_restore_business_checks.php',
         ];
         $previousMigrations = array_values(array_filter(glob(database_path('migrations/*.php')), fn (string $path): bool => ! in_array(basename($path), $normalizationMigrations, true)));
         $this->artisan('migrate', ['--realpath' => true, '--path' => $previousMigrations, '--force' => true])->assertExitCode(0);

@@ -10,6 +10,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 use function App\Support\Desego\current_user;
+use function App\Support\Desego\desego_db;
+use function App\Support\Desego\issue_remember_token;
 
 class MobileController extends Controller
 {
@@ -88,7 +90,13 @@ class MobileController extends Controller
 
     public function register(Request $request, RestaurantPortal $portal): JsonResponse
     {
-        return response()->json($portal->register($request->all()), 201);
+        $result = $portal->register($request->all());
+
+        if ($request->boolean('remember', true) && isset($result['user']['id'])) {
+            issue_remember_token(desego_db(), (int) $result['user']['id']);
+        }
+
+        return response()->json($result, 201);
     }
 
     public function logout(RestaurantPortal $portal): JsonResponse
@@ -121,9 +129,31 @@ class MobileController extends Controller
         return response()->json($portal->saveAddress($request->all()));
     }
 
+    public function defaultAddress(int $id, RestaurantPortal $portal): JsonResponse
+    {
+        return response()->json($portal->setDefaultAddress($id));
+    }
+
     public function deleteAddress(int $id, RestaurantPortal $portal): JsonResponse
     {
         return response()->json($portal->deleteAddress($id));
+    }
+
+    public function changePassword(Request $request, RestaurantPortal $portal): JsonResponse
+    {
+        return response()->json($portal->changePassword($request->all()));
+    }
+
+    public function redeemReward(Request $request, RestaurantPortal $portal): JsonResponse
+    {
+        $rewardId = (int) $request->input('reward_id');
+
+        return response()->json($portal->redeemReward($rewardId));
+    }
+
+    public function submitReview(Request $request, RestaurantPortal $portal): JsonResponse
+    {
+        return response()->json($portal->submitReview($request->all()));
     }
 
     public function reserve(Request $request, RestaurantPortal $portal): JsonResponse

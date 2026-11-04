@@ -13,3 +13,13 @@ Schedule::command('reservations:process-expirations')
     ->timezone('America/Lima')
     ->withoutOverlapping()
     ->runInBackground();
+
+Schedule::command('desego:backup --automatic --retention')
+    ->dailyAt('03:00')
+    ->timezone('America/Lima')
+    ->withoutOverlapping();
+
+Schedule::command('desego:prune-api-limits')
+    ->dailyAt('03:30')
+    ->timezone('America/Lima')
+    ->withoutOverlapping();

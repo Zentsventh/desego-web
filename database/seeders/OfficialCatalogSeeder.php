@@ -801,6 +801,7 @@ class OfficialCatalogSeeder extends Seeder
             ];
 
             if ($existing) {
+                unset($data['price'], $data['status']);
                 $db->table('products')->where('id', $existing->id)->update($data);
 
                 continue;

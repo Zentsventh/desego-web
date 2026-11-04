@@ -64,7 +64,7 @@ class ReservationAvailabilityService
         return (int) ($rules['7+'] ?? 150);
     }
 
-    public function schedule(string $date): array
+    public function schedule(string $date, int $guests = 2): array
     {
         Validator::make(['date' => $date], ['date' => 'required|date_format:Y-m-d'])->validate();
         $now = CarbonImmutable::now('America/Lima');
@@ -82,9 +82,31 @@ class ReservationAvailabilityService
         $branch = DB::table('branches')->where('status', 'active')->orderByDesc('is_main')->first() ?? DB::table('branches')->orderByDesc('is_main')->first();
         abort_unless($branch, 503, 'El restaurante aún no recibe reservas.');
 
-        $hasHours = $branch->opening_time && $branch->closing_time;
-        $opening = CarbonImmutable::parse($date.' '.($hasHours ? $branch->opening_time : '00:00:00'), 'America/Lima');
-        $closing = $hasHours ? CarbonImmutable::parse($date.' '.$branch->closing_time, 'America/Lima') : $opening->addDay();
+        $parsedDate = CarbonImmutable::parse($date, 'America/Lima');
+        $dayOfWeek = (int) $parsedDate->dayOfWeekIso; // 1 (Lunes) a 7 (Domingo)
+        $businessHour = DB::table('business_hours')->where('day_of_week', $dayOfWeek)->first();
+
+        $isClosed = $businessHour ? (bool) $businessHour->is_closed : false;
+        if ($isClosed) {
+            return [
+                'today' => $now->toDateString(),
+                'server_now' => $now->toIso8601String(),
+                'slots' => [],
+                'opening' => null,
+                'closing' => null,
+                'advance_amount' => (float) $config->advance_amount,
+                'tolerance_minutes' => (int) $config->tolerance_minutes,
+                'reservations_enabled' => (bool) $config->reservations_enabled,
+                'is_closed' => true,
+            ];
+        }
+
+        $openTimeStr = $branch->opening_time ?: $businessHour?->open_time;
+        $closeTimeStr = $branch->closing_time ?: $businessHour?->close_time;
+        $hasHours = ! empty($openTimeStr) && ! empty($closeTimeStr);
+
+        $opening = CarbonImmutable::parse($date.' '.($hasHours ? $openTimeStr : '00:00:00'), 'America/Lima');
+        $closing = $hasHours ? CarbonImmutable::parse($date.' '.$closeTimeStr, 'America/Lima') : $opening->addDay();
         if ($closing->lessThanOrEqualTo($opening)) {
             $closing = $closing->addDay();
         }
@@ -101,17 +123,18 @@ class ReservationAvailabilityService
             'today' => $now->toDateString(),
             'server_now' => $now->toIso8601String(),
             'slots' => $slots,
-            'opening' => $hasHours ? substr((string) $branch->opening_time, 0, 5) : null,
-            'closing' => $hasHours ? substr((string) $branch->closing_time, 0, 5) : null,
+            'opening' => $hasHours ? substr((string) $openTimeStr, 0, 5) : null,
+            'closing' => $hasHours ? substr((string) $closeTimeStr, 0, 5) : null,
             'advance_amount' => (float) $config->advance_amount,
             'tolerance_minutes' => (int) $config->tolerance_minutes,
             'reservations_enabled' => (bool) $config->reservations_enabled,
+            'is_closed' => false,
         ];
     }
 
-    public function start(string $date, string $time): CarbonImmutable
+    public function start(string $date, string $time, int $guests = 2): CarbonImmutable
     {
-        $schedule = $this->schedule($date);
+        $schedule = $this->schedule($date, $guests);
         if (! in_array($time, $schedule['slots'], true)) {
             throw ValidationException::withMessages(['time' => 'Elige un horario disponible dentro del horario de atención.']);
         }
@@ -145,7 +168,7 @@ class ReservationAvailabilityService
             ->whereIn('r.status', ['Pendiente', 'Confirmada', 'Sentada', 'CONFIRMED', 'CHECKED_IN', 'IN_SERVICE'])
             ->where(function ($q) use ($newStartUtc, $newEnd, $cleaningMinutes): void {
                 $q->where('r.reservation_at', '<', $newEnd)
-                    ->whereRaw("DATE_ADD(r.reservation_at, INTERVAL (r.duration_minutes + CASE WHEN r.status IN ('CONFIRMED', 'CHECKED_IN', 'IN_SERVICE') THEN ? ELSE 0 END) MINUTE) > ?", [
+                    ->whereRaw("DATE_ADD(r.reservation_at, INTERVAL (r.duration_minutes + CASE WHEN r.status IN ('CONFIRMED', 'Confirmada', 'CHECKED_IN', 'Sentada', 'IN_SERVICE') THEN ? ELSE 0 END) MINUTE) > ?", [
                         $cleaningMinutes,
                         $newStartUtc,
                     ]);
@@ -203,13 +226,13 @@ class ReservationAvailabilityService
 
     public function availability(string $date, ?string $time, int $guests = 2): array
     {
-        $schedule = $this->schedule($date);
+        $schedule = $this->schedule($date, $guests);
         $time = in_array($time, $schedule['slots'], true) ? $time : null;
         $tables = [];
         $durationMinutes = $this->estimateDuration($guests);
 
         if ($time) {
-            $startUtc = $this->start($date, $time);
+            $startUtc = $this->start($date, $time, $guests);
 
             $tables = DB::table('restaurant_tables as t')
                 ->leftJoin('reservation_table_settings as s', 's.table_id', '=', 't.id')
@@ -284,16 +307,25 @@ class ReservationAvailabilityService
             }
         }
 
-        // 2. Si son más de 4 personas o no hay una sola mesa, buscar unión de mesas contiguas con join_group
-        if ($guests > 4) {
-            $allCandidates = (clone $query)->whereNotNull('s.join_group')->orderBy('t.table_number')->get();
-            $grouped = $allCandidates->groupBy('join_group');
+        // 2. Si no hay una sola mesa con capacidad suficiente, buscar unión de mesas contiguas con join_group
+        $allCandidates = (clone $query)->whereNotNull('s.join_group')->orderBy('t.table_number')->get();
+        $grouped = $allCandidates->groupBy('join_group');
 
-            foreach ($grouped as $groupTables) {
-                $availableInGroup = $groupTables->filter(fn ($tbl) => ! $this->unavailable($tbl, $startUtc, $durationMinutes, $exceptReservationId));
-                if ($availableInGroup->sum('capacity') >= $guests) {
-                    return $availableInGroup->values()->all();
+        foreach ($grouped as $groupTables) {
+            $availableInGroup = $groupTables->filter(fn ($tbl) => ! $this->unavailable($tbl, $startUtc, $durationMinutes, $exceptReservationId));
+            if ($availableInGroup->sum('capacity') >= $guests) {
+                // Asignar únicamente las mesas necesarias para cubrir los comensales
+                $selected = [];
+                $accumulated = 0;
+                foreach ($availableInGroup as $tbl) {
+                    $selected[] = $tbl;
+                    $accumulated += (int) $tbl->capacity;
+                    if ($accumulated >= $guests) {
+                        break;
+                    }
                 }
+
+                return $selected;
             }
         }
 
@@ -306,12 +338,13 @@ class ReservationAvailabilityService
     {
         $config = $this->config();
         $cleanPhone = preg_replace('/[^0-9]/', '', $phone);
+        $normalizedPhone = strlen($cleanPhone) >= 9 ? substr($cleanPhone, -9) : $cleanPhone;
 
         // Regla B: Límite de reservas futuras activas por teléfono
         $activeReservationsCount = DB::table('reservations')
-            ->where(function ($q) use ($cleanPhone, $phone): void {
+            ->where(function ($q) use ($normalizedPhone, $phone): void {
                 $q->where('customer_phone', $phone)
-                    ->orWhereRaw("REGEXP_REPLACE(customer_phone, '[^0-9]', '') = ?", [$cleanPhone]);
+                    ->orWhereRaw("RIGHT(REGEXP_REPLACE(customer_phone, '[^0-9]', ''), 9) = ?", [$normalizedPhone]);
             })
             ->whereIn('status', ['Pendiente', 'Confirmada', 'CONFIRMED', 'CHECKED_IN'])
             ->where('reservation_at', '>=', CarbonImmutable::now('UTC'))
@@ -325,9 +358,9 @@ class ReservationAvailabilityService
 
         // Regla A: Sin reservas simultáneas superpuestas para el mismo teléfono
         $overlapCount = DB::table('reservations')
-            ->where(function ($q) use ($cleanPhone, $phone): void {
+            ->where(function ($q) use ($normalizedPhone, $phone): void {
                 $q->where('customer_phone', $phone)
-                    ->orWhereRaw("REGEXP_REPLACE(customer_phone, '[^0-9]', '') = ?", [$cleanPhone]);
+                    ->orWhereRaw("RIGHT(REGEXP_REPLACE(customer_phone, '[^0-9]', ''), 9) = ?", [$normalizedPhone]);
             })
             ->whereIn('status', ['Pendiente', 'Confirmada', 'CONFIRMED', 'CHECKED_IN', 'IN_SERVICE'])
             ->where('reservation_at', '<', $startUtc->addMinutes(120))
@@ -355,7 +388,7 @@ class ReservationAvailabilityService
             'table_ids.*' => 'required|integer|distinct|min:1',
         ])->validate();
 
-        $startUtc = $this->start($data['date'], $data['time']);
+        $startUtc = $this->start($data['date'], $data['time'], (int) $data['people']);
         $durationMinutes = $this->estimateDuration((int) $data['people']);
         $this->validateAntiFraud($data['phone'], $startUtc);
 
@@ -390,6 +423,10 @@ class ReservationAvailabilityService
                 }
             }
 
+            $tableCount = count($tableIds);
+            $advancePerTable = (float) $config->advance_amount; // Cobro de S/ 10.00 por mesa
+            $totalAdvance = round($tableCount * $advancePerTable, 2);
+
             $holdToken = 'HOLD-'.bin2hex(random_bytes(16));
             $holdDuration = (int) ($config->hold_duration_minutes ?? 10);
             $expiresAt = CarbonImmutable::now('UTC')->addMinutes($holdDuration);
@@ -402,7 +439,7 @@ class ReservationAvailabilityService
                 'guest_count' => (int) $data['people'],
                 'reservation_at' => $startUtc,
                 'duration_minutes' => $durationMinutes,
-                'advance_amount' => $config->advance_amount,
+                'advance_amount' => $totalAdvance,
                 'status' => 'ACTIVE',
                 'expires_at' => $expiresAt,
                 'notes' => $data['notes'] ?? null,
@@ -417,6 +454,8 @@ class ReservationAvailabilityService
                 'hold_id' => $holdId,
                 'hold_token' => $holdToken,
                 'table_ids' => $tableIds,
+                'advance_amount' => $totalAdvance,
+                'table_count' => $tableCount,
                 'expires_at' => $expiresAt->toIso8601String(),
             ]);
 
@@ -425,7 +464,9 @@ class ReservationAvailabilityService
             return [
                 'ok' => true,
                 'hold_token' => $holdToken,
-                'advance_amount' => (float) $config->advance_amount,
+                'advance_amount' => $totalAdvance,
+                'advance_per_table' => $advancePerTable,
+                'table_count' => $tableCount,
                 'expires_at' => $expiresAt->toIso8601String(),
                 'expires_in_seconds' => $holdDuration * 60,
                 'tables' => $tableLabels,
@@ -528,7 +569,7 @@ class ReservationAvailabilityService
                     return [
                         'ok' => false,
                         'refunded' => true,
-                        'message' => 'Tu pago ingresó después del tiempo límite de 10 minutos y la capacidad ya no está disponible. Se ha registrado la devolución de tus S/ 10.00.',
+                        'message' => 'Tu pago ingresó después del tiempo límite de 10 minutos y la capacidad ya no está disponible. Se ha registrado la devolución de tus S/ '.number_format((float) $hold->advance_amount, 2).'.',
                     ];
                 }
             }
@@ -777,8 +818,16 @@ class ReservationAvailabilityService
                 'updated_at' => now(),
             ]);
 
-            // Marcar mesa física como ocupada
-            DB::table('restaurant_tables')->where('id', $visit->table_id)->update([
+            // Marcar todas las mesas físicas asignadas a la reserva como ocupadas
+            $tableIdsToOccupy = DB::table('reservation_tables')->where('reservation_id', $res->id)->pluck('table_id')->map(fn ($id) => (int) $id)->all();
+            if (empty($tableIdsToOccupy)) {
+                $tableIdsToOccupy = array_filter([(int) $visit->table_id, (int) $res->table_id]);
+            } else {
+                $tableIdsToOccupy[] = (int) $visit->table_id;
+            }
+            $tableIdsToOccupy = array_unique(array_filter($tableIdsToOccupy));
+
+            DB::table('restaurant_tables')->whereIn('id', $tableIdsToOccupy)->update([
                 'operational_status' => 'occupied',
                 'updated_at' => now(),
             ]);
@@ -789,7 +838,7 @@ class ReservationAvailabilityService
                 'action' => 'seated_at_table',
                 'details' => json_encode([
                     'dining_session_id' => $diningSessionId,
-                    'table_id' => $visit->table_id,
+                    'table_ids' => $tableIdsToOccupy,
                 ]),
                 'ip_address' => request()->ip(),
                 'created_at' => now(),
@@ -813,11 +862,11 @@ class ReservationAvailabilityService
                 return ['applied' => false, 'message' => 'El pedido no pertenece a una mesa en salón.'];
             }
 
-            // Buscar reserva vinculada a esta sesión de mesa
+            // Buscar reserva vinculada a esta sesión de mesa que aún tenga crédito disponible
             $res = DB::table('reservations')
                 ->where('dining_session_id', $order->dining_session_id)
                 ->where('payment_status', 'PAID')
-                ->where('applied_credit_amount', '<=', 0)
+                ->whereRaw('applied_credit_amount < advance_amount')
                 ->lockForUpdate()
                 ->first();
 
@@ -825,9 +874,12 @@ class ReservationAvailabilityService
                 return ['applied' => false, 'message' => 'No hay anticipo pendiente de aplicar para esta mesa.'];
             }
 
-            $creditAvailable = (float) $res->advance_amount;
-            $orderTotal = (float) $order->total;
+            $creditAvailable = max(0.00, round((float) $res->advance_amount - (float) $res->applied_credit_amount, 2));
+            if ($creditAvailable <= 0) {
+                return ['applied' => false, 'message' => 'El anticipo de la reserva ya fue consumido en su totalidad.'];
+            }
 
+            $orderTotal = (float) $order->total;
             $creditToApply = min($creditAvailable, $orderTotal);
             $newTotal = round($orderTotal - $creditToApply, 2);
 
@@ -839,7 +891,7 @@ class ReservationAvailabilityService
             ]);
 
             DB::table('reservations')->where('id', $res->id)->update([
-                'applied_credit_amount' => $creditToApply,
+                'applied_credit_amount' => round((float) $res->applied_credit_amount + $creditToApply, 2),
                 'order_id' => $order->id,
                 'updated_at' => now(),
             ]);
@@ -853,6 +905,7 @@ class ReservationAvailabilityService
                     'applied_amount' => $creditToApply,
                     'previous_order_total' => $orderTotal,
                     'new_order_total' => $newTotal,
+                    'remaining_credit' => round($creditAvailable - $creditToApply, 2),
                 ]),
                 'ip_address' => request()->ip(),
                 'created_at' => now(),

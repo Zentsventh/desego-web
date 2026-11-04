@@ -24,7 +24,7 @@ return new class extends Migration
             DB::table('restaurant_tables')->whereIn('id', $ids)->where('is_online_reservable', false)->update(['is_online_reservable' => true]);
         }
         Schema::table('reservation_configurations', fn (Blueprint $table) => $table->dropColumn('online_table_ids'));
-        DB::statement("ALTER TABLE business_hours DROP COLUMN day_name, ADD COLUMN day_name VARCHAR(20) GENERATED ALWAYS AS (CASE day_of_week WHEN 1 THEN 'Lunes' WHEN 2 THEN 'Martes' WHEN 3 THEN 'Miércoles' WHEN 4 THEN 'Jueves' WHEN 5 THEN 'Viernes' WHEN 6 THEN 'Sábado' WHEN 7 THEN 'Domingo' END) VIRTUAL AFTER day_of_week");
+        DB::statement("ALTER TABLE business_hours DROP COLUMN day_name, ADD COLUMN day_name VARCHAR(20) GENERATED ALWAYS AS (CASE day_of_week WHEN 1 THEN 'Lunes' WHEN 2 THEN 'Martes' WHEN 3 THEN CONCAT('Mi',CHAR(0xC3A9 USING utf8mb4),'rcoles') WHEN 4 THEN 'Jueves' WHEN 5 THEN 'Viernes' WHEN 6 THEN CONCAT('S',CHAR(0xC3A1 USING utf8mb4),'bado') WHEN 7 THEN 'Domingo' END) VIRTUAL AFTER day_of_week");
     }
 
     /**

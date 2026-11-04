@@ -43,20 +43,42 @@ class ReservationApiController extends Controller
             'people' => 'required|integer|min:1|max:40',
             'date' => 'required|date_format:Y-m-d',
             'time' => 'required|date_format:H:i',
+            'table_ids' => 'sometimes|nullable|array|min:1|max:50',
+            'table_ids.*' => 'required|integer|distinct|min:1',
         ]);
 
         $config = $service->config();
         $duration = $service->estimateDuration((int) $data['people']);
+        $advancePerTable = (float) $config->advance_amount; // Cobro de S/ 10.00 por mesa
+
+        $tablesCount = 1;
+        $preferredIds = ! empty($data['table_ids']) ? array_map('intval', $data['table_ids']) : null;
+
+        if ($preferredIds) {
+            $tablesCount = count($preferredIds);
+        } else {
+            try {
+                $startUtc = $service->start($data['date'], $data['time'], (int) $data['people']);
+                $tables = $service->findCompatibleTables((int) $data['people'], $startUtc, $duration);
+                $tablesCount = max(1, count($tables));
+            } catch (\Throwable $e) {
+                $tablesCount = max(1, (int) ceil((int) $data['people'] / 4));
+            }
+        }
+
+        $totalAdvance = round($tablesCount * $advancePerTable, 2);
 
         return response()->json([
             'ok' => true,
-            'advance_amount' => (float) $config->advance_amount,
+            'advance_amount' => $totalAdvance,
+            'advance_per_table' => $advancePerTable,
+            'tables_count' => $tablesCount,
             'currency' => 'PEN',
             'estimated_duration_minutes' => $duration,
             'tolerance_minutes' => (int) $config->tolerance_minutes,
             'hold_duration_minutes' => (int) $config->hold_duration_minutes,
             'policy' => [
-                'advance_credit' => 'El anticipo de S/ 10.00 se descontará automáticamente de tu consumo final en el restaurante.',
+                'advance_credit' => 'El anticipo de S/ '.number_format($advancePerTable, 2).' por mesa (total S/ '.number_format($totalAdvance, 2).') se descontará automáticamente de tu consumo final en el restaurante.',
                 'tolerance' => "Cuentas con {$config->tolerance_minutes} minutos de tolerancia posterior a la hora reservada.",
                 'cancellation' => "Cancelación con reembolso disponible hasta {$config->cancellation_deadline_hours} horas antes de la reserva.",
             ],

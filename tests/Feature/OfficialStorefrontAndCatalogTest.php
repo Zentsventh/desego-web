@@ -16,6 +16,7 @@ class OfficialStorefrontAndCatalogTest extends TestCase
     protected function setUp(): void
     {
         $this->setUpRestaurantDatabase();
+        DB::table('products')->delete();
         (new OfficialCatalogSeeder)->run();
 
         $adminRoleId = DB::table('roles')->where('code', 'admin')->value('id') ?? 1;
@@ -36,7 +37,7 @@ class OfficialStorefrontAndCatalogTest extends TestCase
         ])->withHeader('X-CSRF-TOKEN', 'test-csrf-token');
     }
 
-    public function test_catalog_contains_exactly_35_official_dishes_and_correct_categories(): void
+    public function test_catalog_contains_exactly_55_official_dishes_and_correct_categories(): void
     {
         $response = $this->get('/api/storefront');
         $response->assertOk();
